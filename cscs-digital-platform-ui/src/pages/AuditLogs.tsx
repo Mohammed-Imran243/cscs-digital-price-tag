@@ -1,0 +1,662 @@
+import React, { useState, useEffect } from 'react';
+import {
+  RefreshCw,
+  ClipboardList,
+  AlertTriangle,
+  Calendar,
+  Store as StoreIcon,
+  Tag,
+  Clock,
+  CheckCircle2,
+  XCircle,
+  User,
+  Loader2
+} from 'lucide-react';
+import { storeService } from '../services/storeService';
+import type { Store } from '../services/storeService';
+import { getAuditLogs } from '../services/auditLogService';
+import type { AuditLog } from '../services/auditLogService';
+import { getPaginationRange } from '../utils/paginationUtils';
+
+const AuditLogs: React.FC = () => {
+  const [stores, setStores] = useState<Store[]>([]);
+  const [logs, setLogs] = useState<AuditLog[]>([]);
+  const [storesLoading, setStoresLoading] = useState(true);
+  const [logsLoading, setLogsLoading] = useState(false);
+  const [error, setError] = useState('');
+  
+  // Filter states
+  const [selectedStoreId, setSelectedStoreId] = useState('');
+  const [startDate, setStartDate] = useState(() => {
+    const d = new Date();
+    d.setDate(d.getDate() - 7); // Default to last 7 days
+    return d.toISOString().split('T')[0];
+  });
+  const [endDate, setEndDate] = useState(() => {
+    return new Date().toISOString().split('T')[0];
+  });
+  const [selectedOperation, setSelectedOperation] = useState<number | ''>('');
+
+  // Pagination states
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+  const [totalCount, setTotalCount] = useState(0);
+
+  // Fetch stores on mount
+  useEffect(() => {
+    const fetchStores = async () => {
+      setStoresLoading(true);
+      setError('');
+      try {
+        const response = await storeService.getAllStores();
+        setStores(response || []);
+        if (response && response.length > 0) {
+          // Pre-select first store if available
+          setSelectedStoreId(response[0].storeId || response[0].id || '');
+        }
+      } catch (err: any) {
+        setError(err.message || 'Failed to fetch stores list.');
+        console.error(err);
+      } finally {
+        setStoresLoading(false);
+      }
+    };
+    fetchStores();
+  }, []);
+
+  // Fetch logs whenever store, dates, operation, page, or page size changes
+  const fetchLogs = async () => {
+    if (!selectedStoreId) return;
+    setLogsLoading(true);
+    setError('');
+    try {
+      const pageIndex = currentPage - 1; // Backend expects 0-based page
+      const response = await getAuditLogs(
+        selectedStoreId,
+        startDate,
+        endDate,
+        pageIndex,
+        pageSize,
+        selectedOperation === '' ? undefined : selectedOperation
+      );
+      setLogs(response.content || []);
+      setTotalCount(response.totalElements || 0);
+    } catch (err: any) {
+      setError(err.message || 'Failed to retrieve audit logs from Dragon ESL.');
+      console.error(err);
+      setLogs([]);
+      setTotalCount(0);
+    } finally {
+      setLogsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchLogs();
+  }, [selectedStoreId, startDate, endDate, selectedOperation, currentPage, pageSize]);
+
+  // Reset page to 1 when filters change
+  const handleStoreChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setSelectedStoreId(e.target.value);
+    setCurrentPage(1);
+  };
+
+  const handleStartDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setStartDate(e.target.value);
+    setCurrentPage(1);
+  };
+
+  const handleEndDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setEndDate(e.target.value);
+    setCurrentPage(1);
+  };
+
+  const handleOperationChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const val = e.target.value;
+    setSelectedOperation(val === '' ? '' : Number(val));
+    setCurrentPage(1);
+  };
+
+  const totalPages = Math.ceil(totalCount / pageSize) || 1;
+
+  const renderStatusBadge = (status: number, statusText: string) => {
+    // Green for success
+    if (status === 2 || status === 14) {
+      return (
+        <span className="status-badge success">
+          <CheckCircle2 size={14} />
+          {statusText}
+        </span>
+      );
+    }
+    // Orange/yellow for manual retry or unknown
+    if (status === 7) {
+      return (
+        <span className="status-badge warning">
+          <Clock size={14} />
+          {statusText}
+        </span>
+      );
+    }
+    // Red/Danger for others (failures)
+    return (
+      <span className="status-badge error">
+        <XCircle size={14} />
+        {statusText}
+      </span>
+    );
+  };
+
+  return (
+    <div className="audit-logs-container">
+      <div className="audit-logs-page-header">
+        <div>
+          <h2>Audit Logs</h2>
+          <p className="text-muted">Query and review operation history logs from Dragon ESL</p>
+        </div>
+        <div className="audit-logs-header-actions">
+          <button 
+            className="btn-secondary" 
+            onClick={fetchLogs} 
+            disabled={logsLoading || !selectedStoreId}
+          >
+            <RefreshCw size={18} className={logsLoading ? 'animate-spin' : ''} /> Refresh
+          </button>
+        </div>
+      </div>
+
+      {/* Filter panel */}
+      <div className="audit-logs-filters glass-card">
+        <div className="filter-group">
+          <label>
+            <StoreIcon size={16} /> Store Location *
+          </label>
+          {storesLoading ? (
+            <div className="filter-loader">
+              <Loader2 className="animate-spin" size={16} /> Loading stores...
+            </div>
+          ) : (
+            <select 
+              value={selectedStoreId} 
+              onChange={handleStoreChange}
+              className="glass-select"
+            >
+              <option value="" disabled>-- Select a store --</option>
+              {stores.map(store => (
+                <option key={store.storeId} value={store.storeId}>
+                  {store.storeName} ({store.storeId})
+                </option>
+              ))}
+            </select>
+          )}
+        </div>
+
+        <div className="filter-group">
+          <label>
+            <Calendar size={16} /> Start Date *
+          </label>
+          <input 
+            type="date" 
+            value={startDate} 
+            onChange={handleStartDateChange}
+            className="glass-input" 
+          />
+        </div>
+
+        <div className="filter-group">
+          <label>
+            <Calendar size={16} /> End Date *
+          </label>
+          <input 
+            type="date" 
+            value={endDate} 
+            onChange={handleEndDateChange}
+            className="glass-input" 
+          />
+        </div>
+
+        <div className="filter-group">
+          <label>
+            <Tag size={16} /> Operation Type
+          </label>
+          <select 
+            value={selectedOperation} 
+            onChange={handleOperationChange}
+            className="glass-select"
+          >
+            <option value="">All Operations</option>
+            <option value={1}>Bind Tag</option>
+            <option value={2}>Unbind Tag</option>
+            <option value={3}>Force Refresh</option>
+            <option value={4}>Product Change</option>
+            <option value={5}>Template Change</option>
+            <option value={13}>Force LED Flash</option>
+            <option value={14}>Smart Reissue</option>
+          </select>
+        </div>
+      </div>
+
+      {/* Main content display */}
+      {!selectedStoreId ? (
+        <div className="audit-logs-empty-state glass-card">
+          <StoreIcon size={48} />
+          <h3>No Store Selected</h3>
+          <p>Please select a store from the dropdown menu to fetch its audit logs.</p>
+        </div>
+      ) : logsLoading && logs.length === 0 ? (
+        <div className="audit-logs-loading-state">
+          <Loader2 className="animate-spin" size={40} />
+          <p>Loading audit logs from Dragon ESL...</p>
+        </div>
+      ) : error ? (
+        <div className="audit-logs-error-state glass-card">
+          <AlertTriangle size={36} className="text-danger" />
+          <p>{error}</p>
+          <button onClick={fetchLogs} className="btn-primary">Try Again</button>
+        </div>
+      ) : logs.length === 0 ? (
+        <div className="audit-logs-empty-state glass-card">
+          <ClipboardList size={48} />
+          <h3>No Logs Found</h3>
+          <p>There are no recorded operation logs for this store in the selected date range.</p>
+        </div>
+      ) : (
+        <>
+          <div className="audit-logs-table-wrapper glass-card">
+            <table className="audit-logs-table">
+              <thead>
+                <tr>
+                  <th>Timestamp</th>
+                  <th>Operator</th>
+                  <th>Operation</th>
+                  <th>Barcode & ESL</th>
+                  <th>Item Details</th>
+                  <th>Price</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {logs.map((logItem) => (
+                  <tr key={logItem.id || Math.random()}>
+                    <td className="col-time">
+                      <div className="time-primary">{logItem.createdTime || 'N/A'}</div>
+                      {logItem.feedbackTime && (
+                        <div className="time-secondary">Feedback: {logItem.feedbackTime}</div>
+                      )}
+                    </td>
+                    <td className="col-operator">
+                      <div className="operator-wrapper">
+                        <User size={14} className="text-muted" />
+                        <span>{logItem.operator || 'System'}</span>
+                      </div>
+                    </td>
+                    <td className="col-operation">
+                      <span className="operation-text">{logItem.operationText}</span>
+                    </td>
+                    <td className="col-barcodes">
+                      <div className="barcode-pair">
+                        {logItem.itemBarCode && (
+                          <div className="barcode-item">
+                            <span className="label">Item:</span>
+                            <span className="value">{logItem.itemBarCode}</span>
+                          </div>
+                        )}
+                        {logItem.priceTagBarCode && (
+                          <div className="barcode-item">
+                            <span className="label">ESL:</span>
+                            <span className="value tag-value">{logItem.priceTagBarCode}</span>
+                          </div>
+                        )}
+                      </div>
+                    </td>
+                    <td className="col-item-details">
+                      <div className="item-title" title={logItem.itemName || ''}>
+                        {logItem.itemName || 'N/A'}
+                      </div>
+                      {logItem.model && (
+                        <div className="item-model">Model: {logItem.model}</div>
+                      )}
+                    </td>
+                    <td className="col-price">
+                      {logItem.price ? (
+                        <span className="price-tag">${parseFloat(logItem.price).toFixed(2)}</span>
+                      ) : (
+                        <span className="text-muted">-</span>
+                      )}
+                    </td>
+                    <td className="col-status">
+                      {renderStatusBadge(logItem.status, logItem.statusText)}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Pagination Controls */}
+          <div className="dragonesl-pagination-bar glass-card">
+            <div className="pagination-left">
+              <span className="pagination-total">Total {totalCount} items</span>
+              <select
+                value={pageSize}
+                onChange={(e) => {
+                  setPageSize(Number(e.target.value));
+                  setCurrentPage(1);
+                }}
+                className="pagination-size-select"
+              >
+                <option value={5}>5 / page</option>
+                <option value={10}>10 / page</option>
+                <option value={20}>20 / page</option>
+                <option value={50}>50 / page</option>
+              </select>
+            </div>
+
+            <div className="pagination-right">
+              <button
+                type="button"
+                disabled={currentPage === 1}
+                onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                className="pagination-arrow-btn"
+              >
+                &lt;
+              </button>
+
+              {getPaginationRange(currentPage, totalPages, 1).map((pageNum, idx) => (
+                pageNum === '...' ? (
+                  <span key={`dots-${idx}`} className="pagination-dots">...</span>
+                ) : (
+                  <button
+                    key={pageNum}
+                    type="button"
+                    onClick={() => setCurrentPage(Number(pageNum))}
+                    className={`pagination-num-btn ${currentPage === pageNum ? 'active' : ''}`}
+                  >
+                    {pageNum}
+                  </button>
+                )
+              ))}
+
+              <button
+                type="button"
+                disabled={currentPage === totalPages || totalPages === 0}
+                onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+                className="pagination-arrow-btn"
+              >
+                &gt;
+              </button>
+
+              <div className="pagination-jump">
+                <span>Go to</span>
+                <input
+                  type="number"
+                  min={1}
+                  max={totalPages || 1}
+                  value={currentPage}
+                  onChange={(e) => {
+                    const val = Number(e.target.value);
+                    if (val >= 1 && val <= totalPages) {
+                      setCurrentPage(val);
+                    }
+                  }}
+                  className="pagination-jump-input"
+                />
+              </div>
+            </div>
+          </div>
+        </>
+      )}
+
+      <style>{`
+        .audit-logs-container {
+          padding: 24px;
+          display: flex;
+          flex-direction: column;
+          gap: 24px;
+        }
+
+        .audit-logs-page-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+        }
+
+        .audit-logs-page-header h2 {
+          font-size: 24px;
+          font-weight: 700;
+        }
+
+        .audit-logs-header-actions {
+          display: flex;
+          gap: 12px;
+        }
+
+        /* Filter Panel Styles */
+        .audit-logs-filters {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+          gap: 20px;
+          padding: 20px;
+        }
+
+        .filter-group {
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
+        }
+
+        .filter-group label {
+          font-size: 13px;
+          color: var(--text-muted);
+          font-weight: 600;
+          display: flex;
+          align-items: center;
+          gap: 6px;
+        }
+
+        .filter-loader {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          font-size: 14px;
+          color: var(--text-secondary);
+          height: 42px;
+        }
+
+        .glass-input, .glass-select {
+          background: rgba(255, 255, 255, 0.05);
+          border: 1px solid rgba(255, 255, 255, 0.1);
+          padding: 10px 14px;
+          border-radius: 8px;
+          color: var(--text-primary);
+          font-size: 14px;
+          outline: none;
+          height: 42px;
+          transition: border-color 0.2s, background 0.2s;
+        }
+
+        .glass-select option {
+          background-color: #1e1b29; /* Fallback for dark theme options list */
+          color: #fff;
+        }
+
+        .glass-input:focus, .glass-select:focus {
+          border-color: var(--primary-color);
+          background: rgba(255, 255, 255, 0.08);
+        }
+
+        /* Table Design */
+        .audit-logs-table-wrapper {
+          padding: 0;
+          overflow-x: auto;
+          border-radius: 12px;
+        }
+
+        .audit-logs-table {
+          width: 100%;
+          border-collapse: collapse;
+          text-align: left;
+          font-size: 14px;
+        }
+
+        .audit-logs-table th {
+          background: rgba(255, 255, 255, 0.02);
+          padding: 16px 20px;
+          color: var(--text-muted);
+          font-weight: 600;
+          border-bottom: 1px solid var(--glass-border);
+          text-transform: uppercase;
+          font-size: 12px;
+          letter-spacing: 0.5px;
+        }
+
+        .audit-logs-table td {
+          padding: 16px 20px;
+          border-bottom: 1px solid var(--glass-border);
+          vertical-align: middle;
+        }
+
+        .audit-logs-table tbody tr:hover {
+          background: rgba(255, 255, 255, 0.01);
+        }
+
+        /* Cell Specific Styling */
+        .col-time .time-primary {
+          font-weight: 600;
+          color: var(--text-primary);
+        }
+
+        .col-time .time-secondary {
+          font-size: 11px;
+          color: var(--text-muted);
+          margin-top: 4px;
+        }
+
+        .col-operator .operator-wrapper {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          color: var(--text-secondary);
+        }
+
+        .col-operation .operation-text {
+          font-weight: 600;
+          color: #a78bfa;
+          background: rgba(167, 139, 250, 0.1);
+          padding: 4px 8px;
+          border-radius: 6px;
+          display: inline-block;
+        }
+
+        .col-barcodes .barcode-pair {
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+        }
+
+        .col-barcodes .barcode-item {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          font-family: monospace;
+          font-size: 12px;
+        }
+
+        .col-barcodes .barcode-item .label {
+          color: var(--text-muted);
+          width: 32px;
+        }
+
+        .col-barcodes .barcode-item .value {
+          color: var(--text-secondary);
+        }
+
+        .col-barcodes .barcode-item .tag-value {
+          color: #60a5fa;
+        }
+
+        .col-item-details .item-title {
+          font-weight: 600;
+          color: var(--text-primary);
+          max-width: 250px;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
+
+        .col-item-details .item-model {
+          font-size: 11px;
+          color: var(--text-muted);
+          margin-top: 4px;
+        }
+
+        .col-price .price-tag {
+          font-weight: 700;
+          color: var(--success-color);
+          background: rgba(16, 185, 129, 0.08);
+          padding: 4px 8px;
+          border-radius: 6px;
+        }
+
+        /* Status Badge Styling */
+        .status-badge {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          padding: 6px 12px;
+          border-radius: 20px;
+          font-size: 12px;
+          font-weight: 700;
+          text-transform: capitalize;
+        }
+
+        .status-badge.success {
+          background: rgba(16, 185, 129, 0.15);
+          color: var(--success-color);
+        }
+
+        .status-badge.warning {
+          background: rgba(245, 158, 11, 0.15);
+          color: var(--warning-color);
+        }
+
+        .status-badge.error {
+          background: rgba(239, 68, 68, 0.15);
+          color: var(--danger-color);
+        }
+
+        /* States */
+        .audit-logs-loading-state, .audit-logs-empty-state, .audit-logs-error-state {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          padding: 60px;
+          text-align: center;
+          color: var(--text-muted);
+          gap: 16px;
+        }
+
+        .audit-logs-error-state {
+          background: rgba(239, 68, 68, 0.03);
+          border: 1px solid rgba(239, 68, 68, 0.1);
+        }
+
+        .animate-spin {
+          animation: spin 1s linear infinite;
+        }
+
+        .text-danger {
+          color: var(--danger-color);
+        }
+
+        @keyframes spin {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
+      `}</style>
+    </div>
+  );
+};
+
+export default AuditLogs;
