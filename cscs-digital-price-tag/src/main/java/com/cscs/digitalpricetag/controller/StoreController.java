@@ -1,0 +1,74 @@
+package com.cscs.digitalpricetag.controller;
+
+import com.cscs.digitalpricetag.dto.ApiResponse;
+import com.cscs.digitalpricetag.dto.PagedResponse;
+import com.cscs.digitalpricetag.dto.StoreResponse;
+import com.cscs.digitalpricetag.service.StoreService;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+@RestController
+@RequestMapping("/stores")
+public class StoreController {
+
+    private final StoreService storeService;
+
+    public StoreController(StoreService storeService) {
+        this.storeService = storeService;
+    }
+
+    /**
+     * GET /api/stores/all
+     * Returns a flat list of ALL stores for the merchant (no pagination).
+     * Uses Dragon ESL: GET /zk/store/getAllStoresByMerchant
+     */
+    @GetMapping("/all")
+    public ResponseEntity<ApiResponse<java.util.List<StoreResponse>>> getAllStores() {
+        java.util.List<StoreResponse> stores = storeService.getAllStores();
+        return ResponseEntity.ok(ApiResponse.success("All stores fetched successfully", stores));
+    }
+
+    /**
+     * GET /api/stores?page=0&size=10&search=main
+     * Protected — requires: Authorization: Bearer <jwt>
+     */
+    @GetMapping
+    public ResponseEntity<ApiResponse<PagedResponse<StoreResponse>>> getStores(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) String search) {
+
+        PagedResponse<StoreResponse> stores = storeService.getStores(page, size, search);
+        return ResponseEntity.ok(ApiResponse.success("Stores fetched successfully", stores));
+    }
+
+    @PostMapping
+    public ResponseEntity<ApiResponse<StoreResponse>> addStore(@RequestBody com.cscs.digitalpricetag.dto.StoreCreateRequest request) {
+        StoreResponse store = storeService.addStore(request);
+        return ResponseEntity.ok(ApiResponse.success("Store added successfully", store));
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<ApiResponse<StoreResponse>> updateStore(@PathVariable String id, @RequestBody com.cscs.digitalpricetag.dto.StoreUpdateRequest request) {
+        StoreResponse store = storeService.updateStore(id, request);
+        return ResponseEntity.ok(ApiResponse.success("Store updated successfully", store));
+    }
+
+    @PutMapping("/{id}/disable")
+    public ResponseEntity<ApiResponse<Void>> disableStore(@PathVariable String id) {
+        storeService.disableStore(id);
+        return ResponseEntity.ok(ApiResponse.success("Store disabled successfully", null));
+    }
+
+    @PutMapping("/{id}/enable")
+    public ResponseEntity<ApiResponse<Void>> enableStore(@PathVariable String id) {
+        storeService.enableStore(id);
+        return ResponseEntity.ok(ApiResponse.success("Store enabled successfully", null));
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<ApiResponse<Void>> deleteStore(@PathVariable String id) {
+        storeService.deleteStore(id);
+        return ResponseEntity.ok(ApiResponse.success("Store deleted successfully", null));
+    }
+}
