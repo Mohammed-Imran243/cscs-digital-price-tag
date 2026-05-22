@@ -1,7 +1,9 @@
-import React from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Loader2 } from 'lucide-react';
 import type { Store } from '../../services/storeService';
 import { deviceService } from '../../services/deviceService';
+import { getProducts } from '../../services/productService';
+import type { Product } from '../../services/productService';
 
 interface BindModalProps {
   bindModalOpen: boolean;
@@ -54,6 +56,105 @@ export const BindModal: React.FC<BindModalProps> = ({
   handleBind,
   handleUnbind,
 }) => {
+  const [storeProducts, setStoreProducts] = useState<Product[]>([]);
+  const [loadingProducts, setLoadingProducts] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  const [hasTypedProduct, setHasTypedProduct] = useState(false);
+
+  const [eslSearchQuery, setEslSearchQuery] = useState('');
+  const [isEslDropdownOpen, setIsEslDropdownOpen] = useState(false);
+  const eslDropdownRef = useRef<HTMLDivElement>(null);
+  const [hasTypedEsl, setHasTypedEsl] = useState(false);
+
+  // Fetch products of the selected store when store changes or modal opens
+  useEffect(() => {
+    if (bindModalOpen && bindFormStoreId) {
+      const fetchProducts = async () => {
+        setLoadingProducts(true);
+        try {
+          const response = await getProducts(bindFormStoreId, 0, 1000);
+          if (response && response.content) {
+            setStoreProducts(response.content);
+          } else {
+            setStoreProducts([]);
+          }
+        } catch (err) {
+          console.error('Failed to fetch products for store in BindModal', err);
+          setStoreProducts([]);
+        } finally {
+          setLoadingProducts(false);
+        }
+      };
+      fetchProducts();
+    } else {
+      setStoreProducts([]);
+    }
+  }, [bindModalOpen, bindFormStoreId]);
+
+  // Keep search query in sync with the selected item barcode
+  useEffect(() => {
+    if (!bindFormItemBarCode) {
+      setSearchQuery('');
+      setHasTypedProduct(false);
+    } else {
+      const matched = storeProducts.find(p => p.barcode === bindFormItemBarCode);
+      const displayVal = matched ? `${matched.itemName || 'Unnamed Item'} (${matched.barcode || ''})` : bindFormItemBarCode;
+      if (displayVal !== searchQuery) {
+        setSearchQuery(displayVal);
+        setHasTypedProduct(false);
+      }
+    }
+  }, [bindFormItemBarCode, storeProducts]);
+
+  // Keep ESL search query in sync with the selected ESL barcode
+  useEffect(() => {
+    if (!bindFormEslBarcode) {
+      setEslSearchQuery('');
+      setHasTypedEsl(false);
+    } else {
+      const matched = availableEsls.find(e => e.priceTagCode === bindFormEslBarcode);
+      const displayVal = matched ? `${matched.priceTagCode} (${matched.oemModel || 'N/A'})` : bindFormEslBarcode;
+      if (displayVal !== eslSearchQuery) {
+        setEslSearchQuery(displayVal);
+        setHasTypedEsl(false);
+      }
+    }
+  }, [bindFormEslBarcode, availableEsls]);
+
+  // Click outside to close dropdowns
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsDropdownOpen(false);
+        setHasTypedProduct(false);
+      }
+      if (eslDropdownRef.current && !eslDropdownRef.current.contains(event.target as Node)) {
+        setIsEslDropdownOpen(false);
+        setHasTypedEsl(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const filteredProducts = storeProducts.filter(p => {
+    if (!hasTypedProduct) return true;
+    const term = (searchQuery || '').toLowerCase();
+    const itemName = (p.itemName || '').toLowerCase();
+    const barcode = (p.barcode || '').toLowerCase();
+    return itemName.includes(term) || barcode.includes(term);
+  });
+
+  const filteredEsls = availableEsls.filter(e => {
+    if (!hasTypedEsl) return true;
+    const term = (eslSearchQuery || '').toLowerCase();
+    const tagCode = (e.priceTagCode || '').toLowerCase();
+    const model = (e.oemModel || '').toLowerCase();
+    return tagCode.includes(term) || model.includes(term);
+  });
+
   if (!bindModalOpen) return null;
 
   return (
@@ -116,37 +217,101 @@ export const BindModal: React.FC<BindModalProps> = ({
               </select>
             </div>
 
-            {/* Item Barcode */}
-            <div className="bind-field-group">
-              <label className="bind-field-label">Item Barcode <span className="req">*</span></label>
-              <input
-                className="bind-input"
-                type="text"
-                placeholder="e.g. 1010117A003"
-                value={bindFormItemBarCode}
-                onChange={e => setBindFormItemBarCode(e.target.value)}
-              />
+            {/* Item / Product Searchable Dropdown */}
+            <div className="bind-field-group" ref={dropdownRef}>
+              <label className="bind-field-label">Item / Product <span className="req">*</span></label>
+              <div className="searchable-dropdown-wrapper">
+                <input
+                  className="bind-input dropdown-input"
+                  type="text"
+                  placeholder="Search item by name or barcode..."
+                  value={searchQuery}
+                  onChange={e => {
+                    const val = e.target.value;
+                    setSearchQuery(val);
+                    setBindFormItemBarCode(val);
+                    setIsDropdownOpen(true);
+                    setHasTypedProduct(true);
+                  }}
+                  onFocus={() => {
+                    setIsDropdownOpen(true);
+                    setHasTypedProduct(false);
+                  }}
+                />
+                {isDropdownOpen && (
+                  <div className="dropdown-options-list">
+                    {loadingProducts ? (
+                      <div className="dropdown-loading">Loading items...</div>
+                    ) : filteredProducts.length === 0 ? (
+                      <div className="dropdown-no-options">No items found</div>
+                    ) : (
+                      filteredProducts.map(p => (
+                        <div
+                          key={p.id}
+                          className="dropdown-option-item"
+                          onClick={() => {
+                            setBindFormItemBarCode(p.barcode);
+                            setSearchQuery(`${p.itemName} (${p.barcode})`);
+                            setIsDropdownOpen(false);
+                            setHasTypedProduct(false);
+                          }}
+                        >
+                          <div className="option-item-name">{p.itemName}</div>
+                          <div className="option-item-barcode">Barcode: {p.barcode}</div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                )}
+              </div>
             </div>
 
-            {/* ESL Barcode */}
-            <div className="bind-field-group">
+            {/* ESL Barcode Searchable Dropdown */}
+            <div className="bind-field-group" ref={eslDropdownRef}>
               <label className="bind-field-label">ESL Barcode <span className="req">*</span></label>
-              <div className="bind-input-with-hint">
+              <div className="searchable-dropdown-wrapper">
                 <input
-                  className="bind-input"
+                  className="bind-input dropdown-input"
                   type="text"
-                  placeholder="e.g. 811952808"
-                  value={bindFormEslBarcode}
-                  onChange={e => setBindFormEslBarcode(e.target.value)}
-                  list="available-esl-list"
+                  placeholder="Search ESL barcode or model..."
+                  value={eslSearchQuery}
+                  onChange={e => {
+                    const val = e.target.value;
+                    setEslSearchQuery(val);
+                    setBindFormEslBarcode(val);
+                    setIsEslDropdownOpen(true);
+                    setHasTypedEsl(true);
+                  }}
+                  onFocus={() => {
+                    setIsEslDropdownOpen(true);
+                    setHasTypedEsl(false);
+                  }}
                 />
-                <datalist id="available-esl-list">
-                  {availableEsls.map(e => (
-                    <option key={e.priceTagCode} value={e.priceTagCode}>
-                      {e.priceTagCode} ({e.oemModel || 'N/A'}) — {e.state}
-                    </option>
-                  ))}
-                </datalist>
+                {isEslDropdownOpen && (
+                  <div className="dropdown-options-list">
+                    {availableEsls.length === 0 ? (
+                      <div className="dropdown-no-options">No available ESLs found</div>
+                    ) : filteredEsls.length === 0 ? (
+                      <div className="dropdown-no-options">No matching ESLs found</div>
+                    ) : (
+                      filteredEsls.map(e => (
+                        <div
+                          key={e.priceTagCode}
+                          className="dropdown-option-item"
+                          onClick={() => {
+                            setBindFormEslBarcode(e.priceTagCode);
+                            setEslSearchQuery(`${e.priceTagCode} (${e.oemModel || 'N/A'})`);
+                            setIsEslDropdownOpen(false);
+                            setHasTypedEsl(false);
+                          }}
+                        >
+                          <div className="option-item-name">{e.priceTagCode}</div>
+                          <div className="option-item-barcode">Model: {e.oemModel || 'N/A'} — {e.state}</div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                )}
               </div>
               {availableEsls.length > 0 && (
                 <span className="bind-hint">{availableEsls.length} unbound ESL(s) available</span>
