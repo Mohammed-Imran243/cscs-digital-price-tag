@@ -22,3 +22,5 @@ public class DragonStoreResponse {
     public boolean isSuccess() { return success && (code != null && (code == 10000 || code == 14010 || code == 14012 || code == 200)); }
     public void setSuccess(boolean success) { this.success = success; }
 }
+
+

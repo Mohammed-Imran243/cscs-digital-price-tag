@@ -1,6 +1,12 @@
 package com.cscs.digitalpricetag.service;
 
-import com.cscs.digitalpricetag.dto.*;
+import com.cscs.digitalpricetag.dto.ApiResponse;
+import com.cscs.digitalpricetag.dto.api.PagedResponse;
+import com.cscs.digitalpricetag.dto.api.ProductCreateRequest;
+import com.cscs.digitalpricetag.dto.api.ProductResponse;
+import com.cscs.digitalpricetag.dto.api.PriceUpdateRequest;
+import com.cscs.digitalpricetag.dto.dragon.DragonProductListResponse;
+import com.cscs.digitalpricetag.dto.dragon.DragonUpdateItemResponse;
 import com.cscs.digitalpricetag.exception.DragonEslException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

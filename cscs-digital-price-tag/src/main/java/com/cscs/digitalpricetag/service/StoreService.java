@@ -1,8 +1,8 @@
 package com.cscs.digitalpricetag.service;
 
-import com.cscs.digitalpricetag.dto.DragonStoreListResponse;
-import com.cscs.digitalpricetag.dto.PagedResponse;
-import com.cscs.digitalpricetag.dto.StoreResponse;
+import com.cscs.digitalpricetag.dto.dragon.DragonStoreListResponse;
+import com.cscs.digitalpricetag.dto.api.PagedResponse;
+import com.cscs.digitalpricetag.dto.api.StoreResponse;
 import com.cscs.digitalpricetag.exception.DragonEslException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -11,9 +11,9 @@ import org.springframework.stereotype.Service;
 
 import java.util.*;
 import java.util.stream.Collectors;
-import com.cscs.digitalpricetag.dto.StoreCreateRequest;
-import com.cscs.digitalpricetag.dto.StoreUpdateRequest;
-import com.cscs.digitalpricetag.dto.DragonStoreResponse;
+import com.cscs.digitalpricetag.dto.api.StoreCreateRequest;
+import com.cscs.digitalpricetag.dto.api.StoreUpdateRequest;
+import com.cscs.digitalpricetag.dto.dragon.DragonStoreResponse;
 
 @Service
 public class StoreService {
@@ -340,3 +340,4 @@ public class StoreService {
         return r;
     }
 }
+

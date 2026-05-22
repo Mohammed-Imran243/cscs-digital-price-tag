@@ -1,6 +1,6 @@
 package com.cscs.digitalpricetag.service;
 
-import com.cscs.digitalpricetag.dto.DragonTemplateGenericResponse;
+import com.cscs.digitalpricetag.dto.dragon.DragonTemplateGenericResponse;
 import com.cscs.digitalpricetag.exception.DragonEslException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -98,3 +98,4 @@ public class RoleService {
         }
     }
 }
+

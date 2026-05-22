@@ -38,3 +38,5 @@ public class DragonPublicKeyResponse {
         return code != null && (code == 10000 || code == 200);
     }
 }
+
+

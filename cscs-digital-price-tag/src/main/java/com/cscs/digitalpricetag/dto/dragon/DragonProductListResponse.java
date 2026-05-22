@@ -151,3 +151,5 @@ public class DragonProductListResponse {
         public void setCustFeature2(String custFeature2) { this.custFeature2 = custFeature2; }
     }
 }
+
+

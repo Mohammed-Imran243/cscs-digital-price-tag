@@ -1,7 +1,7 @@
 package com.cscs.digitalpricetag.controller;
 
 import com.cscs.digitalpricetag.dto.ApiResponse;
-import com.cscs.digitalpricetag.dto.DragonTemplateListResponse;
+import com.cscs.digitalpricetag.dto.dragon.DragonTemplateListResponse;
 import com.cscs.digitalpricetag.service.TemplateService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -80,3 +80,4 @@ public class TemplateController {
         return ResponseEntity.ok(ApiResponse.success("Template deleted successfully", templateService.deleteTemplate(id, storeId, isCompel)));
     }
 }
+

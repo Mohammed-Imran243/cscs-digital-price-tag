@@ -39,3 +39,5 @@ public class DragonLogRequest {
     public String getTimeCostOrder() { return timeCostOrder; }
     public void setTimeCostOrder(String timeCostOrder) { this.timeCostOrder = timeCostOrder; }
 }
+
+

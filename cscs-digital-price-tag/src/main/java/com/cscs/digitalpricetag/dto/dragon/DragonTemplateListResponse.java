@@ -113,3 +113,5 @@ public class DragonTemplateListResponse {
         public void setUpdateTime(String updateTime) { this.updateTime = updateTime; }
     }
 }
+
+

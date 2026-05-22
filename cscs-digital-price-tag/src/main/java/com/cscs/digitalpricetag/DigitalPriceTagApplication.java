@@ -56,8 +56,8 @@ public class DigitalPriceTagApplication implements CommandLineRunner {
             System.out.println("Querying templates for Al Naseem Branch (1776682671415) as Long...");
             Object res = templateService.getTemplates(0, 10, params);
             System.out.println("Al Naseem templates result: " + res);
-            if (res instanceof com.cscs.digitalpricetag.dto.DragonTemplateListResponse) {
-                com.cscs.digitalpricetag.dto.DragonTemplateListResponse listRes = (com.cscs.digitalpricetag.dto.DragonTemplateListResponse) res;
+            if (res instanceof com.cscs.digitalpricetag.dto.dragon.DragonTemplateListResponse) {
+                com.cscs.digitalpricetag.dto.dragon.DragonTemplateListResponse listRes = (com.cscs.digitalpricetag.dto.dragon.DragonTemplateListResponse) res;
                 System.out.println("Al Naseem templates count: " + (listRes.getData() != null ? listRes.getData().getTotalElements() : 0));
                 if (listRes.getData() != null && listRes.getData().getContent() != null) {
                     listRes.getData().getContent().forEach(t -> {
@@ -77,8 +77,8 @@ public class DigitalPriceTagApplication implements CommandLineRunner {
             System.out.println("Querying templates for Al-badiaa Branch (1776840494702) as Long...");
             Object res = templateService.getTemplates(0, 10, params);
             System.out.println("Al-badiaa templates result: " + res);
-            if (res instanceof com.cscs.digitalpricetag.dto.DragonTemplateListResponse) {
-                com.cscs.digitalpricetag.dto.DragonTemplateListResponse listRes = (com.cscs.digitalpricetag.dto.DragonTemplateListResponse) res;
+            if (res instanceof com.cscs.digitalpricetag.dto.dragon.DragonTemplateListResponse) {
+                com.cscs.digitalpricetag.dto.dragon.DragonTemplateListResponse listRes = (com.cscs.digitalpricetag.dto.dragon.DragonTemplateListResponse) res;
                 System.out.println("Al-badiaa templates count: " + (listRes.getData() != null ? listRes.getData().getTotalElements() : 0));
             }
         } catch (Exception e) {

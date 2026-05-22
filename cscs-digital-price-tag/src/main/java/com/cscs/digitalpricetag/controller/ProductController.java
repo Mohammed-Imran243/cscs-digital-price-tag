@@ -1,9 +1,10 @@
 package com.cscs.digitalpricetag.controller;
 
 import com.cscs.digitalpricetag.dto.ApiResponse;
-import com.cscs.digitalpricetag.dto.PagedResponse;
-import com.cscs.digitalpricetag.dto.PriceUpdateRequest;
-import com.cscs.digitalpricetag.dto.ProductResponse;
+import com.cscs.digitalpricetag.dto.api.PagedResponse;
+import com.cscs.digitalpricetag.dto.api.PriceUpdateRequest;
+import com.cscs.digitalpricetag.dto.api.ProductCreateRequest;
+import com.cscs.digitalpricetag.dto.api.ProductResponse;
 import com.cscs.digitalpricetag.service.ProductService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
@@ -25,7 +26,7 @@ public class ProductController {
      * Creates a new product in the Dragon ESL system.
      */
     @PostMapping
-    public ResponseEntity<ApiResponse<Void>> createProduct(@Valid @RequestBody com.cscs.digitalpricetag.dto.ProductCreateRequest request) {
+    public ResponseEntity<ApiResponse<Void>> createProduct(@Valid @RequestBody ProductCreateRequest request) {
         productService.createProduct(request);
         return ResponseEntity.ok(ApiResponse.success("Product created successfully", null));
     }
@@ -108,3 +109,4 @@ public class ProductController {
         return ResponseEntity.ok(ApiResponse.success("Product deleted globally", null));
     }
 }
+

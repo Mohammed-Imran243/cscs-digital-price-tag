@@ -22,3 +22,5 @@ public class DragonTemplateGenericResponse {
     public boolean isSuccess() { return (success) || (code != null && ((code >= 10000 && code < 11000) || code == 200 || code == 12003)); }
     public void setSuccess(boolean success) { this.success = success; }
 }
+
+

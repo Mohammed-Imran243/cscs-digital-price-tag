@@ -2,8 +2,8 @@ package com.cscs.digitalpricetag.controller;
 
 import com.cscs.digitalpricetag.dto.ApiResponse;
 import com.cscs.digitalpricetag.dto.ApResponse;
-import com.cscs.digitalpricetag.dto.EslResponse;
-import com.cscs.digitalpricetag.dto.PagedResponse;
+import com.cscs.digitalpricetag.dto.api.EslResponse;
+import com.cscs.digitalpricetag.dto.api.PagedResponse;
 import com.cscs.digitalpricetag.service.DeviceService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -147,4 +147,5 @@ public class DeviceController {
         return ResponseEntity.ok(ApiResponse.success("ESL unbound successfully", null));
     }
 }
+
 

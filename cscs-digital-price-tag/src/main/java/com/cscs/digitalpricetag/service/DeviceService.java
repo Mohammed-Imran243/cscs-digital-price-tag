@@ -1,8 +1,8 @@
 package com.cscs.digitalpricetag.service;
 
 import com.cscs.digitalpricetag.dto.ApResponse;
-import com.cscs.digitalpricetag.dto.EslResponse;
-import com.cscs.digitalpricetag.dto.PagedResponse;
+import com.cscs.digitalpricetag.dto.api.EslResponse;
+import com.cscs.digitalpricetag.dto.api.PagedResponse;
 import com.cscs.digitalpricetag.exception.DragonEslException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -640,3 +640,4 @@ public class DeviceService {
         return r;
     }
 }
+

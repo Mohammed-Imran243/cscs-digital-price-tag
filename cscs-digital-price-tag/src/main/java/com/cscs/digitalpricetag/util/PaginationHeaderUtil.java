@@ -1,6 +1,6 @@
 package com.cscs.digitalpricetag.util;
 
-import com.cscs.digitalpricetag.dto.api.ApiResponse;
+import com.cscs.digitalpricetag.dto.ApiResponse;
 import com.cscs.digitalpricetag.dto.api.PagedResponse;
 import com.cscs.digitalpricetag.dto.dragon.DragonTemplateListResponse;
 import org.springframework.http.HttpHeaders;
@@ -52,3 +52,6 @@ public class PaginationHeaderUtil {
         return new ResponseEntity<>(apiResponse, headers, HttpStatus.OK);
     }
 }
+
+
+

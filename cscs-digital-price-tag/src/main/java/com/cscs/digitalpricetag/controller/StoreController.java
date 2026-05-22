@@ -1,8 +1,10 @@
 package com.cscs.digitalpricetag.controller;
 
 import com.cscs.digitalpricetag.dto.ApiResponse;
-import com.cscs.digitalpricetag.dto.PagedResponse;
-import com.cscs.digitalpricetag.dto.StoreResponse;
+import com.cscs.digitalpricetag.dto.api.PagedResponse;
+import com.cscs.digitalpricetag.dto.api.StoreResponse;
+import com.cscs.digitalpricetag.dto.api.StoreCreateRequest;
+import com.cscs.digitalpricetag.dto.api.StoreUpdateRequest;
 import com.cscs.digitalpricetag.service.StoreService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -43,13 +45,13 @@ public class StoreController {
     }
 
     @PostMapping
-    public ResponseEntity<ApiResponse<StoreResponse>> addStore(@RequestBody com.cscs.digitalpricetag.dto.StoreCreateRequest request) {
+    public ResponseEntity<ApiResponse<StoreResponse>> addStore(@RequestBody StoreCreateRequest request) {
         StoreResponse store = storeService.addStore(request);
         return ResponseEntity.ok(ApiResponse.success("Store added successfully", store));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<ApiResponse<StoreResponse>> updateStore(@PathVariable String id, @RequestBody com.cscs.digitalpricetag.dto.StoreUpdateRequest request) {
+    public ResponseEntity<ApiResponse<StoreResponse>> updateStore(@PathVariable String id, @RequestBody StoreUpdateRequest request) {
         StoreResponse store = storeService.updateStore(id, request);
         return ResponseEntity.ok(ApiResponse.success("Store updated successfully", store));
     }
@@ -72,3 +74,4 @@ public class StoreController {
         return ResponseEntity.ok(ApiResponse.success("Store deleted successfully", null));
     }
 }
+
