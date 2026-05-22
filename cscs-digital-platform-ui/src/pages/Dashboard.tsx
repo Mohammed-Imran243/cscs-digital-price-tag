@@ -167,8 +167,9 @@ const Dashboard: React.FC = () => {
 
   const timeSince = (date: Date) => {
     const diff = Math.floor((Date.now() - date.getTime()) / 1000);
-    if (diff < 60) return `${diff}s ago`;
-    return `${Math.floor(diff / 60)}m ago`;
+    if (diff < 60) return `${diff}s ago / منذ ${diff} ثانية`;
+    const mins = Math.floor(diff / 60);
+    return `${mins}m ago / منذ ${mins} دقيقة`;
   };
 
   return (
@@ -177,17 +178,17 @@ const Dashboard: React.FC = () => {
       {/* ── Page Header ── */}
       <div className="dashboard-header">
         <div>
-          <h2 className="dash-title">Operations Overview</h2>
-          <p className="dash-subtitle">Live counts from Dragon ESL Cloud — refreshed {timeSince(lastRefreshed)}</p>
+          <h2 className="dash-title">Operations Overview / نظرة عامة على العمليات</h2>
+          <p className="dash-subtitle">Live counts from Dragon ESL Cloud — refreshed {timeSince(lastRefreshed)} / الأعداد المباشرة من سحابة Dragon ESL — تم التحديث {timeSince(lastRefreshed)}</p>
         </div>
         <button
           className="btn-refresh"
           onClick={fetchDashboardData}
           disabled={loading}
-          title="Refresh all stats"
+          title="Refresh all stats / تحديث جميع الإحصائيات"
         >
           <RefreshCw size={16} className={loading ? 'spin' : ''} />
-          Refresh
+          Refresh / تحديث
         </button>
       </div>
 
@@ -195,36 +196,36 @@ const Dashboard: React.FC = () => {
       <div className="dashboard-grid">
         <StatCard
           icon={<Store size={24} />}
-          label="Total Branches"
+          label="Total Branches / إجمالي الفروع"
           value={formatCount(stats.storeCount)}
-          trend={stats.storeCount !== null ? `${stats.storeCount} active branch${stats.storeCount !== 1 ? 'es' : ''}` : undefined}
+          trend={stats.storeCount !== null ? `${stats.storeCount} active branch${stats.storeCount !== 1 ? 'es' : ''} / ${stats.storeCount === 1 ? 'فرع نشط' : 'فروع نشطة'}` : undefined}
           loading={loading}
           color="#6366f1"
           error={!loading && stats.storeCount === null}
         />
         <StatCard
           icon={<Package size={24} />}
-          label="Total Products"
+          label="Total Products / إجمالي المنتجات"
           value={formatCount(stats.productCount)}
-          trend={stats.productCount !== null ? 'Across all stores' : undefined}
+          trend={stats.productCount !== null ? 'Across all stores / عبر جميع الفروع' : undefined}
           loading={loading}
           color="#10b981"
           error={!loading && stats.productCount === null}
         />
         <StatCard
           icon={<FileText size={24} />}
-          label="ESL Templates"
+          label="ESL Templates / قوالب بطاقات الأسعار"
           value={formatCount(stats.templateCount)}
-          trend={stats.categoryCount !== null ? `${stats.categoryCount} categor${stats.categoryCount !== 1 ? 'ies' : 'y'}` : undefined}
+          trend={stats.categoryCount !== null ? `${stats.categoryCount} categor${stats.categoryCount !== 1 ? 'ies' : 'y'} / ${stats.categoryCount} ${stats.categoryCount === 1 ? 'تصنيف' : 'تصنيفات'}` : undefined}
           loading={loading}
           color="#f59e0b"
           error={!loading && stats.templateCount === null}
         />
         <StatCard
           icon={<Activity size={24} />}
-          label="Dragon ESL Status"
-          value={stats.eslOnline === null ? null : stats.eslOnline ? 'Online' : 'Offline'}
-          trend={stats.eslOnline ? 'API connection healthy' : 'Check network / credentials'}
+          label="Dragon ESL Status / حالة Dragon ESL"
+          value={stats.eslOnline === null ? null : stats.eslOnline ? 'Online / متصل' : 'Offline / غير متصل'}
+          trend={stats.eslOnline ? 'API connection healthy / اتصال الواجهة سليم' : 'Check network / credentials / تحقق من الشبكة / بيانات الاعتماد'}
           loading={loading}
           color={stats.eslOnline ? '#10b981' : '#ef4444'}
           error={false}
@@ -237,14 +238,14 @@ const Dashboard: React.FC = () => {
         {/* Per-store product breakdown */}
         <div className="store-breakdown glass-card">
           <div className="card-header">
-            <h3>Products per Branch</h3>
-            <span className="card-meta">Live product counts per store</span>
+            <h3>Products per Branch / المنتجات لكل فرع</h3>
+            <span className="card-meta">Live product counts per store / إحصائيات المنتجات المباشرة لكل فرع</span>
           </div>
           <div className="breakdown-list">
             {storeBreakdown.length === 0 && !loading && (
               <div className="empty-breakdown">
                 <AlertTriangle size={32} className="text-warning" />
-                <p>No branch data available</p>
+                <p>No branch data available / لا توجد بيانات فروع متاحة</p>
               </div>
             )}
             {storeBreakdown.length === 0 && loading && (
@@ -263,18 +264,18 @@ const Dashboard: React.FC = () => {
                   <span className="breakdown-index">{idx + 1}</span>
                   <div>
                     <span className="breakdown-name">{item.store.storeName}</span>
-                    <span className="breakdown-id">ID: {item.store.storeId}</span>
+                    <span className="breakdown-id">ID / المعرف: {item.store.storeId}</span>
                   </div>
                 </div>
                 <div className="breakdown-count-wrap">
                   {item.loading ? (
                     <div className="shimmer-line" style={{ width: '48px', height: '20px' }} />
                   ) : item.productCount === null ? (
-                    <span className="breakdown-count error">Err</span>
+                    <span className="breakdown-count error">Err / خطأ</span>
                   ) : (
                     <span className="breakdown-count">{item.productCount.toLocaleString()}</span>
                   )}
-                  <span className="breakdown-unit">items</span>
+                  <span className="breakdown-unit">items / عناصر</span>
                 </div>
                 <div className="breakdown-bar-wrap">
                   <div
@@ -293,50 +294,50 @@ const Dashboard: React.FC = () => {
         {/* System Status */}
         <div className="system-health glass-card">
           <div className="card-header">
-            <h3>System Status</h3>
+            <h3>System Status / حالة النظام</h3>
           </div>
           <div className="status-grid">
             <div className="status-item">
-              <span>Dragon ESL Cloud</span>
+              <span>Dragon ESL Cloud / سحابة Dragon ESL</span>
               {loading ? (
                 <div className="shimmer-line" style={{ width: '64px', height: '22px' }} />
               ) : stats.eslOnline ? (
                 <div className="status-badge-live success">
-                  <CheckCircle size={12} /> Online
+                  <CheckCircle size={12} /> Online / متصل
                 </div>
               ) : (
                 <div className="status-badge-live danger">
-                  <WifiOff size={12} /> Offline
+                  <WifiOff size={12} /> Offline / غير متصل
                 </div>
               )}
             </div>
             <div className="status-item">
-              <span>Active Branches</span>
+              <span>Active Branches / الفروع النشطة</span>
               {loading ? (
                 <div className="shimmer-line" style={{ width: '48px', height: '22px' }} />
               ) : (
-                <div className="status-badge-live neutral">{stats.storeCount ?? '—'} stores</div>
+                <div className="status-badge-live neutral">{stats.storeCount !== null ? `${stats.storeCount} stores / فروع` : '—'}</div>
               )}
             </div>
             <div className="status-item">
-              <span>ESL Templates</span>
+              <span>ESL Templates / قوالب بطاقات الأسعار</span>
               {loading ? (
                 <div className="shimmer-line" style={{ width: '48px', height: '22px' }} />
               ) : (
-                <div className="status-badge-live neutral">{stats.templateCount ?? '—'} templates</div>
+                <div className="status-badge-live neutral">{stats.templateCount !== null ? `${stats.templateCount} templates / قوالب` : '—'}</div>
               )}
             </div>
             <div className="status-item">
-              <span>Template Categories</span>
+              <span>Template Categories / تصنيفات القوالب</span>
               {loading ? (
                 <div className="shimmer-line" style={{ width: '48px', height: '22px' }} />
               ) : (
-                <div className="status-badge-live neutral">{stats.categoryCount ?? '—'} categories</div>
+                <div className="status-badge-live neutral">{stats.categoryCount !== null ? `${stats.categoryCount} categories / تصنيفات` : '—'}</div>
               )}
             </div>
             <div className="status-item">
-              <span>Middleware API</span>
-              <div className="status-badge-live success"><Wifi size={12} /> Running</div>
+              <span>Middleware API / واجهة API الوسيطة</span>
+              <div className="status-badge-live success"><Wifi size={12} /> Running / يعمل</div>
             </div>
           </div>
         </div>

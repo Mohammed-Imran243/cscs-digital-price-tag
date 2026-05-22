@@ -32,14 +32,14 @@ export const ApTab: React.FC<ApTabProps> = ({
         <table>
           <thead>
             <tr>
-              <th>Base Station MAC</th>
-              <th>AP Name</th>
-              <th>Model / SN</th>
-              <th>IP Address</th>
-              <th>Connections</th>
-              <th>Status</th>
-              <th>Firmware Version</th>
-              <th>Last Online Time</th>
+              <th>Base Station MAC / عنوان MAC للمحطة</th>
+              <th>AP Name / اسم المحطة</th>
+              <th>Model / SN / الطراز / الرقم التسلسلي</th>
+              <th>IP Address / عنوان IP</th>
+              <th>Connections / الاتصالات</th>
+              <th>Status / الحالة</th>
+              <th>Firmware Version / إصدار البرمجيات</th>
+              <th>Last Online Time / آخر وقت اتصال</th>
             </tr>
           </thead>
           <tbody>
@@ -47,7 +47,7 @@ export const ApTab: React.FC<ApTabProps> = ({
               <tr>
                 <td colSpan={8} className="empty-table-cell">
                   <Cpu size={36} className="empty-icon" />
-                  <p>No AP Base Stations registered in this branch context.</p>
+                  <p>No AP Base Stations registered in this branch context. / لا توجد محطات بث مسجلة في هذا الفرع.</p>
                 </td>
               </tr>
             ) : (
@@ -59,7 +59,7 @@ export const ApTab: React.FC<ApTabProps> = ({
                     <button 
                       className="copy-btn" 
                       onClick={() => copyToClipboard(ap.mac)}
-                      title="Copy MAC Address"
+                      title="Copy MAC Address / نسخ عنوان MAC"
                     >
                       {copiedId === ap.mac ? <Check size={14} className="copied" /> : <Copy size={14} />}
                     </button>
@@ -67,7 +67,7 @@ export const ApTab: React.FC<ApTabProps> = ({
 
                   {/* Name */}
                   <td>
-                    <span className="ap-name-label">{ap.apName || 'Unregistered Station'}</span>
+                    <span className="ap-name-label">{ap.apName || 'Unregistered Station / محطة غير مسجلة'}</span>
                   </td>
 
                   {/* Model */}
@@ -84,7 +84,7 @@ export const ApTab: React.FC<ApTabProps> = ({
                   <td>
                     <div className="connections-badge">
                       <span className="count">{ap.eslCount}</span>
-                      <span className="label">ESLs</span>
+                      <span className="label">ESLs / شاشات</span>
                     </div>
                   </td>
 
@@ -94,7 +94,7 @@ export const ApTab: React.FC<ApTabProps> = ({
                       ap.online === 'ONLINE' ? 'online' : ap.online === 'UPGRADING' ? 'warning' : 'offline'
                     }`}>
                       <span className="dot" />
-                      <span>{ap.online}</span>
+                      <span>{ap.online === 'ONLINE' ? 'Online / متصل' : ap.online === 'UPGRADING' ? 'Upgrading / جاري الترقية' : 'Offline / غير متصل'}</span>
                     </span>
                   </td>
 
@@ -103,7 +103,7 @@ export const ApTab: React.FC<ApTabProps> = ({
 
                   {/* Last Join */}
                   <td className="time-cell">
-                    {ap.joinTime || 'N/A'}
+                    {ap.joinTime || 'N/A / غير متوفر'}
                   </td>
                 </tr>
               ))
@@ -116,7 +116,7 @@ export const ApTab: React.FC<ApTabProps> = ({
       {totalElements > 0 && (
         <div className="dragonesl-pagination-bar glass-card" style={{ borderTop: 'none', borderLeft: 'none', borderRight: 'none', borderRadius: '0 0 12px 12px' }}>
           <div className="pagination-left">
-            <span className="pagination-total">Total {totalElements} items</span>
+            <span className="pagination-total">Total {totalElements} items / الإجمالي {totalElements} عناصر</span>
             <select
               value={pageSize}
               onChange={(e) => {
@@ -125,11 +125,11 @@ export const ApTab: React.FC<ApTabProps> = ({
               }}
               className="pagination-size-select"
             >
-              <option value={5}>5 / page</option>
-              <option value={10}>10 / page</option>
-              <option value={20}>20 / page</option>
-              <option value={50}>50 / page</option>
-              <option value={100}>100 / page</option>
+              <option value={5}>5 / page / ٥ للصفحة</option>
+              <option value={10}>10 / page / ١٠ للصفحة</option>
+              <option value={20}>20 / page / ٢٠ للصفحة</option>
+              <option value={50}>50 / page / ٥٠ للصفحة</option>
+              <option value={100}>100 / page / ١٠٠ للصفحة</option>
             </select>
           </div>
 
@@ -168,7 +168,7 @@ export const ApTab: React.FC<ApTabProps> = ({
             </button>
 
             <div className="pagination-jump">
-              <span>Go to</span>
+              <span>Go to / الذهاب إلى</span>
               <input
                 type="number"
                 min={1}

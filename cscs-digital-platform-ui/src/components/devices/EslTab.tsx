@@ -75,14 +75,14 @@ export const EslTab: React.FC<EslTabProps> = ({
                   onChange={(e) => handleSelectAll(e.target.checked)}
                 />
               </th>
-              <th>ESL Barcode</th>
-              <th>OEM Model</th>
-              <th>Bound Product</th>
-              <th>Status</th>
-              <th>Battery</th>
-              <th>Signal</th>
-              <th>Last Update</th>
-              <th style={{ textAlign: 'center' }}>Operation</th>
+              <th>ESL Barcode / باركود الشاشة</th>
+              <th>OEM Model / طراز الجهاز</th>
+              <th>Bound Product / المنتج المرتبط</th>
+              <th>Status / الحالة</th>
+              <th>Battery / البطارية</th>
+              <th>Signal / الإشارة</th>
+              <th>Last Update / آخر تحديث</th>
+              <th style={{ textAlign: 'center' }}>Operation / الإجراءات</th>
             </tr>
           </thead>
           <tbody>
@@ -90,7 +90,7 @@ export const EslTab: React.FC<EslTabProps> = ({
               <tr>
                 <td colSpan={9} className="empty-table-cell">
                   <Smartphone size={36} className="empty-icon" />
-                  <p>No ESL devices registered in this branch context.</p>
+                  <p>No ESL devices registered in this branch context. / لا توجد أجهزة شاشات مسجلة في هذا الفرع.</p>
                 </td>
               </tr>
             ) : (
@@ -114,7 +114,7 @@ export const EslTab: React.FC<EslTabProps> = ({
                       <button 
                         className="copy-btn" 
                         onClick={() => copyToClipboard(esl.priceTagCode)}
-                        title="Copy Barcode"
+                        title="Copy Barcode / نسخ الباركود"
                       >
                         {copiedId === esl.priceTagCode ? <Check size={14} className="copied" /> : <Copy size={14} />}
                       </button>
@@ -129,11 +129,11 @@ export const EslTab: React.FC<EslTabProps> = ({
                     <td>
                       {esl.bindState === 1 && esl.itemBarCode ? (
                         <div className="bound-product-info">
-                          <span className="product-title">{esl.itemTitle || 'Unnamed Product'}</span>
+                          <span className="product-title">{esl.itemTitle || 'Unnamed Product / منتج غير مسمى'}</span>
                           <span className="product-barcode font-mono">{esl.itemBarCode}</span>
                         </div>
                       ) : (
-                        <span className="unbound-badge">Unbound / Idle</span>
+                        <span className="unbound-badge">Unbound / Idle / غير مرتبط / خامل</span>
                       )}
                     </td>
 
@@ -141,7 +141,7 @@ export const EslTab: React.FC<EslTabProps> = ({
                     <td>
                       <span className={`status-pill ${esl.state === 'ONLINE' ? 'online' : 'offline'}`}>
                         <span className="dot" />
-                        <span>{esl.state}</span>
+                        <span>{esl.state === 'ONLINE' ? 'Online / متصل' : (esl.state === 'OFFLINE' ? 'Offline / غير متصل' : esl.state)}</span>
                       </span>
                     </td>
 
@@ -182,7 +182,7 @@ export const EslTab: React.FC<EslTabProps> = ({
 
                     {/* Last Update */}
                     <td className="time-cell">
-                      {esl.updateTime || esl.lastCommuTime || 'Never'}
+                      {esl.updateTime || esl.lastCommuTime || 'Never / أبداً'}
                     </td>
 
                     {/* Actions */}
@@ -191,23 +191,23 @@ export const EslTab: React.FC<EslTabProps> = ({
                         <button 
                           className="btn-table-action view-btn"
                           onClick={() => handleViewDetails(esl.priceTagCode, esl)}
-                          title="View Binding Details & Screen Render"
+                          title="View Binding Details & Screen Render / عرض تفاصيل الربط ومعاينة الشاشة"
                         >
                           <Eye size={13} />
-                          <span>View</span>
+                          <span>View / عرض</span>
                         </button>
                         <button 
                           className={`btn-table-action refresh-btn ${!isAuthorized ? 'disabled' : ''}`}
                           onClick={() => handleForceRefresh(esl.priceTagCode)}
                           disabled={refreshingBarcodes[esl.priceTagCode]}
-                          title={isAuthorized ? "Force Refresh & Reboot ESL" : "Admin privileges required"}
+                          title={isAuthorized ? "Force Refresh & Reboot ESL / تحديث إجباري وإعادة تشغيل الشاشة" : "Admin privileges required / مطلوب صلاحيات المسؤول"}
                         >
                           {refreshingBarcodes[esl.priceTagCode] ? (
                             <Loader2 size={13} className="animate-spin" />
                           ) : (
                             <RefreshCw size={13} />
                           )}
-                          <span>Refresh</span>
+                          <span>Refresh / تحديث</span>
                         </button>
                       </div>
                     </td>
@@ -223,7 +223,7 @@ export const EslTab: React.FC<EslTabProps> = ({
       {totalElements > 0 && (
         <div className="dragonesl-pagination-bar glass-card" style={{ borderTop: 'none', borderLeft: 'none', borderRight: 'none', borderRadius: '0 0 12px 12px' }}>
           <div className="pagination-left">
-            <span className="pagination-total">Total {totalElements} items</span>
+            <span className="pagination-total">Total {totalElements} items / الإجمالي {totalElements} عناصر</span>
             <select
               value={pageSize}
               onChange={(e) => {
@@ -232,11 +232,11 @@ export const EslTab: React.FC<EslTabProps> = ({
               }}
               className="pagination-size-select"
             >
-              <option value={5}>5 / page</option>
-              <option value={10}>10 / page</option>
-              <option value={20}>20 / page</option>
-              <option value={50}>50 / page</option>
-              <option value={100}>100 / page</option>
+              <option value={5}>5 / page / ٥ للصفحة</option>
+              <option value={10}>10 / page / ١٠ للصفحة</option>
+              <option value={20}>20 / page / ٢٠ للصفحة</option>
+              <option value={50}>50 / page / ٥٠ للصفحة</option>
+              <option value={100}>100 / page / ١٠٠ للصفحة</option>
             </select>
           </div>
 
@@ -275,7 +275,7 @@ export const EslTab: React.FC<EslTabProps> = ({
             </button>
 
             <div className="pagination-jump">
-              <span>Go to</span>
+              <span>Go to / الذهاب إلى</span>
               <input
                 type="number"
                 min={1}

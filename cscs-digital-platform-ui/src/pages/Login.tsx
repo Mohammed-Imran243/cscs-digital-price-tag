@@ -22,10 +22,10 @@ const LoginPage: React.FC = () => {
       navigate('/');
     } catch (err: any) {
       const rawError = err.response?.data?.message || '';
-      let friendlyMsg = 'Invalid username or password. Please verify your ESL credentials and try again.';
+      let friendlyMsg = 'Invalid username or password. Please verify your ESL credentials and try again. / اسم المستخدم أو كلمة المرور غير صالحة. يرجى التحقق من بيانات اعتماد ESL والمحاولة مرة أخرى.';
       
       if (rawError.includes('resolve') || rawError.includes('Network') || rawError.includes('Failed to resolve')) {
-        friendlyMsg = 'Network error: Failed to connect to Dragon ESL server. Please check your internet connection.';
+        friendlyMsg = 'Network error: Failed to connect to Dragon ESL server. Please check your internet connection. / خطأ في الشبكة: فشل الاتصال بخادم Dragon ESL. يرجى التحقق من اتصالك بالإنترنت.';
       }
       
       setError(friendlyMsg);
@@ -44,8 +44,8 @@ const LoginPage: React.FC = () => {
       <div className="login-card glass-card">
         <div className="login-header">
           <div className="logo">CSCS</div>
-          <h2>Welcome Back</h2>
-          <p>Digital Price Tag Management Platform</p>
+          <h2>Welcome Back / مرحباً بعودتك</h2>
+          <p>Digital Price Tag Management Platform / منصة إدارة بطاقات الأسعار الرقمية</p>
         </div>
 
         <form onSubmit={handleSubmit} className="login-form" autoComplete="off">
@@ -57,7 +57,7 @@ const LoginPage: React.FC = () => {
               type="text"
               name="cscs-username"
               id="cscs-username"
-              placeholder="Username"
+              placeholder="Username / اسم المستخدم"
               value={userId}
               onChange={(e) => setUserId(e.target.value)}
               autoComplete="off"
@@ -71,7 +71,7 @@ const LoginPage: React.FC = () => {
               type="password"
               name="cscs-password"
               id="cscs-password"
-              placeholder="Password"
+              placeholder="Password / كلمة المرور"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               autoComplete="new-password"
@@ -80,12 +80,12 @@ const LoginPage: React.FC = () => {
           </div>
 
           <button type="submit" className="login-btn btn-primary" disabled={loading}>
-            {loading ? <Loader2 className="animate-spin" size={20} /> : 'Login'}
+            {loading ? <Loader2 className="animate-spin" size={20} /> : 'Login / تسجيل الدخول'}
           </button>
         </form>
 
         <div className="login-footer">
-          <p>© 2024 CSCS Platform. All rights reserved.</p>
+          <p>© 2024 CSCS Platform. All rights reserved / جميع الحقوق محفوظة.</p>
         </div>
       </div>
 

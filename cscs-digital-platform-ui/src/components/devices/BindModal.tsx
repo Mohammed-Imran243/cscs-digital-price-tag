@@ -164,7 +164,7 @@ export const BindModal: React.FC<BindModalProps> = ({
         {/* Header */}
         <div className="modal-header">
           <h3>
-            {bindTab === 'bind' ? 'Bind' : 'Unbind'}
+            {bindTab === 'bind' ? 'Bind / ربط' : 'Unbind / إلغاء الرابط'}
           </h3>
           <button className="close-btn" onClick={() => setBindModalOpen(false)}>&times;</button>
         </div>
@@ -175,13 +175,13 @@ export const BindModal: React.FC<BindModalProps> = ({
             className={`bind-tab-btn ${bindTab === 'bind' ? 'active' : ''}`}
             onClick={() => setBindTab('bind')}
           >
-            Bind
+            Bind / ربط
           </button>
           <button
             className={`bind-tab-btn ${bindTab === 'unbind' ? 'active' : ''}`}
             onClick={() => setBindTab('unbind')}
           >
-            Unbind
+            Unbind / إلغاء الربط
           </button>
         </div>
 
@@ -191,7 +191,7 @@ export const BindModal: React.FC<BindModalProps> = ({
 
             {/* Store Select */}
             <div className="bind-field-group">
-              <label className="bind-field-label">Store Select</label>
+              <label className="bind-field-label">Store Select / اختيار المتجر</label>
               <select
                 className="bind-select"
                 value={bindFormStoreId}
@@ -219,12 +219,12 @@ export const BindModal: React.FC<BindModalProps> = ({
 
             {/* Item / Product Searchable Dropdown */}
             <div className="bind-field-group" ref={dropdownRef}>
-              <label className="bind-field-label">Item / Product <span className="req">*</span></label>
+              <label className="bind-field-label">Item / Product / المنتج <span className="req">*</span></label>
               <div className="searchable-dropdown-wrapper">
                 <input
                   className="bind-input dropdown-input"
                   type="text"
-                  placeholder="Search item by name or barcode..."
+                  placeholder="Search item by name or barcode... / ابحث عن الصنف بالاسم أو الباركود..."
                   value={searchQuery}
                   onChange={e => {
                     const val = e.target.value;
@@ -241,9 +241,9 @@ export const BindModal: React.FC<BindModalProps> = ({
                 {isDropdownOpen && (
                   <div className="dropdown-options-list">
                     {loadingProducts ? (
-                      <div className="dropdown-loading">Loading items...</div>
+                      <div className="dropdown-loading">Loading items... / جاري تحميل العناصر...</div>
                     ) : filteredProducts.length === 0 ? (
-                      <div className="dropdown-no-options">No items found</div>
+                      <div className="dropdown-no-options">No items found / لم يتم العثور على عناصر</div>
                     ) : (
                       filteredProducts.map(p => (
                         <div
@@ -257,7 +257,7 @@ export const BindModal: React.FC<BindModalProps> = ({
                           }}
                         >
                           <div className="option-item-name">{p.itemName}</div>
-                          <div className="option-item-barcode">Barcode: {p.barcode}</div>
+                          <div className="option-item-barcode">Barcode / الباركود: {p.barcode}</div>
                         </div>
                       ))
                     )}
@@ -268,12 +268,12 @@ export const BindModal: React.FC<BindModalProps> = ({
 
             {/* ESL Barcode Searchable Dropdown */}
             <div className="bind-field-group" ref={eslDropdownRef}>
-              <label className="bind-field-label">ESL Barcode <span className="req">*</span></label>
+              <label className="bind-field-label">ESL Barcode / باركود الشاشة <span className="req">*</span></label>
               <div className="searchable-dropdown-wrapper">
                 <input
                   className="bind-input dropdown-input"
                   type="text"
-                  placeholder="Search ESL barcode or model..."
+                  placeholder="Search ESL barcode or model... / ابحث عن باركود أو طراز الشاشة..."
                   value={eslSearchQuery}
                   onChange={e => {
                     const val = e.target.value;
@@ -290,9 +290,9 @@ export const BindModal: React.FC<BindModalProps> = ({
                 {isEslDropdownOpen && (
                   <div className="dropdown-options-list">
                     {availableEsls.length === 0 ? (
-                      <div className="dropdown-no-options">No available ESLs found</div>
+                      <div className="dropdown-no-options">No available ESLs found / لم يتم العثور على شاشات متاحة</div>
                     ) : filteredEsls.length === 0 ? (
-                      <div className="dropdown-no-options">No matching ESLs found</div>
+                      <div className="dropdown-no-options">No matching ESLs found / لم يتم العثور على شاشات مطابقة</div>
                     ) : (
                       filteredEsls.map(e => (
                         <div
@@ -306,7 +306,7 @@ export const BindModal: React.FC<BindModalProps> = ({
                           }}
                         >
                           <div className="option-item-name">{e.priceTagCode}</div>
-                          <div className="option-item-barcode">Model: {e.oemModel || 'N/A'} — {e.state}</div>
+                          <div className="option-item-barcode">Model / الطراز: {e.oemModel || 'N/A'} — {e.state === 'ONLINE' ? 'Online / متصل' : 'Offline / غير متصل'}</div>
                         </div>
                       ))
                     )}
@@ -314,18 +314,18 @@ export const BindModal: React.FC<BindModalProps> = ({
                 )}
               </div>
               {availableEsls.length > 0 && (
-                <span className="bind-hint">{availableEsls.length} unbound ESL(s) available</span>
+                <span className="bind-hint">{availableEsls.length} unbound ESL(s) available / {availableEsls.length} شاشة (شاشات) غير مرتبطة متاحة</span>
               )}
             </div>
 
             {/* AP MAC */}
             <div className="bind-field-group">
-              <label className="bind-field-label">AP MAC (optional)</label>
+              <label className="bind-field-label">AP MAC (optional) / عنوان MAC للمحطة (اختياري)</label>
               <div className="bind-input-with-hint">
                 <input
                   className="bind-input"
                   type="text"
-                  placeholder="e.g. AA:BB:CC:DD:EE:FF"
+                  placeholder="e.g. AA:BB:CC:DD:EE:FF / مثال AA:BB:CC:DD:EE:FF"
                   value={bindFormApMac}
                   onChange={e => setBindFormApMac(e.target.value)}
                   list="available-ap-list"
@@ -333,7 +333,7 @@ export const BindModal: React.FC<BindModalProps> = ({
                 <datalist id="available-ap-list">
                   {availableAps.map(ap => (
                     <option key={ap.mac} value={ap.mac}>
-                      {ap.apName || ap.mac} — {ap.online}
+                      {ap.apName || ap.mac} — {ap.online === 'ONLINE' ? 'Online / متصل' : 'Offline / غير متصل'}
                     </option>
                   ))}
                 </datalist>
@@ -356,7 +356,7 @@ export const BindModal: React.FC<BindModalProps> = ({
             </div>
 
             <div className="bind-form-note">
-              After binding, the ESL label will display the product data and can be force-refreshed to sync immediately.
+              After binding, the ESL label will display the product data and can be force-refreshed to sync immediately. / بعد الربط، ستعرض شاشة السعر بيانات المنتج ويمكن تحديثها إجبارياً للمزامنة الفورية.
             </div>
 
             <div className="modal-actions">
@@ -365,10 +365,16 @@ export const BindModal: React.FC<BindModalProps> = ({
                 onClick={handleBind}
                 disabled={bindLoading || !bindFormItemBarCode.trim() || !bindFormEslBarcode.trim()}
               >
-                {bindLoading ? <Loader2 size={16} className="animate-spin" /> : null}
-                Bind
+                {bindLoading ? (
+                  <>
+                    <Loader2 size={16} className="animate-spin" />
+                    <span>Binding... / جاري الربط...</span>
+                  </>
+                ) : (
+                  <span>Bind / ربط</span>
+                )}
               </button>
-              <button className="btn-secondary" onClick={() => setBindModalOpen(false)}>Cancel</button>
+              <button className="btn-secondary" onClick={() => setBindModalOpen(false)}>Cancel / إلغاء</button>
             </div>
           </div>
         )}
@@ -379,7 +385,7 @@ export const BindModal: React.FC<BindModalProps> = ({
 
             {/* Store Select */}
             <div className="bind-field-group">
-              <label className="bind-field-label">Store Select</label>
+              <label className="bind-field-label">Store Select / اختيار المتجر</label>
               <select
                 className="bind-select"
                 value={bindFormStoreId}
@@ -393,15 +399,15 @@ export const BindModal: React.FC<BindModalProps> = ({
 
             {/* ESL Barcode(s) */}
             <div className="bind-field-group">
-              <label className="bind-field-label">ESL Barcode(s) <span className="req">*</span></label>
+              <label className="bind-field-label">ESL Barcode(s) / باركود الشاشة (الشاشات) <span className="req">*</span></label>
               <textarea
                 className="bind-textarea"
                 rows={4}
-                placeholder="Enter one or more ESL barcodes, separated by commas or new lines"
+                placeholder="Enter one or more ESL barcodes, separated by commas or new lines / أدخل باركود شاشة واحد أو أكثر، مفصولة بفواصل أو سطور جديدة"
                 value={unbindBarcodes}
                 onChange={e => setUnbindBarcodes(e.target.value)}
               />
-              <span className="bind-hint">You can also select from the table first — selected barcodes appear here.</span>
+              <span className="bind-hint">You can also select from the table first — selected barcodes appear here. / يمكنك أيضاً التحديد من الجدول أولاً — الباركود المحددة ستظهر هنا.</span>
             </div>
 
             {/* Pre-fill from table selection */}
@@ -410,12 +416,12 @@ export const BindModal: React.FC<BindModalProps> = ({
                 className="bind-prefill-btn"
                 onClick={() => setUnbindBarcodes(selectedBarcodes.join('\n'))}
               >
-                Use {selectedBarcodes.length} selected barcode(s) from table
+                Use {selectedBarcodes.length} selected barcode(s) from table / استخدام {selectedBarcodes.length} باركود محدد من الجدول
               </button>
             )}
 
             <div className="bind-form-note">
-              Unbinding releases the ESL label from its current product and returns it to the available pool.
+              Unbinding releases the ESL label from its current product and returns it to the available pool. / يؤدي إلغاء الربط إلى تحرير شاشة السعر من منتجها الحالي وإعادتها إلى قائمة الشاشات المتاحة.
             </div>
 
             <div className="modal-actions">
@@ -424,10 +430,16 @@ export const BindModal: React.FC<BindModalProps> = ({
                 onClick={handleUnbind}
                 disabled={bindLoading || !unbindBarcodes.trim()}
               >
-                {bindLoading ? <Loader2 size={16} className="animate-spin" /> : null}
-                Unbind
+                {bindLoading ? (
+                  <>
+                    <Loader2 size={16} className="animate-spin" />
+                    <span>Unbinding... / جاري إلغاء الربط...</span>
+                  </>
+                ) : (
+                  <span>Unbind / إلغاء الربط</span>
+                )}
               </button>
-              <button className="btn-secondary" onClick={() => setBindModalOpen(false)}>Cancel</button>
+              <button className="btn-secondary" onClick={() => setBindModalOpen(false)}>Cancel / إلغاء</button>
             </div>
           </div>
         )}

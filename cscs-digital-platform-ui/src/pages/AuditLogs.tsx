@@ -119,13 +119,43 @@ const AuditLogs: React.FC = () => {
 
   const totalPages = Math.ceil(totalCount / pageSize) || 1;
 
+  const getStatusTranslation = (statusText: string) => {
+    const text = (statusText || '').trim().toLowerCase();
+    if (text === 'success' || text === 'succeed') return 'Success / ناجح';
+    if (text === 'fail' || text === 'failed' || text === 'error') return 'Failed / فشل';
+    if (text === 'processing' || text === 'waiting' || text === 'sending') return 'Processing / جاري المعالجة';
+    return statusText;
+  };
+
+  const getOperationTranslation = (opCode: number, opText: string) => {
+    switch (opCode) {
+      case 1: return 'Bind Tag / ربط الشاشة';
+      case 2: return 'Unbind Tag / إلغاء ربط الشاشة';
+      case 3: return 'Force Refresh / تحديث الشاشة فوراً';
+      case 4: return 'Product Change / تغيير المنتج';
+      case 5: return 'Template Change / تغيير القالب';
+      case 13: return 'Force LED Flash / وميض إضاءة LED';
+      case 14: return 'Smart Reissue / إعادة إصدار ذكي';
+      default: {
+        const text = (opText || '').trim().toLowerCase();
+        if (text === 'bind tag' || text === 'bind') return 'Bind Tag / ربط الشاشة';
+        if (text === 'unbind tag' || text === 'unbind') return 'Unbind Tag / إلغاء ربط الشاشة';
+        if (text === 'force refresh' || text === 'refresh') return 'Force Refresh / تحديث الشاشة فوراً';
+        if (text === 'product change' || text === 'change product') return 'Product Change / تغيير المنتج';
+        if (text === 'template change' || text === 'change template') return 'Template Change / تغيير القالب';
+        return opText;
+      }
+    }
+  };
+
   const renderStatusBadge = (status: number, statusText: string) => {
+    const translatedText = getStatusTranslation(statusText);
     // Green for success
     if (status === 2 || status === 14) {
       return (
         <span className="status-badge success">
           <CheckCircle2 size={14} />
-          {statusText}
+          {translatedText}
         </span>
       );
     }
@@ -134,7 +164,7 @@ const AuditLogs: React.FC = () => {
       return (
         <span className="status-badge warning">
           <Clock size={14} />
-          {statusText}
+          {translatedText}
         </span>
       );
     }
@@ -142,7 +172,7 @@ const AuditLogs: React.FC = () => {
     return (
       <span className="status-badge error">
         <XCircle size={14} />
-        {statusText}
+        {translatedText}
       </span>
     );
   };
@@ -151,8 +181,8 @@ const AuditLogs: React.FC = () => {
     <div className="audit-logs-container">
       <div className="audit-logs-page-header">
         <div>
-          <h2>Audit Logs</h2>
-          <p className="text-muted">Query and review operation history logs from Dragon ESL</p>
+          <h2>Audit Logs / سجلات المراجعة</h2>
+          <p className="text-muted">Query and review operation history logs from Dragon ESL / استعلام ومراجعة سجلات عمليات Dragon ESL</p>
         </div>
         <div className="audit-logs-header-actions">
           <button 
@@ -160,7 +190,7 @@ const AuditLogs: React.FC = () => {
             onClick={fetchLogs} 
             disabled={logsLoading || !selectedStoreId}
           >
-            <RefreshCw size={18} className={logsLoading ? 'animate-spin' : ''} /> Refresh
+            <RefreshCw size={18} className={logsLoading ? 'animate-spin' : ''} /> Refresh / تحديث
           </button>
         </div>
       </div>
@@ -169,11 +199,11 @@ const AuditLogs: React.FC = () => {
       <div className="audit-logs-filters glass-card">
         <div className="filter-group">
           <label>
-            <StoreIcon size={16} /> Store Location *
+            <StoreIcon size={16} /> Store Location * / موقع الفرع *
           </label>
           {storesLoading ? (
             <div className="filter-loader">
-              <Loader2 className="animate-spin" size={16} /> Loading stores...
+              <Loader2 className="animate-spin" size={16} /> Loading stores... / جاري تحميل الفروع...
             </div>
           ) : (
             <select 
@@ -181,7 +211,7 @@ const AuditLogs: React.FC = () => {
               onChange={handleStoreChange}
               className="glass-select"
             >
-              <option value="" disabled>-- Select a store --</option>
+              <option value="" disabled>-- Select a store / اختر فرعاً --</option>
               {stores.map(store => (
                 <option key={store.storeId} value={store.storeId}>
                   {store.storeName} ({store.storeId})
@@ -193,7 +223,7 @@ const AuditLogs: React.FC = () => {
 
         <div className="filter-group">
           <label>
-            <Calendar size={16} /> Start Date *
+            <Calendar size={16} /> Start Date * / تاريخ البدء *
           </label>
           <input 
             type="date" 
@@ -205,7 +235,7 @@ const AuditLogs: React.FC = () => {
 
         <div className="filter-group">
           <label>
-            <Calendar size={16} /> End Date *
+            <Calendar size={16} /> End Date * / تاريخ الانتهاء *
           </label>
           <input 
             type="date" 
@@ -217,21 +247,21 @@ const AuditLogs: React.FC = () => {
 
         <div className="filter-group">
           <label>
-            <Tag size={16} /> Operation Type
+            <Tag size={16} /> Operation Type / نوع العملية
           </label>
           <select 
             value={selectedOperation} 
             onChange={handleOperationChange}
             className="glass-select"
           >
-            <option value="">All Operations</option>
-            <option value={1}>Bind Tag</option>
-            <option value={2}>Unbind Tag</option>
-            <option value={3}>Force Refresh</option>
-            <option value={4}>Product Change</option>
-            <option value={5}>Template Change</option>
-            <option value={13}>Force LED Flash</option>
-            <option value={14}>Smart Reissue</option>
+            <option value="">All Operations / جميع العمليات</option>
+            <option value={1}>Bind Tag / ربط الشاشة</option>
+            <option value={2}>Unbind Tag / إلغاء ربط الشاشة</option>
+            <option value={3}>Force Refresh / تحديث الشاشة فوراً</option>
+            <option value={4}>Product Change / تغيير المنتج</option>
+            <option value={5}>Template Change / تغيير القالب</option>
+            <option value={13}>Force LED Flash / وميض إضاءة LED</option>
+            <option value={14}>Smart Reissue / إعادة إصدار ذكي</option>
           </select>
         </div>
       </div>
@@ -240,25 +270,25 @@ const AuditLogs: React.FC = () => {
       {!selectedStoreId ? (
         <div className="audit-logs-empty-state glass-card">
           <StoreIcon size={48} />
-          <h3>No Store Selected</h3>
-          <p>Please select a store from the dropdown menu to fetch its audit logs.</p>
+          <h3>No Store Selected / لم يتم اختيار فرع</h3>
+          <p>Please select a store from the dropdown menu to fetch its audit logs. / يرجى اختيار فرع من القائمة المنسدلة لجلب سجلات المراجعة الخاصة به.</p>
         </div>
       ) : logsLoading && logs.length === 0 ? (
         <div className="audit-logs-loading-state">
           <Loader2 className="animate-spin" size={40} />
-          <p>Loading audit logs from Dragon ESL...</p>
+          <p>Loading audit logs from Dragon ESL... / جاري تحميل سجلات المراجعة من Dragon ESL...</p>
         </div>
       ) : error ? (
         <div className="audit-logs-error-state glass-card">
           <AlertTriangle size={36} className="text-danger" />
           <p>{error}</p>
-          <button onClick={fetchLogs} className="btn-primary">Try Again</button>
+          <button onClick={fetchLogs} className="btn-primary">Try Again / أعد المحاولة</button>
         </div>
       ) : logs.length === 0 ? (
         <div className="audit-logs-empty-state glass-card">
           <ClipboardList size={48} />
-          <h3>No Logs Found</h3>
-          <p>There are no recorded operation logs for this store in the selected date range.</p>
+          <h3>No Logs Found / لم يتم العثور على سجلات</h3>
+          <p>There are no recorded operation logs for this store in the selected date range. / لا توجد سجلات عمليات مسجلة لهذا الفرع في النطاق الزمني المحدد.</p>
         </div>
       ) : (
         <>
@@ -266,44 +296,44 @@ const AuditLogs: React.FC = () => {
             <table className="audit-logs-table">
               <thead>
                 <tr>
-                  <th>Timestamp</th>
-                  <th>Operator</th>
-                  <th>Operation</th>
-                  <th>Barcode & ESL</th>
-                  <th>Item Details</th>
-                  <th>Price</th>
-                  <th>Status</th>
+                  <th>Timestamp / الطابع الزمني</th>
+                  <th>Operator / القائم بالإجراء</th>
+                  <th>Operation / العملية</th>
+                  <th>Barcode & ESL / الباركود والشاشة</th>
+                  <th>Item Details / تفاصيل الصنف</th>
+                  <th>Price / السعر</th>
+                  <th>Status / الحالة</th>
                 </tr>
               </thead>
               <tbody>
                 {logs.map((logItem) => (
                   <tr key={logItem.id || Math.random()}>
                     <td className="col-time">
-                      <div className="time-primary">{logItem.createdTime || 'N/A'}</div>
+                      <div className="time-primary">{logItem.createdTime || 'N/A / غير متوفر'}</div>
                       {logItem.feedbackTime && (
-                        <div className="time-secondary">Feedback: {logItem.feedbackTime}</div>
+                        <div className="time-secondary">Feedback / الاستجابة: {logItem.feedbackTime}</div>
                       )}
                     </td>
                     <td className="col-operator">
                       <div className="operator-wrapper">
                         <User size={14} className="text-muted" />
-                        <span>{logItem.operator || 'System'}</span>
+                        <span>{logItem.operator || 'System / النظام'}</span>
                       </div>
                     </td>
                     <td className="col-operation">
-                      <span className="operation-text">{logItem.operationText}</span>
+                      <span className="operation-text">{getOperationTranslation(logItem.operation, logItem.operationText)}</span>
                     </td>
                     <td className="col-barcodes">
                       <div className="barcode-pair">
                         {logItem.itemBarCode && (
                           <div className="barcode-item">
-                            <span className="label">Item:</span>
+                            <span className="label">Item / صنف:</span>
                             <span className="value">{logItem.itemBarCode}</span>
                           </div>
                         )}
                         {logItem.priceTagBarCode && (
                           <div className="barcode-item">
-                            <span className="label">ESL:</span>
+                            <span className="label">ESL / شاشة:</span>
                             <span className="value tag-value">{logItem.priceTagBarCode}</span>
                           </div>
                         )}
@@ -311,15 +341,15 @@ const AuditLogs: React.FC = () => {
                     </td>
                     <td className="col-item-details">
                       <div className="item-title" title={logItem.itemName || ''}>
-                        {logItem.itemName || 'N/A'}
+                        {logItem.itemName || 'N/A / غير متوفر'}
                       </div>
                       {logItem.model && (
-                        <div className="item-model">Model: {logItem.model}</div>
+                        <div className="item-model">Model / الطراز: {logItem.model}</div>
                       )}
                     </td>
                     <td className="col-price">
                       {logItem.price ? (
-                        <span className="price-tag">${parseFloat(logItem.price).toFixed(2)}</span>
+                        <span className="price-tag">SAR / ر.س {parseFloat(logItem.price).toFixed(2)}</span>
                       ) : (
                         <span className="text-muted">-</span>
                       )}
@@ -336,7 +366,7 @@ const AuditLogs: React.FC = () => {
           {/* Pagination Controls */}
           <div className="dragonesl-pagination-bar glass-card">
             <div className="pagination-left">
-              <span className="pagination-total">Total {totalCount} items</span>
+              <span className="pagination-total">Total {totalCount} items / الإجمالي {totalCount} عناصر</span>
               <select
                 value={pageSize}
                 onChange={(e) => {
@@ -345,10 +375,10 @@ const AuditLogs: React.FC = () => {
                 }}
                 className="pagination-size-select"
               >
-                <option value={5}>5 / page</option>
-                <option value={10}>10 / page</option>
-                <option value={20}>20 / page</option>
-                <option value={50}>50 / page</option>
+                <option value={5}>5/page / ٥ في الصفحة</option>
+                <option value={10}>10/page / ١٠ في الصفحة</option>
+                <option value={20}>20/page / ٢٠ في الصفحة</option>
+                <option value={50}>50/page / ٥٠ في الصفحة</option>
               </select>
             </div>
 
@@ -387,7 +417,7 @@ const AuditLogs: React.FC = () => {
               </button>
 
               <div className="pagination-jump">
-                <span>Go to</span>
+                <span>Go to / الذهاب إلى</span>
                 <input
                   type="number"
                   min={1}

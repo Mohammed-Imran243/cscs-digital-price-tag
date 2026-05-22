@@ -108,15 +108,15 @@ const Stores: React.FC = () => {
     try {
       if (isEditing && editingId) {
         await storeService.updateStore(editingId, formData);
-        showNotification('Store updated successfully!', 'success');
+        showNotification('Store updated successfully! / تم تحديث الفرع بنجاح!', 'success');
       } else {
         await storeService.addStore(formData);
-        showNotification('Store created successfully!', 'success');
+        showNotification('Store created successfully! / تم إنشاء الفرع بنجاح!', 'success');
       }
       setIsModalOpen(false);
       fetchStores();
     } catch (err: any) {
-      showNotification(err.message || `Failed to ${isEditing ? 'update' : 'create'} store`, 'error');
+      showNotification(err.message || `Failed to ${isEditing ? 'update' : 'create'} store / فشل في ${isEditing ? 'تعديل' : 'إنشاء'} الفرع`, 'error');
       console.error(err);
     } finally {
       setFormLoading(false);
@@ -126,15 +126,15 @@ const Stores: React.FC = () => {
   const handleDisable = (id: string) => {
     setConfirmDialog({
       isOpen: true,
-      title: 'Disable Store',
-      message: 'Are you sure you want to disable this store?',
+      title: 'Disable Store / تعطيل الفرع',
+      message: 'Are you sure you want to disable this store? / هل أنت متأكد من رغبتك في تعطيل هذا الفرع؟',
       onConfirm: async () => {
         try {
           await storeService.disableStore(id);
           fetchStores();
-          showNotification('Store successfully disabled.', 'success');
+          showNotification('Store successfully disabled. / تم تعطيل الفرع بنجاح.', 'success');
         } catch (err: any) {
-          showNotification(err.message || 'Failed to disable store', 'error');
+          showNotification(err.message || 'Failed to disable store / فشل في تعطيل الفرع', 'error');
           console.error(err);
         }
       }
@@ -144,15 +144,15 @@ const Stores: React.FC = () => {
   const handleEnable = (id: string) => {
     setConfirmDialog({
       isOpen: true,
-      title: 'Enable Store',
-      message: 'Are you sure you want to enable this store?',
+      title: 'Enable Store / تفعيل الفرع',
+      message: 'Are you sure you want to enable this store? / هل أنت متأكد من رغبتك في تفعيل هذا الفرع؟',
       onConfirm: async () => {
         try {
           await storeService.enableStore(id);
           fetchStores();
-          showNotification('Store successfully enabled.', 'success');
+          showNotification('Store successfully enabled. / تم تفعيل الفرع بنجاح.', 'success');
         } catch (err: any) {
-          showNotification(err.message || 'Failed to enable store', 'error');
+          showNotification(err.message || 'Failed to enable store / فشل في تفعيل الفرع', 'error');
           console.error(err);
         }
       }
@@ -162,15 +162,15 @@ const Stores: React.FC = () => {
   const handleDelete = (id: string) => {
     setConfirmDialog({
       isOpen: true,
-      title: 'Delete Store',
-      message: 'Are you sure you want to delete this store? This will physically remove it from Dragon ESL.',
+      title: 'Delete Store / حذف الفرع',
+      message: 'Are you sure you want to delete this store? This will physically remove it from Dragon ESL. / هل أنت متأكد من رغبتك في حذف هذا الفرع؟ سيؤدي ذلك إلى إزالته نهائياً من Dragon ESL.',
       onConfirm: async () => {
         try {
           await storeService.deleteStore(id);
           fetchStores();
-          showNotification('Store successfully deleted.', 'success');
+          showNotification('Store successfully deleted. / تم حذف الفرع بنجاح.', 'success');
         } catch (err: any) {
-          showNotification(err.message || 'Failed to delete store', 'error');
+          showNotification(err.message || 'Failed to delete store / فشل في حذف الفرع', 'error');
           console.error(err);
         }
       }
@@ -193,11 +193,11 @@ const Stores: React.FC = () => {
             <h3>{confirmDialog.title}</h3>
             <p>{confirmDialog.message}</p>
             <div className="modal-actions">
-              <button className="btn-secondary" onClick={() => setConfirmDialog(null)}>Cancel</button>
+              <button className="btn-secondary" onClick={() => setConfirmDialog(null)}>Cancel / إلغاء</button>
               <button className="btn-primary danger" onClick={() => {
                 confirmDialog.onConfirm();
                 setConfirmDialog(null);
-              }}>Confirm</button>
+              }}>Confirm / تأكيد</button>
             </div>
           </div>
         </div>
@@ -205,15 +205,15 @@ const Stores: React.FC = () => {
 
       <div className="stores-page-header">
         <div>
-          <h2>Store Management</h2>
-          <p className="text-muted">Manage and monitor all your branch locations</p>
+          <h2>Store Management / إدارة الفروع</h2>
+          <p className="text-muted">Manage and monitor all your branch locations / إدارة ومراقبة جميع الفروع الخاصة بك</p>
         </div>
         <div className="stores-header-actions">
           <button className="btn-secondary" onClick={fetchStores} disabled={loading}>
-            <RefreshCw size={18} className={loading ? 'animate-spin' : ''} /> Refresh
+            <RefreshCw size={18} className={loading ? 'animate-spin' : ''} /> Refresh / تحديث
           </button>
           <button className="btn-primary" onClick={openCreateModal}>
-            <Plus size={18} /> Add Store
+            <Plus size={18} /> Add Store / إضافة فرع
           </button>
         </div>
       </div>
@@ -222,29 +222,29 @@ const Stores: React.FC = () => {
         <Search size={20} className="text-muted" />
         <input
           type="text"
-          placeholder="Search stores by name, ID, or address..."
+          placeholder="Search stores by name, ID, or address... / ابحث عن الفروع بالاسم أو المعرف أو العنوان..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
         />
-        <span className="stores-total-count">{filteredStores.length} Stores</span>
+        <span className="stores-total-count">{filteredStores.length} Stores / فروع</span>
       </div>
 
       {loading ? (
         <div className="stores-loading-state">
           <Loader2 className="animate-spin" size={40} />
-          <p>Fetching store data from Dragon ESL...</p>
+          <p>Fetching store data from Dragon ESL... / جاري جلب بيانات الفروع من Dragon ESL...</p>
         </div>
       ) : error ? (
         <div className="stores-error-state glass-card">
           <p>{error}</p>
-          <button onClick={fetchStores} className="btn-primary">Try Again</button>
+          <button onClick={fetchStores} className="btn-primary">Try Again / أعد المحاولة</button>
         </div>
       ) : filteredStores.length === 0 ? (
         <div className="stores-empty-state glass-card">
           <StoreIcon size={48} />
-          <h3>No Stores Found</h3>
-          <p>Start by adding your first branch location.</p>
-          <button className="btn-primary" onClick={openCreateModal}>Add Store</button>
+          <h3>No Stores Found / لم يتم العثور على فروع</h3>
+          <p>Start by adding your first branch location. / ابدأ بإضافة فرعك الأول.</p>
+          <button className="btn-primary" onClick={openCreateModal}>Add Store / إضافة فرع</button>
         </div>
       ) : (
         <>
@@ -256,31 +256,31 @@ const Stores: React.FC = () => {
                     <StoreIcon size={24} />
                   </div>
                   <div className={`store-badge ${store.status === 'ACTIVE' ? 'status-active' : 'status-inactive'}`}>
-                    {store.status || 'UNKNOWN'}
+                    {store.status === 'ACTIVE' ? 'Active / نشط' : (store.status === 'INACTIVE' ? 'Inactive / غير نشط' : store.status || 'UNKNOWN / غير معروف')}
                   </div>
                 </div>
 
                 <div className="store-card-body">
                   <h3>{store.storeName}</h3>
-                  <p className="store-id">ID: {store.storeId}</p>
-                  {store.externalStoreId && <p className="store-id">Ext ID: {store.externalStoreId}</p>}
+                  <p className="store-id">ID / المعرف: {store.storeId}</p>
+                  {store.externalStoreId && <p className="store-id">Ext ID / المعرف الخارجي: {store.externalStoreId}</p>}
 
                   <div className="store-info-list">
                     <div className="store-info-item">
                       <MapPin size={16} />
-                      <span>{store.address || 'No address provided'}</span>
+                      <span>{store.address || 'No address provided / لم يتم تقديم عنوان'}</span>
                     </div>
                     <div className="store-info-item">
                       <User size={16} />
-                      <span>{store.contacts || 'No contact assigned'}</span>
+                      <span>{store.contacts || 'No contact assigned / لم يتم تعيين مسؤول'}</span>
                     </div>
                     <div className="store-info-item">
                       <Phone size={16} />
-                      <span>{store.phone || 'N/A'}</span>
+                      <span>{store.phone || 'N/A / غير متوفر'}</span>
                     </div>
                     <div className="store-info-item">
                       <Mail size={16} />
-                      <span>{store.mailbox || 'N/A'}</span>
+                      <span>{store.mailbox || 'N/A / غير متوفر'}</span>
                     </div>
                   </div>
                 </div>
@@ -288,22 +288,22 @@ const Stores: React.FC = () => {
                 <div className="store-card-actions">
                   <button className="btn-text edit-btn" onClick={() => openEditModal(store)}>
                     <Edit2 size={16} />
-                    <span>Edit</span>
+                    <span>Edit / تعديل</span>
                   </button>
                   {store.status === 'ACTIVE' ? (
                     <button className="btn-text disable-btn" onClick={() => store.storeId && handleDisable(store.storeId)}>
                       <Power size={16} />
-                      <span>Disable</span>
+                      <span>Disable / تعطيل</span>
                     </button>
                   ) : (
                     <button className="btn-text enable-btn" onClick={() => store.storeId && handleEnable(store.storeId)}>
                       <CheckCircle size={16} />
-                      <span>Enable</span>
+                      <span>Enable / تفعيل</span>
                     </button>
                   )}
                   <button className="btn-text delete-btn" onClick={() => store.storeId && handleDelete(store.storeId)}>
                     <Trash2 size={16} />
-                    <span>Delete</span>
+                    <span>Delete / حذف</span>
                   </button>
                 </div>
               </div>
@@ -314,7 +314,7 @@ const Stores: React.FC = () => {
           {totalCount > 0 && (
             <div className="dragonesl-pagination-bar glass-card">
               <div className="pagination-left">
-                <span className="pagination-total">Total {totalCount} items</span>
+                <span className="pagination-total">Total {totalCount} items / الإجمالي {totalCount} عناصر</span>
                 <select
                   value={pageSize}
                   onChange={(e) => {
@@ -323,11 +323,11 @@ const Stores: React.FC = () => {
                   }}
                   className="pagination-size-select"
                 >
-                  <option value={5}>5 / page</option>
-                  <option value={10}>10 / page</option>
-                  <option value={20}>20 / page</option>
-                  <option value={50}>50 / page</option>
-                  <option value={100}>100 / page</option>
+                  <option value={5}>5 / page / ٥ للصفحة</option>
+                  <option value={10}>10 / page / ١٠ للصفحة</option>
+                  <option value={20}>20 / page / ٢٠ للصفحة</option>
+                  <option value={50}>50 / page / ٥٠ للصفحة</option>
+                  <option value={100}>100 / page / ١٠٠ للصفحة</option>
                 </select>
               </div>
 
@@ -366,7 +366,7 @@ const Stores: React.FC = () => {
                 </button>
 
                 <div className="pagination-jump">
-                  <span>Go to</span>
+                  <span>Go to / الذهاب إلى</span>
                   <input
                     type="number"
                     min={1}
@@ -392,54 +392,54 @@ const Stores: React.FC = () => {
         <div className="modal-overlay">
           <div className="modal-content glass-card">
             <div className="modal-header">
-              <h3>{isEditing ? 'Edit Store' : 'Create New Store'}</h3>
+              <h3>{isEditing ? 'Edit Store / تعديل الفرع' : 'Create New Store / إنشاء فرع جديد'}</h3>
               <button className="close-btn" onClick={() => setIsModalOpen(false)}><X size={20} /></button>
             </div>
             <form onSubmit={handleSubmit} className="store-form">
               <div className="form-group">
-                <label>Store Name *</label>
+                <label>Store Name * / اسم الفرع *</label>
                 <input required type="text" value={formData.storeName}
                   onChange={e => setFormData({ ...formData, storeName: e.target.value })}
-                  className="glass-input" placeholder="e.g. Al Naseem Branch" />
+                  className="glass-input" placeholder="e.g. Al Naseem Branch / مثل فرع النسيم" />
               </div>
               <div className="form-group">
-                <label>Address</label>
+                <label>Address / العنوان</label>
                 <input type="text" value={formData.address}
                   onChange={e => setFormData({ ...formData, address: e.target.value })}
-                  className="glass-input" placeholder="Full branch address" />
+                  className="glass-input" placeholder="Full branch address / العنوان الكامل للفرع" />
               </div>
               <div className="form-row">
                 <div className="form-group">
-                  <label>Contact Person</label>
+                  <label>Contact Person / الشخص المسؤول</label>
                   <input type="text" value={formData.contacts}
                     onChange={e => setFormData({ ...formData, contacts: e.target.value })}
-                    className="glass-input" placeholder="Manager name" />
+                    className="glass-input" placeholder="Manager name / اسم المدير" />
                 </div>
                 <div className="form-group">
-                  <label>Phone</label>
+                  <label>Phone / رقم الهاتف</label>
                   <input type="text" value={formData.phone}
                     onChange={e => setFormData({ ...formData, phone: e.target.value })}
-                    className="glass-input" placeholder="+966..." />
+                    className="glass-input" placeholder="+966... / ٠٠٩٦٦..." />
                 </div>
               </div>
               <div className="form-row">
                 <div className="form-group">
-                  <label>Email</label>
+                  <label>Email / البريد الإلكتروني</label>
                   <input type="text" value={formData.mailbox}
                     onChange={e => setFormData({ ...formData, mailbox: e.target.value })}
-                    className="glass-input" placeholder="store@example.com" />
+                    className="glass-input" placeholder="store@example.com / store@example.com" />
                 </div>
                 <div className="form-group">
-                  <label>External Store ID</label>
+                  <label>External Store ID / معرف الفرع الخارجي</label>
                   <input type="text" value={formData.externalStoreId}
                     onChange={e => setFormData({ ...formData, externalStoreId: e.target.value })}
-                    className="glass-input" placeholder="ERP Store Code" />
+                    className="glass-input" placeholder="ERP Store Code / رمز الفرع في نظام ERP" />
                 </div>
               </div>
               <div className="modal-actions">
-                <button type="button" className="btn-secondary" onClick={() => setIsModalOpen(false)}>Cancel</button>
+                <button type="button" className="btn-secondary" onClick={() => setIsModalOpen(false)}>Cancel / إلغاء</button>
                 <button type="submit" className="btn-primary" disabled={formLoading}>
-                  {formLoading ? <Loader2 className="animate-spin" size={18} /> : isEditing ? 'Update Store' : 'Create Store'}
+                  {formLoading ? <Loader2 className="animate-spin" size={18} /> : isEditing ? 'Update Store / تحديث الفرع' : 'Create Store / إنشاء فرع'}
                 </button>
               </div>
             </form>

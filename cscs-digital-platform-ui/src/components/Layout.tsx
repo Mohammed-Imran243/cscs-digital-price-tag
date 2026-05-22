@@ -35,36 +35,36 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
         <div className="sidebar-header">
           <div className="logo-container">
             <span className="logo-text">CSCS</span>
-            <span className="logo-subtext">Digital Tag</span>
+            <span className="logo-subtext">Digital Tag / الوسم الرقمي</span>
           </div>
         </div>
         
         <nav className="sidebar-nav">
-          <SidebarItem to="/" icon={<LayoutDashboard size={20} />} label="Dashboard" />
+          <SidebarItem to="/" icon={<LayoutDashboard size={20} />} label="Dashboard / لوحة التحكم" />
           {(user?.permissions?.includes('store') || false) && (
-            <SidebarItem to="/stores" icon={<Store size={20} />} label="Stores" />
+            <SidebarItem to="/stores" icon={<Store size={20} />} label="Stores / الفروع" />
           )}
           {(user?.permissions?.includes('product') || false) && (
-            <SidebarItem to="/products" icon={<Package size={20} />} label="Products" />
+            <SidebarItem to="/products" icon={<Package size={20} />} label="Products / المنتجات" />
           )}
           {(user?.permissions?.includes('template') || false) && (
-            <SidebarItem to="/templates" icon={<FileText size={20} />} label="Templates" />
+            <SidebarItem to="/templates" icon={<FileText size={20} />} label="Templates / القوالب" />
           )}
           {(user?.permissions?.includes('equipment') || false) && (
-            <SidebarItem to="/devices" icon={<Cpu size={20} />} label="Devices" />
+            <SidebarItem to="/devices" icon={<Cpu size={20} />} label="Devices / الأجهزة" />
           )}
           {(user?.permissions?.includes('log') || false) && (
-            <SidebarItem to="/audit-logs" icon={<FileText size={20} />} label="Audit Logs" />
+            <SidebarItem to="/audit-logs" icon={<FileText size={20} />} label="Audit Logs / سجلات المراجعة" />
           )}
           {(user?.permissions?.includes('staffManager') || false) && (
-            <SidebarItem to="/users" icon={<User size={20} />} label="Staff Users" />
+            <SidebarItem to="/users" icon={<User size={20} />} label="Staff Users / الموظفين" />
           )}
         </nav>
 
         <div className="sidebar-footer">
           <button className="theme-toggle" onClick={toggleTheme}>
             {theme === 'light' ? <Moon size={20} /> : <Sun size={20} />}
-            <span>{theme === 'light' ? 'Dark Mode' : 'Light Mode'}</span>
+            <span>{theme === 'light' ? 'Dark Mode / الوضع الداكن' : 'Light Mode / الوضع المضيء'}</span>
           </button>
         </div>
       </aside>
@@ -72,15 +72,24 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
       <main className="main-content">
         <header className="main-header glass-card">
           <div className="header-left">
-            <h1 className="page-title">Digital Price Tag Platform</h1>
+            <h1 className="page-title">Digital Price Tag Platform / منصة بطاقات الأسعار الرقمية</h1>
           </div>
           <div className="header-right">
             <div className="user-profile">
               <div className="user-info">
                 <span className="username">{user?.username}</span>
-                <span className="user-role">{user?.role}</span>
+                <span className="user-role">
+                  {(() => {
+                    const r = user?.role?.toUpperCase();
+                    if (r === 'SUPER_ADMIN') return 'Super Admin / مدير النظام';
+                    if (r === 'MERCHANT_SUPER_ADMIN') return 'Merchant Super Admin / مسؤول التاجر الرئيسي';
+                    if (r === 'MERCHANT') return 'Merchant / تاجر';
+                    if (r === 'STAFF') return 'Staff / موظف';
+                    return user?.role;
+                  })()}
+                </span>
               </div>
-              <button className="logout-btn" onClick={handleLogout} title="Logout">
+              <button className="logout-btn" onClick={handleLogout} title="Logout / تسجيل الخروج">
                 <LogOut size={18} />
               </button>
             </div>

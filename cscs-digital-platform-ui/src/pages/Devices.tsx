@@ -291,17 +291,17 @@ const Devices: React.FC = () => {
   // Force Refresh / Reboot ESL (Single Device)
   const handleForceRefresh = async (barcode: string) => {
     if (!isAuthorized) {
-      showNotification('error', 'Access Denied: Only Administrator roles can trigger ESL forced refresh.');
+      showNotification('error', 'Access Denied: Only Administrator roles can trigger ESL forced refresh. / تم رفض الوصول: الصلاحية للمدراء فقط لتحديث الشاشات.');
       return;
     }
     setRefreshingBarcodes(prev => ({ ...prev, [barcode]: true }));
     try {
       await deviceService.forceRefreshEsl(selectedStoreId, [barcode]);
-      showNotification('success', `Force refresh command dispatched to ESL ${barcode}!`);
+      showNotification('success', `Force refresh command dispatched to ESL ${barcode}! / تم إرسال أمر التحديث الإجباري إلى الشاشة ${barcode}!`);
       // Refresh grid silently
       fetchDevices(true);
     } catch (err: any) {
-      showNotification('error', err.message || 'Network failure sending force refresh.');
+      showNotification('error', err.message || 'Network failure sending force refresh. / فشل الشبكة في إرسال التحديث الإجباري.');
     } finally {
       setRefreshingBarcodes(prev => ({ ...prev, [barcode]: false }));
     }
@@ -310,7 +310,7 @@ const Devices: React.FC = () => {
   // Batch Force Refresh / Reboot ESL
   const handleBatchForceRefresh = async () => {
     if (!isAuthorized) {
-      showNotification('error', 'Access Denied: Only Administrator roles can trigger ESL forced refresh.');
+      showNotification('error', 'Access Denied: Only Administrator roles can trigger ESL forced refresh. / تم رفض الوصول: الصلاحية للمدراء فقط لتحديث الشاشات.');
       return;
     }
     if (selectedBarcodes.length === 0) return;
@@ -318,11 +318,11 @@ const Devices: React.FC = () => {
     setLoading(true);
     try {
       await deviceService.forceRefreshEsl(selectedStoreId, selectedBarcodes);
-      showNotification('success', `Forced refresh dispatched successfully for ${selectedBarcodes.length} ESL tags!`);
+      showNotification('success', `Forced refresh dispatched successfully for ${selectedBarcodes.length} ESL tags! / تم إرسال أمر التحديث الجماعي بنجاح لـ ${selectedBarcodes.length} شاشة!`);
       setSelectedBarcodes([]);
       fetchDevices(true);
     } catch (err: any) {
-      showNotification('error', err.message || 'Network error during batch force refresh.');
+      showNotification('error', err.message || 'Network error during batch force refresh. / خطأ في الشبكة أثناء التحديث الجماعي.');
     } finally {
       setLoading(false);
     }
@@ -368,7 +368,7 @@ const Devices: React.FC = () => {
   /** Submit Bind: associate ESL barcode → item barcode + optional AP MAC */
   const handleBind = async () => {
     if (!bindFormStoreId || !bindFormItemBarCode.trim() || !bindFormEslBarcode.trim()) {
-      showNotification('error', 'Store, Item Barcode, and ESL Barcode are all required.');
+      showNotification('error', 'Store, Item Barcode, and ESL Barcode are all required. / اسم المتجر، باركود المنتج، وباركود الشاشة مطلوبة جميعها.');
       return;
     }
     setBindLoading(true);
@@ -379,11 +379,11 @@ const Devices: React.FC = () => {
         eslBarcode: bindFormEslBarcode.trim(),
         apMac: bindFormApMac.trim() || undefined
       });
-      showNotification('success', `ESL ${bindFormEslBarcode} bound to item ${bindFormItemBarCode} successfully!`);
+      showNotification('success', `ESL ${bindFormEslBarcode} bound to item ${bindFormItemBarCode} successfully! / تم ربط الشاشة ${bindFormEslBarcode} بالمنتج ${bindFormItemBarCode} بنجاح!`);
       setBindModalOpen(false);
       fetchDevices(true);
     } catch (e: any) {
-      showNotification('error', e.message || 'Network error during bind operation.');
+      showNotification('error', e.message || 'Network error during bind operation. / خطأ في الشبكة أثناء عملية الربط.');
     } finally {
       setBindLoading(false);
     }
@@ -393,17 +393,17 @@ const Devices: React.FC = () => {
   const handleUnbind = async () => {
     const barcodes = unbindBarcodes.split(/[,\n]+/).map(b => b.trim()).filter(Boolean);
     if (!bindFormStoreId || barcodes.length === 0) {
-      showNotification('error', 'Store and at least one ESL Barcode are required.');
+      showNotification('error', 'Store and at least one ESL Barcode are required. / اسم المتجر وباركود شاشة واحد على الأقل مطلوبة.');
       return;
     }
     setBindLoading(true);
     try {
       await deviceService.unbindEsl(bindFormStoreId, barcodes);
-      showNotification('success', `${barcodes.length} ESL label(s) unbound successfully!`);
+      showNotification('success', `${barcodes.length} ESL label(s) unbound successfully! / تم إلغاء ربط ${barcodes.length} شاشة بنجاح!`);
       setBindModalOpen(false);
       fetchDevices(true);
     } catch (e: any) {
-      showNotification('error', e.message || 'Network error during unbind operation.');
+      showNotification('error', e.message || 'Network error during unbind operation. / خطأ في الشبكة أثناء عملية إلغاء الربط.');
     } finally {
       setBindLoading(false);
     }
@@ -426,8 +426,8 @@ const Devices: React.FC = () => {
       {/* Header */}
       <div className="devices-page-header">
         <div>
-          <h2>Device Management</h2>
-          <p className="text-muted">Monitor and control your Electronic Shelf Labels (ESL) and Base Station Access Points (AP)</p>
+          <h2>Device Management / إدارة الأجهزة</h2>
+          <p className="text-muted">Monitor and control your Electronic Shelf Labels (ESL) and Base Station Access Points (AP) / مراقبة والتحكم في شاشات الأسعار الإلكترونية (ESL) ومحطات البث (AP)</p>
         </div>
         <div className="devices-header-actions">
           {/* Store Selection Dropdown */}
@@ -439,7 +439,7 @@ const Devices: React.FC = () => {
               disabled={storesLoading}
             >
               {storesLoading ? (
-                <option>Loading Stores...</option>
+                <option>Loading Stores... / جاري تحميل الفروع...</option>
               ) : (
                 stores.map((s) => (
                   <option key={s.storeId} value={s.storeId}>
@@ -452,12 +452,12 @@ const Devices: React.FC = () => {
 
           {activeTab === 'esl' && (
             <button className="btn-primary" onClick={openBindModal} disabled={!selectedStoreId || storesLoading}>
-              <Link2 size={18} /> Bind
+              <Link2 size={18} /> Bind / ربط
             </button>
           )}
 
           <button className="btn-secondary" onClick={() => fetchDevices()} disabled={loading || storesLoading}>
-            <RefreshCw size={18} className={loading ? 'animate-spin' : ''} /> Refresh
+            <RefreshCw size={18} className={loading ? 'animate-spin' : ''} /> Refresh / تحديث
           </button>
         </div>
       </div>
@@ -470,14 +470,14 @@ const Devices: React.FC = () => {
             onClick={() => setActiveTab('esl')}
           >
             <Smartphone size={18} />
-            <span>ESL Labels</span>
+            <span>ESL Labels / شاشات الأسعار</span>
           </button>
           <button 
             className={`tab-btn ${activeTab === 'ap' ? 'active' : ''}`}
             onClick={() => setActiveTab('ap')}
           >
             <Cpu size={18} />
-            <span>AP Stations</span>
+            <span>AP Stations / محطات البث</span>
           </button>
         </div>
 
@@ -488,13 +488,13 @@ const Devices: React.FC = () => {
             type="text"
             placeholder={
               activeTab === 'esl' 
-                ? "Search tags by ESL barcode or bound product..."
-                : "Search stations by name, IP, or MAC address..."
+                ? "Search tags by ESL barcode or bound product... / ابحث عن بطاقات الأسعار بالباركود أو المنتج المرتبط..."
+                : "Search stations by name, IP, or MAC address... / ابحث عن المحطات بالاسم أو عنوان IP أو MAC..."
             }
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
-          <button type="submit" className="btn-primary-small">Search</button>
+          <button type="submit" className="btn-primary-small">Search / بحث</button>
         </form>
       </div>
 
@@ -502,14 +502,14 @@ const Devices: React.FC = () => {
       {loading ? (
         <div className="devices-loading-state glass-card">
           <Loader2 className="animate-spin" size={40} />
-          <p>Reading live equipment data from Zkong Cloud platform...</p>
+          <p>Reading live equipment data from Zkong Cloud platform... / جاري قراءة بيانات الأجهزة المباشرة من منصة Zkong السحابية...</p>
         </div>
       ) : error ? (
         <div className="devices-error-state glass-card">
           <AlertCircle size={48} className="error-icon" />
-          <h3>Connection Refused</h3>
+          <h3>Connection Refused / تم رفض الاتصال</h3>
           <p>{error}</p>
-          <button onClick={() => fetchDevices()} className="btn-primary">Try Again</button>
+          <button onClick={() => fetchDevices()} className="btn-primary">Try Again / أعد المحاولة</button>
         </div>
       ) : activeTab === 'esl' ? (
         <EslTab
@@ -547,7 +547,7 @@ const Devices: React.FC = () => {
         <div className="batch-actions-bar glass-card scale-up">
           <div className="batch-info">
             <span className="count-badge">{selectedBarcodes.length}</span>
-            <span>ESL labels selected for batch sync</span>
+            <span>ESL labels selected for batch sync / بطاقات سعر محددة للتحديث الجماعي</span>
           </div>
           <div className="batch-buttons">
             <button 
@@ -556,10 +556,10 @@ const Devices: React.FC = () => {
               disabled={!isAuthorized || loading}
             >
               {loading ? <Loader2 size={16} className="animate-spin" /> : <RefreshCw size={16} />}
-              <span>Force Refresh Selected</span>
+              <span>Force Refresh Selected / تحديث البطاقات المحددة</span>
             </button>
             <button className="btn-secondary" onClick={() => setSelectedBarcodes([])}>
-              Cancel
+              Cancel / إلغاء
             </button>
           </div>
         </div>

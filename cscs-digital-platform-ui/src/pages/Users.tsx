@@ -5,16 +5,16 @@ import type { User, Role } from '../services/userService';
 import { getPaginationRange } from '../utils/paginationUtils';
 
 const AVAILABLE_PERMISSIONS = [
-  { id: 135, name: 'Product Management', code: 'product' },
-  { id: 138, name: 'Store Management', code: 'store' },
-  { id: 133, name: 'ESL Device Management', code: 'equipment' },
-  { id: 141, name: 'Role & System Settings', code: 'system' },
-  { id: 134, name: 'ESL & System Logs', code: 'log' },
-  { id: 139, name: 'Staff User Management', code: 'staffManager' },
-  { id: 136, name: 'Display Templates', code: 'template' },
-  { id: 311, name: 'System Alarm Alerts', code: 'alarm' },
-  { id: 309, name: 'Dashboard Statistics', code: 'statistics' },
-  { id: 224, name: 'Material Assets', code: 'material' },
+  { id: 135, name: 'Product Management / إدارة المنتجات', code: 'product' },
+  { id: 138, name: 'Store Management / إدارة الفروع', code: 'store' },
+  { id: 133, name: 'ESL Device Management / إدارة أجهزة بطاقات الأسعار', code: 'equipment' },
+  { id: 141, name: 'Role & System Settings / أدوار وإعدادات النظام', code: 'system' },
+  { id: 134, name: 'ESL & System Logs / سجلات النظام وبطاقات الأسعار', code: 'log' },
+  { id: 139, name: 'Staff User Management / إدارة حسابات الموظفين', code: 'staffManager' },
+  { id: 136, name: 'Display Templates / قوالب العرض', code: 'template' },
+  { id: 311, name: 'System Alarm Alerts / تنبيهات إنذار النظام', code: 'alarm' },
+  { id: 309, name: 'Dashboard Statistics / إحصائيات لوحة التحكم', code: 'statistics' },
+  { id: 224, name: 'Material Assets / الأصول والمواد', code: 'material' },
 ];
 
 const Users: React.FC = () => {
@@ -97,11 +97,11 @@ const Users: React.FC = () => {
           return {
             id: u.id,
             account: u.account,
-            staffName: u.name || u.staffName || 'Unnamed Staff',
+            staffName: u.name || u.staffName || 'Unnamed Staff / موظف غير مسمى',
             roleId: u.roleId,
-            roleName: item.roleName || u.roleName || 'No Role Assigned',
+            roleName: item.roleName || u.roleName || 'No Role Assigned / لم يتم تعيين دور',
             createTime: u.createTime,
-            status: u.enable === 1 ? 'Normal' : 'Disabled',
+            status: u.enable === 1 ? 'Normal / طبيعي' : 'Disabled / معطل',
           };
         });
         setUsers(mappedUsers);
@@ -112,9 +112,9 @@ const Users: React.FC = () => {
         
         const mappedRoles = rolesList.map((r: any) => ({
           id: r.id,
-          roleName: r.roleName || r.name || 'Unnamed Role',
+          roleName: r.roleName || r.name || 'Unnamed Role / دور غير مسمى',
           merchantId: r.merchantId || '1775639851383',
-          createTime: r.createTime || 'Shared',
+          createTime: r.createTime || 'Shared / مشترك',
         }));
         setRoles(mappedRoles);
       }
@@ -138,9 +138,9 @@ const Users: React.FC = () => {
       const rolesList = Array.isArray(rawData) ? rawData : (rawData?.list || []);
       const mappedRoles = rolesList.map((r: any) => ({
         id: r.id,
-        roleName: r.roleName || r.name || 'Unnamed Role',
+        roleName: r.roleName || r.name || 'Unnamed Role / دور غير مسمى',
         merchantId: r.merchantId || '1775639851383',
-        createTime: r.createTime || 'Shared',
+        createTime: r.createTime || 'Shared / مشترك',
       }));
       setRoles(mappedRoles);
     } catch (err) {
@@ -186,21 +186,21 @@ const Users: React.FC = () => {
 
       if (isEditingUser && editingUserId) {
         await userService.updateUser(editingUserId, payload);
-        showNotification('User updated successfully!', 'success');
+        showNotification('User updated successfully! / تم تحديث المستخدم بنجاح!', 'success');
       } else {
         if (!userFormData.password) {
-          showNotification('Password is required for new users', 'error');
+          showNotification('Password is required for new users / كلمة المرور مطلوبة للمستخدمين الجدد', 'error');
           setFormLoading(false);
           return;
         }
         await userService.addUser(payload);
-        showNotification('User created successfully!', 'success');
+        showNotification('User created successfully! / تم إنشاء المستخدم بنجاح!', 'success');
       }
       
       setIsUserModalOpen(false);
       fetchData();
     } catch (err: any) {
-      showNotification(err.message || `Failed to ${isEditingUser ? 'update' : 'create'} user`, 'error');
+      showNotification(err.message || `Failed to ${isEditingUser ? 'update / تحديث' : 'create / إنشاء'} user / المستخدم`, 'error');
       console.error(err);
     } finally {
       setFormLoading(false);
@@ -210,15 +210,15 @@ const Users: React.FC = () => {
   const handleUserDelete = (id: string) => {
     setConfirmDialog({
       isOpen: true,
-      title: 'Delete User',
-      message: 'Are you sure you want to delete this user?',
+      title: 'Delete User / حذف المستخدم',
+      message: 'Are you sure you want to delete this user? / هل أنت متأكد من حذف هذا المستخدم؟',
       onConfirm: async () => {
         try {
           await userService.deleteUser(id);
           fetchData();
-          showNotification('User deleted successfully.', 'success');
+          showNotification('User deleted successfully. / تم حذف المستخدم بنجاح.', 'success');
         } catch (err: any) {
-          showNotification(err.message || 'Failed to delete user', 'error');
+          showNotification(err.message || 'Failed to delete user. / فشل حذف المستخدم.', 'error');
           console.error(err);
         }
       }
@@ -273,15 +273,15 @@ const Users: React.FC = () => {
     try {
       if (isEditingRole && editingRoleId) {
         await userService.updateRole(editingRoleId, roleFormData);
-        showNotification('Role updated successfully!', 'success');
+        showNotification('Role updated successfully! / تم تحديث الدور بنجاح!', 'success');
       } else {
         await userService.addRole(roleFormData);
-        showNotification('Role created successfully!', 'success');
+        showNotification('Role created successfully! / تم إنشاء الدور بنجاح!', 'success');
       }
       setIsRoleModalOpen(false);
       fetchData();
     } catch (err: any) {
-      showNotification(err.message || `Failed to ${isEditingRole ? 'update' : 'create'} role`, 'error');
+      showNotification(err.message || `Failed to ${isEditingRole ? 'update / تحديث' : 'create / إنشاء'} role / الدور`, 'error');
       console.error(err);
     } finally {
       setFormLoading(false);
@@ -291,15 +291,15 @@ const Users: React.FC = () => {
   const handleRoleDelete = (id: string | number) => {
     setConfirmDialog({
       isOpen: true,
-      title: 'Delete Role',
-      message: 'Are you sure you want to delete this role? This cannot be undone.',
+      title: 'Delete Role / حذف الدور',
+      message: 'Are you sure you want to delete this role? This cannot be undone. / هل أنت متأكد من حذف هذا الدور؟ لا يمكن التراجع عن هذا الإجراء.',
       onConfirm: async () => {
         try {
           await userService.deleteRole(id);
           fetchData();
-          showNotification('Role deleted successfully.', 'success');
+          showNotification('Role deleted successfully. / تم حذف الدور بنجاح.', 'success');
         } catch (err: any) {
-          showNotification(err.message || 'Failed to delete role. Ensure no users are assigned to this role.', 'error');
+          showNotification(err.message || 'Failed to delete role. Ensure no users are assigned to this role. / فشل حذف الدور. تأكد من عدم وجود مستخدمين معينين لهذا الدور.', 'error');
           console.error(err);
         }
       }
@@ -338,11 +338,11 @@ const Users: React.FC = () => {
             <h3>{confirmDialog.title}</h3>
             <p>{confirmDialog.message}</p>
             <div className="modal-actions">
-              <button className="btn-secondary" onClick={() => setConfirmDialog(null)}>Cancel</button>
+              <button className="btn-secondary" onClick={() => setConfirmDialog(null)}>Cancel / إلغاء</button>
               <button className="btn-primary danger" onClick={() => {
                 confirmDialog.onConfirm();
                 setConfirmDialog(null);
-              }}>Confirm</button>
+              }}>Confirm / تأكيد</button>
             </div>
           </div>
         </div>
@@ -351,20 +351,20 @@ const Users: React.FC = () => {
       {/* Header */}
       <div className="users-header">
         <div>
-          <h2>Staff User Management</h2>
-          <p className="text-muted">Manage staff accounts and system operators</p>
+          <h2>Staff User Management / إدارة حسابات الموظفين</h2>
+          <p className="text-muted">Manage staff accounts and system operators / إدارة حسابات الموظفين ومشغلي النظام</p>
         </div>
         <div className="users-header-actions">
           <button className="btn-secondary" onClick={fetchData} disabled={loading}>
-            <RefreshCw size={18} className={loading ? 'animate-spin' : ''} /> Refresh
+            <RefreshCw size={18} className={loading ? 'animate-spin' : ''} /> Refresh / تحديث
           </button>
           {activeTab === 'users' ? (
             <button className="btn-primary" onClick={handleOpenCreateUser}>
-              <Plus size={18} /> Create User
+              <Plus size={18} /> Create User / إضافة مستخدم
             </button>
           ) : (
             <button className="btn-primary" onClick={handleOpenCreateRole}>
-              <Plus size={18} /> Create Role
+              <Plus size={18} /> Create Role / إضافة دور
             </button>
           )}
         </div>
@@ -381,7 +381,7 @@ const Users: React.FC = () => {
             }}
           >
             <UserIcon size={16} />
-            <span>Staff Users</span>
+            <span>Staff Users / الموظفين</span>
           </button>
           <button
             className={`tab-trigger ${activeTab === 'roles' ? 'active' : ''}`}
@@ -391,14 +391,14 @@ const Users: React.FC = () => {
             }}
           >
             <Shield size={16} />
-            <span>Security Roles</span>
+            <span>Security Roles / أدوار الأمان</span>
           </button>
         </div>
         <div className="tab-search-wrapper" style={{ width: '100%', maxWidth: '360px' }}>
           <Search size={18} className="text-muted" />
           <input
             type="text"
-            placeholder={activeTab === 'users' ? "Search by account or name..." : "Search by role name..."}
+            placeholder={activeTab === 'users' ? "Search by account or name... / ابحث بالحساب أو الاسم..." : "Search by role name... / ابحث باسم الدور..."}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
@@ -409,34 +409,34 @@ const Users: React.FC = () => {
       {loading ? (
         <div className="users-loading">
           <Loader2 className="animate-spin" size={40} />
-          <p>Connecting to Dragon ESL Cloud...</p>
+          <p>Connecting to Dragon ESL Cloud... / جاري الاتصال بسحابة Dragon ESL...</p>
         </div>
       ) : error ? (
         <div className="users-error glass-card">
           <Info size={32} className="text-danger" />
           <p>{error}</p>
-          <button onClick={fetchData} className="btn-primary">Try Again</button>
+          <button onClick={fetchData} className="btn-primary">Try Again / أعد المحاولة</button>
         </div>
       ) : activeTab === 'users' ? (
         /* Users Tab Content */
         totalCount === 0 ? (
           <div className="users-empty glass-card">
             <UserIcon size={48} />
-            <h3>No Staff Users Found</h3>
-            <p>Start by adding your first operator or administrative user.</p>
-            <button className="btn-primary" onClick={handleOpenCreateUser}>Create User</button>
+            <h3>No Staff Users Found / لم يتم العثور على موظفين</h3>
+            <p>Start by adding your first operator or administrative user. / ابدأ بإضافة أول مشغل أو مستخدم إداري.</p>
+            <button className="btn-primary" onClick={handleOpenCreateUser}>Create User / إضافة مستخدم</button>
           </div>
         ) : (
           <div className="users-table-wrapper glass-card">
             <table className="users-table">
               <thead>
                 <tr>
-                  <th>Staff Name</th>
-                  <th>Account</th>
-                  <th>Role Name</th>
-                  <th>Created Date</th>
-                  <th>Status</th>
-                  <th style={{ textAlign: 'right' }}>Actions</th>
+                  <th>Staff Name / اسم الموظف</th>
+                  <th>Account / الحساب</th>
+                  <th>Role Name / اسم الدور</th>
+                  <th>Created Date / تاريخ الإنشاء</th>
+                  <th>Status / الحالة</th>
+                  <th style={{ textAlign: 'right' }}>Actions / الإجراءات</th>
                 </tr>
               </thead>
               <tbody>
@@ -448,7 +448,7 @@ const Users: React.FC = () => {
                           {user.staffName ? user.staffName.substring(0, 2).toUpperCase() : 'ST'}
                         </div>
                         <div>
-                          <div className="font-semibold">{user.staffName || 'Unnamed Staff'}</div>
+                          <div className="font-semibold">{user.staffName || 'Unnamed Staff / موظف غير مسمى'}</div>
                           <div className="text-muted text-xs">ID: {user.id}</div>
                         </div>
                       </div>
@@ -459,26 +459,26 @@ const Users: React.FC = () => {
                     <td>
                       <span className="role-chip">
                         <Shield size={12} />
-                        <span>{user.roleName || 'No Role Assigned'}</span>
+                        <span>{user.roleName || 'No Role Assigned / لم يتم تعيين دور'}</span>
                       </span>
                     </td>
                     <td>
                       <span className="date-display">
                         <Calendar size={12} />
-                        <span>{user.createTime || 'N/A'}</span>
+                        <span>{user.createTime || 'N/A / غير متوفر'}</span>
                       </span>
                     </td>
                     <td>
                       <span className="badge-normal">
-                        Normal
+                        {user.status || 'Normal / طبيعي'}
                       </span>
                     </td>
                     <td>
                       <div className="table-actions">
-                        <button className="icon-action" onClick={() => handleOpenEditUser(user)} title="Edit User">
+                        <button className="icon-action" onClick={() => handleOpenEditUser(user)} title="Edit User / تعديل المستخدم">
                           <Edit2 size={16} />
                         </button>
-                        <button className="icon-action danger" onClick={() => user.id && handleUserDelete(user.id)} title="Delete User">
+                        <button className="icon-action danger" onClick={() => user.id && handleUserDelete(user.id)} title="Delete User / حذف المستخدم">
                           <Trash2 size={16} />
                         </button>
                       </div>
@@ -492,7 +492,7 @@ const Users: React.FC = () => {
             {totalCount > 0 && (
               <div className="dragonesl-pagination-bar" style={{ padding: '16px 0 0 0', marginTop: '16px', borderTop: '1px solid var(--glass-border)' }}>
                 <div className="pagination-left">
-                  <span className="pagination-total">Total {totalCount} items</span>
+                  <span className="pagination-total">Total {totalCount} items / الإجمالي {totalCount} عناصر</span>
                   <select
                     value={pageSize}
                     onChange={(e) => {
@@ -501,11 +501,11 @@ const Users: React.FC = () => {
                     }}
                     className="pagination-size-select"
                   >
-                    <option value={5}>5 / page</option>
-                    <option value={10}>10 / page</option>
-                    <option value={20}>20 / page</option>
-                    <option value={50}>50 / page</option>
-                    <option value={100}>100 / page</option>
+                    <option value={5}>5/page / ٥ في الصفحة</option>
+                    <option value={10}>10/page / ١٠ في الصفحة</option>
+                    <option value={20}>20/page / ٢٠ في الصفحة</option>
+                    <option value={50}>50/page / ٥٠ في الصفحة</option>
+                    <option value={100}>100/page / ١٠٠ في الصفحة</option>
                   </select>
                 </div>
 
@@ -544,7 +544,7 @@ const Users: React.FC = () => {
                   </button>
 
                   <div className="pagination-jump">
-                    <span>Go to</span>
+                    <span>Go to / الذهاب إلى</span>
                     <input
                       type="number"
                       min={1}
@@ -569,9 +569,9 @@ const Users: React.FC = () => {
         filteredRoles.length === 0 ? (
           <div className="users-empty glass-card">
             <Shield size={48} />
-            <h3>No Roles Found</h3>
-            <p>Start by adding your custom security roles.</p>
-            <button className="btn-primary" onClick={handleOpenCreateRole}>Create Role</button>
+            <h3>No Roles Found / لم يتم العثور على أدوار</h3>
+            <p>Start by adding your custom security roles. / ابدأ بإضافة أدوار الأمان المخصصة الخاصة بك.</p>
+            <button className="btn-primary" onClick={handleOpenCreateRole}>Create Role / إضافة دور</button>
           </div>
         ) : (
           <div className="roles-grid">
@@ -590,20 +590,20 @@ const Users: React.FC = () => {
                 <div className="role-card-body">
                   <div className="role-meta-row">
                     <Calendar size={14} className="text-muted" />
-                    <span>Created: {role.createTime || 'N/A'}</span>
+                    <span>Created / تم الإنشاء: {role.createTime || 'N/A / غير متوفر'}</span>
                   </div>
                   <div className="role-meta-row">
                     <Info size={14} className="text-muted" />
-                    <span>Merchant: {role.merchantId || 'Shared'}</span>
+                    <span>Merchant / التاجر: {role.merchantId || 'Shared / مشترك'}</span>
                   </div>
                 </div>
 
                 <div className="role-card-actions">
                   <button className="btn-text" onClick={() => handleOpenEditRole(role)}>
-                    <Edit2 size={15} /> Edit Role
+                    <Edit2 size={15} /> Edit Role / تعديل الدور
                   </button>
                   <button className="btn-text danger" onClick={() => role.id && handleRoleDelete(role.id)}>
-                    <Trash2 size={15} /> Delete
+                    <Trash2 size={15} /> Delete / حذف
                   </button>
                 </div>
               </div>
@@ -617,13 +617,13 @@ const Users: React.FC = () => {
         <div className="modal-overlay">
           <div className="modal-content glass-card">
             <div className="modal-header">
-              <h3>{isEditingUser ? 'Edit Staff User' : 'Create New User'}</h3>
+              <h3>{isEditingUser ? 'Edit Staff User / تعديل الموظف' : 'Create New User / إنشاء مستخدم جديد'}</h3>
               <button className="close-btn" onClick={() => setIsUserModalOpen(false)}><X size={20} /></button>
             </div>
             
             <form onSubmit={handleUserSubmit} className="modal-form">
               <div className="form-group">
-                <label>Login Account *</label>
+                <label>Login Account * / حساب الدخول *</label>
                 <input 
                   required 
                   type="text" 
@@ -631,24 +631,24 @@ const Users: React.FC = () => {
                   value={userFormData.account}
                   onChange={e => setUserFormData({ ...userFormData, account: e.target.value })}
                   className="glass-input" 
-                  placeholder="6-20 alphanumeric characters" 
+                  placeholder="6-20 alphanumeric characters / ٦-٢٠ حرفاً أو رقماً" 
                 />
               </div>
 
               <div className="form-group">
-                <label>Staff Name *</label>
+                <label>Staff Name * / اسم الموظف *</label>
                 <input 
                   required 
                   type="text" 
                   value={userFormData.staffName}
                   onChange={e => setUserFormData({ ...userFormData, staffName: e.target.value })}
                   className="glass-input" 
-                  placeholder="e.g. Abdullah Salem" 
+                  placeholder="e.g. Abdullah Salem / مثال: عبد الله سالم" 
                 />
               </div>
 
               <div className="form-group">
-                <label>{isEditingUser ? 'New Password (Optional)' : 'Password *'}</label>
+                <label>{isEditingUser ? 'New Password (Optional) / كلمة المرور الجديدة (اختياري)' : 'Password * / كلمة المرور *'}</label>
                 <div className="password-input-wrapper">
                   <Key size={16} className="pass-icon text-muted" />
                   <input 
@@ -657,20 +657,20 @@ const Users: React.FC = () => {
                     value={userFormData.password}
                     onChange={e => setUserFormData({ ...userFormData, password: e.target.value })}
                     className="glass-input" 
-                    placeholder={isEditingUser ? 'Leave blank to keep current password' : 'Min 8 chars, mixed letters & numbers'} 
+                    placeholder={isEditingUser ? 'Leave blank to keep current password / اتركه فارغاً للاحتفاظ بكلمة المرور الحالية' : 'Min 8 chars, mixed letters & numbers / ٨ أحرف على الأقل، حروف وأرقام مختلطة'} 
                   />
                 </div>
               </div>
 
               <div className="form-group">
-                <label>Assigned Role *</label>
+                <label>Assigned Role * / الدور المعين *</label>
                 <select 
                   required 
                   value={userFormData.roleId}
                   onChange={e => setUserFormData({ ...userFormData, roleId: e.target.value })}
                   className="glass-input"
                 >
-                  <option value="">Select Security Role...</option>
+                  <option value="">Select Security Role... / اختر دور الأمان...</option>
                   {roles.map(r => (
                     <option key={r.id} value={r.id}>{r.roleName}</option>
                   ))}
@@ -678,9 +678,9 @@ const Users: React.FC = () => {
               </div>
 
               <div className="modal-actions">
-                <button type="button" className="btn-secondary" onClick={() => setIsUserModalOpen(false)}>Cancel</button>
+                <button type="button" className="btn-secondary" onClick={() => setIsUserModalOpen(false)}>Cancel / إلغاء</button>
                 <button type="submit" className="btn-primary" disabled={formLoading}>
-                  {formLoading ? <Loader2 className="animate-spin" size={18} /> : isEditingUser ? 'Save User' : 'Add User'}
+                  {formLoading ? <Loader2 className="animate-spin" size={18} /> : isEditingUser ? 'Save User / حفظ المستخدم' : 'Add User / إضافة مستخدم'}
                 </button>
               </div>
             </form>
@@ -693,26 +693,26 @@ const Users: React.FC = () => {
         <div className="modal-overlay">
           <div className="modal-content glass-card modal-content-wide">
             <div className="modal-header">
-              <h3>{isEditingRole ? 'Edit Security Role' : 'Create Custom Role'}</h3>
+              <h3>{isEditingRole ? 'Edit Security Role / تعديل دور الأمان' : 'Create Custom Role / إنشاء دور مخصص'}</h3>
               <button className="close-btn" onClick={() => setIsRoleModalOpen(false)}><X size={20} /></button>
             </div>
             
             <form onSubmit={handleRoleSubmit} className="modal-form">
               <div className="form-group">
-                <label>Role Name *</label>
+                <label>Role Name * / اسم الدور *</label>
                 <input 
                   required 
                   type="text" 
                   value={roleFormData.roleName}
                   onChange={e => setRoleFormData({ ...roleFormData, roleName: e.target.value })}
                   className="glass-input" 
-                  placeholder="e.g. Inventory Manager" 
+                  placeholder="e.g. Inventory Manager / مثال: مدير المخزون" 
                 />
               </div>
 
               <div className="form-group permissions-box">
-                <label>Functional Authority (Menu Access Permissions)</label>
-                <p className="permissions-help text-xs text-muted">Select the specific pages and features that users with this role can access.</p>
+                <label>Functional Authority (Menu Access Permissions) / الصلاحية الوظيفية (صلاحيات الوصول للقائمة)</label>
+                <p className="permissions-help text-xs text-muted">Select the specific pages and features that users with this role can access. / اختر الصفحات والميزات المحددة التي يمكن للمستخدمين الذين يمتلكون هذا الدور الوصول إليها.</p>
                 
                 <div className="permissions-grid">
                   {AVAILABLE_PERMISSIONS.map(perm => {
@@ -737,9 +737,9 @@ const Users: React.FC = () => {
               </div>
 
               <div className="modal-actions">
-                <button type="button" className="btn-secondary" onClick={() => setIsRoleModalOpen(false)}>Cancel</button>
+                <button type="button" className="btn-secondary" onClick={() => setIsRoleModalOpen(false)}>Cancel / إلغاء</button>
                 <button type="submit" className="btn-primary" disabled={formLoading}>
-                  {formLoading ? <Loader2 className="animate-spin" size={18} /> : isEditingRole ? 'Update Role' : 'Create Role'}
+                  {formLoading ? <Loader2 className="animate-spin" size={18} /> : isEditingRole ? 'Update Role / تحديث الدور' : 'Create Role / إنشاء الدور'}
                 </button>
               </div>
             </form>

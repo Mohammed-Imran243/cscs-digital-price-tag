@@ -266,8 +266,8 @@ const Templates: React.FC = () => {
   const handleDeleteTemplate = (id: string) => {
     setConfirmDialog({
       isOpen: true,
-      title: 'Delete Template',
-      message: 'Are you sure you want to delete this template from Zkong Cloud?',
+      title: 'Delete Template / حذف القالب',
+      message: 'Are you sure you want to delete this template from Zkong Cloud? / هل أنت متأكد أنك تريد حذف هذا القالب من سحابة Zkong؟',
       onConfirm: async () => {
         try {
           await deleteTemplate(id, '0', true);
@@ -402,11 +402,11 @@ const Templates: React.FC = () => {
             <h3>{confirmDialog.title}</h3>
             <p>{confirmDialog.message}</p>
             <div className="modal-actions">
-              <button className="btn-secondary" onClick={() => setConfirmDialog(null)}>Cancel</button>
+              <button className="btn-secondary" onClick={() => setConfirmDialog(null)}>Cancel / إلغاء</button>
               <button className="btn-primary danger" onClick={() => {
                 confirmDialog.onConfirm();
                 setConfirmDialog(null);
-              }}>Confirm</button>
+              }}>Confirm / تأكيد</button>
             </div>
           </div>
         </div>
@@ -414,12 +414,12 @@ const Templates: React.FC = () => {
 
       {/* Breadcrumbs & Navigation Section */}
       <div className="top-breadcrumb">
-        <span>Template management</span> &gt; <span>
-          {activeMenuTab === 'merchant' && 'Merchant Template'}
-          {activeMenuTab === 'store' && 'Store Template'}
-          {activeMenuTab === 'business_icon' && 'Business Icon'}
-          {activeMenuTab === 'store_icon' && 'Store Icon'}
-          {activeMenuTab === 'properties' && 'Template Properties'}
+        <span>Template management / إدارة القوالب</span> &gt; <span>
+          {activeMenuTab === 'merchant' && 'Merchant Template / قوالب التاجر'}
+          {activeMenuTab === 'store' && 'Store Template / قوالب المتجر'}
+          {activeMenuTab === 'business_icon' && 'Business Icon / أيقونة العمل'}
+          {activeMenuTab === 'store_icon' && 'Store Icon / أيقونة المتجر'}
+          {activeMenuTab === 'properties' && 'Template Properties / خصائص القوالب'}
         </span>
       </div>
 
@@ -434,7 +434,7 @@ const Templates: React.FC = () => {
             }}
           >
             <Smartphone size={16} />
-            <span>Merchant Template</span>
+            <span>Merchant Template / قوالب التاجر</span>
           </button>
           <button
             className={`menu-item-btn ${activeMenuTab === 'store' ? 'active' : ''}`}
@@ -444,28 +444,28 @@ const Templates: React.FC = () => {
             }}
           >
             <Settings size={16} />
-            <span>store template</span>
+            <span>Store Template / قوالب المتجر</span>
           </button>
           <button
             className={`menu-item-btn ${activeMenuTab === 'business_icon' ? 'active' : ''}`}
             onClick={() => setActiveMenuTab('business_icon')}
           >
             <ImageIcon size={16} />
-            <span>business icon</span>
+            <span>Business Icon / أيقونة العمل</span>
           </button>
           <button
             className={`menu-item-btn ${activeMenuTab === 'store_icon' ? 'active' : ''}`}
             onClick={() => setActiveMenuTab('store_icon')}
           >
             <ImageIcon size={16} />
-            <span>Store icon</span>
+            <span>Store Icon / أيقونة المتجر</span>
           </button>
           <button
             className={`menu-item-btn ${activeMenuTab === 'properties' ? 'active' : ''}`}
             onClick={() => setActiveMenuTab('properties')}
           >
             <Tag size={16} />
-            <span>Template properties</span>
+            <span>Template Properties / خصائص القوالب</span>
           </button>
         </aside>
 
@@ -478,50 +478,50 @@ const Templates: React.FC = () => {
               {/* Zkong Scenario Sub-tabs */}
               <div className="scenario-nav glass-card">
                 <button className={`scenario-btn ${merchantScenario === 1 ? 'active' : ''}`} onClick={() => setMerchantScenario(1)}>
-                  Single Item Template
+                  Single Item Template / قالب صنف واحد
                 </button>
                 <button className={`scenario-btn ${merchantScenario === 4 ? 'active' : ''}`} onClick={() => setMerchantScenario(4)}>
-                  Multi-Item Template
+                  Multi-Item Template / قالب أصناف متعددة
                 </button>
                 <button className={`scenario-btn ${merchantScenario === 3 ? 'active' : ''}`} onClick={() => setMerchantScenario(3)}>
-                  Segment Code Screen Template
+                  Segment Code Screen Template / قالب شاشة رمز القطعة
                 </button>
                 <button className={`scenario-btn ${merchantScenario === 2 ? 'active' : ''}`} onClick={() => setMerchantScenario(2)}>
-                  Unbind Template
+                  Unbind Template / قالب إلغاء الربط
                 </button>
               </div>
 
               {/* Zkong styled Filter Bar */}
               <div className="filters-form glass-card">
                 <div className="filter-input-group">
-                  <label>Size</label>
+                  <label>Size / الحجم</label>
                   <select value={filterSize} onChange={e => setFilterSize(e.target.value)}>
-                    <option value="All">Select All</option>
+                    <option value="All">Select All / تحديد الكل</option>
                     {uniqueSizes.map(s => <option key={s} value={s}>{s}</option>)}
                   </select>
                 </div>
 
                 <div className="filter-input-group">
-                  <label>Color</label>
+                  <label>Color / اللون</label>
                   <select value={filterColor} onChange={e => setFilterColor(e.target.value)}>
-                    <option value="All">All</option>
-                    <option value="bw">Black/White</option>
-                    <option value="bwr">Black/White/Red</option>
+                    <option value="All">All / الكل</option>
+                    <option value="bw">Black/White / أسود/أبيض</option>
+                    <option value="bwr">Black/White/Red / أسود/أبيض/أحمر</option>
                   </select>
                 </div>
 
                 <div className="filter-input-group">
-                  <label>Template Category</label>
+                  <label>Template Category / تصنيف القالب</label>
                   <select value={filterCategory} onChange={e => setFilterCategory(e.target.value)}>
-                    <option value="All">Select All</option>
+                    <option value="All">Select All / تحديد الكل</option>
                     {categories.map(c => <option key={c.id} value={c.categoryName}>{c.categoryName}</option>)}
                   </select>
                 </div>
 
                 <div className="filter-input-group">
-                  <label>Template Type</label>
+                  <label>Template Type / نوع القالب</label>
                   <select value={filterType} onChange={e => setFilterType(e.target.value)}>
-                    <option value="All">Select All</option>
+                    <option value="All">Select All / تحديد الكل</option>
                   </select>
                 </div>
               </div>
@@ -529,12 +529,12 @@ const Templates: React.FC = () => {
               {/* Action Buttons */}
               <div className="actions-row">
                 <button className="btn-primary sm-btn" onClick={() => setIsTemplateModalOpen(true)}>
-                  <Plus size={16} /> New Merchant Template
+                  <Plus size={16} /> New Merchant Template / قالب تاجر جديد
                 </button>
-                <button className="btn-secondary sm-btn">Import template</button>
-                <button className="btn-secondary sm-btn" onClick={fetchTemplatesList}><RefreshCw size={14} /> Refresh ESL</button>
-                <button className="btn-secondary sm-btn">Import template file</button>
-                <button className="btn-secondary sm-btn" disabled>Export template file</button>
+                <button className="btn-secondary sm-btn">Import Template / استيراد قالب</button>
+                <button className="btn-secondary sm-btn" onClick={fetchTemplatesList}><RefreshCw size={14} /> Refresh ESL / تحديث الشاشات</button>
+                <button className="btn-secondary sm-btn">Import Template File / استيراد ملف قالب</button>
+                <button className="btn-secondary sm-btn" disabled>Export Template File / تصدير ملف قالب</button>
               </div>
 
               {/* Data Table */}
@@ -548,7 +548,7 @@ const Templates: React.FC = () => {
               {/* Store Filter Bar */}
               <div className="filters-form glass-card store-filters-layout">
                 <div className="filter-input-group flex-row-item">
-                  <label className="bold-label">Store Select</label>
+                  <label className="bold-label">Store Select / اختيار المتجر</label>
                   <select 
                     className="styled-select" 
                     value={selectedStore} 
@@ -559,57 +559,57 @@ const Templates: React.FC = () => {
                 </div>
 
                 <div className="filter-input-group">
-                  <label>Size</label>
+                  <label>Size / الحجم</label>
                   <select value={filterSize} onChange={e => setFilterSize(e.target.value)}>
-                    <option value="All">Select All</option>
+                    <option value="All">Select All / تحديد الكل</option>
                     {uniqueSizes.map(s => <option key={s} value={s}>{s}</option>)}
                   </select>
                 </div>
 
                 <div className="filter-input-group">
-                  <label>Color</label>
+                  <label>Color / اللون</label>
                   <select value={filterColor} onChange={e => setFilterColor(e.target.value)}>
-                    <option value="All">All</option>
-                    <option value="bw">Black/White</option>
-                    <option value="bwr">Black/White/Red</option>
+                    <option value="All">All / الكل</option>
+                    <option value="bw">Black/White / أسود/أبيض</option>
+                    <option value="bwr">Black/White/Red / أسود/أبيض/أحمر</option>
                   </select>
                 </div>
 
                 <div className="filter-input-group">
-                  <label>Template Category</label>
+                  <label>Template Category / تصنيف القالب</label>
                   <select value={filterCategory} onChange={e => setFilterCategory(e.target.value)}>
-                    <option value="All">Select All</option>
+                    <option value="All">Select All / تحديد الكل</option>
                     {categories.map(c => <option key={c.id} value={c.categoryName}>{c.categoryName}</option>)}
                   </select>
                 </div>
 
                 <div className="filter-input-group">
-                  <label>Template Type</label>
+                  <label>Template Type / نوع القالب</label>
                   <select value={filterType} onChange={e => setFilterType(e.target.value)}>
-                    <option value="All">Select All</option>
+                    <option value="All">Select All / تحديد الكل</option>
                   </select>
                 </div>
 
                 <div className="form-submit-buttons">
-                  <button className="btn-primary" onClick={fetchTemplatesList}>Search</button>
+                  <button className="btn-primary" onClick={fetchTemplatesList}>Search / بحث</button>
                   <button className="btn-secondary" onClick={() => {
                     setFilterSize('All');
                     setFilterColor('All');
                     setFilterCategory('All');
                     fetchTemplatesList();
-                  }}>Reset</button>
+                  }}>Reset / إعادة ضبط</button>
                 </div>
               </div>
 
               {/* Action Buttons */}
               <div className="actions-row">
                 <button className="btn-primary sm-btn" onClick={() => setIsTemplateModalOpen(true)}>
-                  <Plus size={16} /> New Store template
+                  <Plus size={16} /> New Store Template / قالب متجر جديد
                 </button>
-                <button className="btn-secondary sm-btn">Import Merchant template</button>
-                <button className="btn-secondary sm-btn" onClick={fetchTemplatesList}><RefreshCw size={14} /> Refresh ESL</button>
-                <button className="btn-secondary sm-btn">Import template file</button>
-                <button className="btn-secondary sm-btn" disabled>Export template file</button>
+                <button className="btn-secondary sm-btn">Import Merchant Template / استيراد قالب التاجر</button>
+                <button className="btn-secondary sm-btn" onClick={fetchTemplatesList}><RefreshCw size={14} /> Refresh ESL / تحديث الشاشات</button>
+                <button className="btn-secondary sm-btn">Import Template File / استيراد ملف قالب</button>
+                <button className="btn-secondary sm-btn" disabled>Export Template File / تصدير ملف قالب</button>
               </div>
 
               {/* Data Table */}
@@ -623,7 +623,7 @@ const Templates: React.FC = () => {
               <div className="icon-actions-bar">
                 {activeMenuTab === 'store_icon' && (
                   <div className="store-selector-row">
-                    <label>Store Select: </label>
+                    <label>Store Select / اختيار المتجر: </label>
                     <select 
                       value={selectedStore} 
                       onChange={e => setSelectedStore(e.target.value)}
@@ -634,7 +634,7 @@ const Templates: React.FC = () => {
                   </div>
                 )}
                 <button className="btn-primary sm-btn">
-                  <Plus size={16} /> Add {activeMenuTab === 'business_icon' ? 'Merchant' : 'Store'} Icon
+                  <Plus size={16} /> Add {activeMenuTab === 'business_icon' ? 'Merchant / تاجر' : 'Store / متجر'} Icon / إضافة أيقونة
                 </button>
               </div>
 
@@ -643,19 +643,19 @@ const Templates: React.FC = () => {
                 <table className="zkong-table">
                   <thead>
                     <tr>
-                      <th>Serial number</th>
-                      <th>Descriptive name</th>
-                      <th>Picture processing method</th>
-                      <th>Resolution</th>
-                      <th>Upload time</th>
-                      <th>Preview</th>
-                      <th>Operation</th>
+                      <th>Serial Number / الرقم التسلسلي</th>
+                      <th>Descriptive Name / الاسم الوصفي</th>
+                      <th>Picture Processing Method / طريقة معالجة الصورة</th>
+                      <th>Resolution / الدقة</th>
+                      <th>Upload Time / وقت الرفع</th>
+                      <th>Preview / معاينة</th>
+                      <th>Operation / الإجراءات</th>
                     </tr>
                   </thead>
                 </table>
                 <div className="zkong-no-data">
                   <FolderOpen size={48} className="text-muted mb-2 animate-pulse" />
-                  <p>No Data</p>
+                  <p>No Data / لا توجد بيانات</p>
                 </div>
               </div>
             </div>
@@ -667,7 +667,7 @@ const Templates: React.FC = () => {
               <div className="properties-layout-split">
                 {/* Category Sidebar List */}
                 <div className="category-properties-list">
-                  <div className="list-title">Template Classifications</div>
+                  <div className="list-title">Template Classifications / تصنيفات القوالب</div>
                   <div className="category-scroll-list">
                     {categories.map(cat => (
                       <button
@@ -693,23 +693,23 @@ const Templates: React.FC = () => {
                     })}
                   </div>
                   <button className="btn-secondary add-new-cat-btn" onClick={() => setIsCategoryModalOpen(true)}>
-                    <Plus size={14} /> Add New Template Category
+                    <Plus size={14} /> Add New Template Category / إضافة تصنيف قالب جديد
                   </button>
                 </div>
 
                 {/* Right Attributes Editor Panel */}
                 <div className="properties-attributes-panel">
                   <div className="panel-header">
-                    <span className="panel-title">Template Category Name: <strong>{selectedPropertyCat}</strong></span>
-                    <button className="icon-edit-btn" title="Edit Category"><Edit size={14} /></button>
+                    <span className="panel-title">Template Category Name / اسم تصنيف القالب: <strong>{selectedPropertyCat}</strong></span>
+                    <button className="icon-edit-btn" title="Edit Category / تعديل التصنيف"><Edit size={14} /></button>
                   </div>
 
                   <table className="zkong-table">
                     <thead>
                       <tr>
-                        <th>Serial number</th>
-                        <th>Name</th>
-                        <th>Operation</th>
+                        <th>Serial Number / الرقم التسلسلي</th>
+                        <th>Name / الاسم</th>
+                        <th>Operation / الإجراءات</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -721,7 +721,7 @@ const Templates: React.FC = () => {
                           </td>
                           <td>
                             <div className="op-buttons">
-                              <button className="op-btn danger-text" onClick={() => handleDeleteAttribute(attr)}>delete</button>
+                              <button className="op-btn danger-text" onClick={() => handleDeleteAttribute(attr)}>delete / حذف</button>
                             </div>
                           </td>
                         </tr>
@@ -735,14 +735,14 @@ const Templates: React.FC = () => {
                       <input
                         required
                         type="text"
-                        placeholder="Please enter attribute property name..."
+                        placeholder="Please enter attribute property name... / يرجى إدخال اسم خاصية السمة..."
                         value={newAttributeName}
                         onChange={e => setNewAttributeName(e.target.value)}
                         className="glass-input sm-input"
                         autoFocus
                       />
-                      <button type="submit" className="btn-primary sm-btn">Save</button>
-                      <button type="button" className="btn-secondary sm-btn" onClick={() => setIsAddAttrOpen(false)}>Cancel</button>
+                      <button type="submit" className="btn-primary sm-btn">Save / حفظ</button>
+                      <button type="button" className="btn-secondary sm-btn" onClick={() => setIsAddAttrOpen(false)}>Cancel / إلغاء</button>
                     </form>
                   ) : (
                     <button className="add-attribute-table-btn" onClick={() => setIsAddAttrOpen(true)}>
@@ -762,16 +762,16 @@ const Templates: React.FC = () => {
         <div className="modal-overlay">
           <div className="modal-content glass-card scale-up">
             <div className="modal-header">
-              <h3>Create {activeMenuTab === 'store' ? 'Store' : 'Merchant'} ESL Template</h3>
+              <h3>Create {activeMenuTab === 'store' ? 'Store / متجر' : 'Merchant / تاجر'} ESL Template / إنشاء قالب شاشة الأسعار</h3>
               <button className="close-btn" onClick={() => setIsTemplateModalOpen(false)}>&times;</button>
             </div>
             <form onSubmit={handleCreateTemplate} className="modal-form">
               <div className="form-group">
-                <label>Template Name</label>
+                <label>Template Name / اسم القالب</label>
                 <input
                   required
                   type="text"
-                  placeholder="e.g. 1776767876250(2)"
+                  placeholder="e.g. 1776767876250(2) / مثال: 1776767876250(2)"
                   value={newTemplate.templateName}
                   onChange={e => setNewTemplate({ ...newTemplate, templateName: e.target.value })}
                   className="glass-input"
@@ -780,7 +780,7 @@ const Templates: React.FC = () => {
 
               {activeMenuTab === 'store' && (
                 <div className="form-group">
-                  <label>Bound Store Branch</label>
+                  <label>Bound Store Branch / فرع المتجر المرتبط</label>
                   <select
                     className="glass-input"
                     value={selectedStore}
@@ -792,14 +792,14 @@ const Templates: React.FC = () => {
               )}
 
               <div className="form-group">
-                <label>ESL Hardware Model</label>
+                <label>ESL Hardware Model / طراز جهاز شاشة الأسعار</label>
                 <select
                   required
                   className="glass-input"
                   value={newTemplate.model}
                   onChange={e => setNewTemplate({ ...newTemplate, model: e.target.value })}
                 >
-                  <option value="">Select Price Tag Model...</option>
+                  <option value="">Select Price Tag Model... / اختر طراز شاشة الأسعار...</option>
                   {models.map(m => (
                     <option key={m.id} value={m.model}>
                       {m.model} ({m.size}" - {m.resolution})
@@ -809,9 +809,9 @@ const Templates: React.FC = () => {
               </div>
 
               <div className="modal-actions">
-                <button type="button" className="btn-secondary" onClick={() => setIsTemplateModalOpen(false)}>Cancel</button>
+                <button type="button" className="btn-secondary" onClick={() => setIsTemplateModalOpen(false)}>Cancel / إلغاء</button>
                 <button type="submit" className="btn-primary" disabled={submitting}>
-                  {submitting ? <Loader2 className="animate-spin" size={16} /> : 'Save'}
+                  {submitting ? <Loader2 className="animate-spin" size={16} /> : 'Save / حفظ'}
                 </button>
               </div>
             </form>
@@ -824,16 +824,16 @@ const Templates: React.FC = () => {
         <div className="modal-overlay">
           <div className="modal-content glass-card scale-up">
             <div className="modal-header">
-              <h3>Create Template Classification</h3>
+              <h3>Create Template Classification / إنشاء تصنيف قالب</h3>
               <button className="close-btn" onClick={() => setIsCategoryModalOpen(false)}>&times;</button>
             </div>
             <form onSubmit={handleCreateCategory} className="modal-form">
               <div className="form-group">
-                <label>Classification Name</label>
+                <label>Classification Name / اسم التصنيف</label>
                 <input
                   required
                   type="text"
-                  placeholder="e.g. Pharmacy, Thobe, Grocery"
+                  placeholder="e.g. Pharmacy, Thobe, Grocery / مثال: صيدلية، ثوب، بقالة"
                   value={newCategoryName}
                   onChange={e => setNewCategoryName(e.target.value)}
                   className="glass-input"
@@ -841,9 +841,9 @@ const Templates: React.FC = () => {
               </div>
 
               <div className="modal-actions">
-                <button type="button" className="btn-secondary" onClick={() => setIsCategoryModalOpen(false)}>Cancel</button>
+                <button type="button" className="btn-secondary" onClick={() => setIsCategoryModalOpen(false)}>Cancel / إلغاء</button>
                 <button type="submit" className="btn-primary" disabled={submitting}>
-                  {submitting ? <Loader2 className="animate-spin" size={16} /> : 'Add Category'}
+                  {submitting ? <Loader2 className="animate-spin" size={16} /> : 'Add Category / إضافة تصنيف'}
                 </button>
               </div>
             </form>
@@ -856,12 +856,12 @@ const Templates: React.FC = () => {
         <div className="modal-overlay">
           <div className="modal-content glass-card scale-up">
             <div className="modal-header">
-              <h3>Edit Template</h3>
+              <h3>Edit Template / تعديل القالب</h3>
               <button className="close-btn" onClick={() => setEditTemplateModal(null)}>&times;</button>
             </div>
             <form onSubmit={handleUpdateTemplate} className="modal-form">
               <div className="form-group">
-                <label>Template Name</label>
+                <label>Template Name / اسم القالب</label>
                 <input
                   required
                   type="text"
@@ -871,22 +871,22 @@ const Templates: React.FC = () => {
                 />
               </div>
               <div className="form-group">
-                <label>Template Category</label>
+                <label>Template Category / تصنيف القالب</label>
                 <select
                   className="glass-input"
                   value={editTemplateModal.attrCategory}
                   onChange={e => setEditTemplateModal({ ...editTemplateModal, attrCategory: e.target.value })}
                 >
-                  <option value="">-- Select Category --</option>
+                  <option value="">-- Select Category / اختر تصنيفاً --</option>
                   {categories.map(c => (
                     <option key={c.id} value={c.categoryName}>{c.categoryName}</option>
                   ))}
                 </select>
               </div>
               <div className="modal-actions">
-                <button type="button" className="btn-secondary" onClick={() => setEditTemplateModal(null)}>Cancel</button>
+                <button type="button" className="btn-secondary" onClick={() => setEditTemplateModal(null)}>Cancel / إلغاء</button>
                 <button type="submit" className="btn-primary" disabled={editSubmitting}>
-                  {editSubmitting ? <Loader2 className="animate-spin" size={16} /> : 'Save Changes'}
+                  {editSubmitting ? <Loader2 className="animate-spin" size={16} /> : 'Save Changes / حفظ التغييرات'}
                 </button>
               </div>
             </form>
@@ -901,7 +901,7 @@ const Templates: React.FC = () => {
           <div className="modal-overlay" onClick={() => setPreviewTemplate(null)}>
             <div className="modal-content glass-card preview-modal-simple scale-up" onClick={e => e.stopPropagation()} style={{ maxWidth: `${specs.width + 80}px` }}>
               <div className="modal-header">
-                <h3>Template Preview ({previewTemplate.templateName})</h3>
+                <h3>Template Preview / معاينة القالب ({previewTemplate.templateName})</h3>
                 <button className="close-btn" onClick={() => setPreviewTemplate(null)}>&times;</button>
               </div>
 
@@ -938,7 +938,7 @@ const Templates: React.FC = () => {
               </div>
 
               <div className="modal-actions">
-                <button className="btn-primary" onClick={() => setPreviewTemplate(null)}>Close</button>
+                <button className="btn-primary" onClick={() => setPreviewTemplate(null)}>Close / إغلاق</button>
               </div>
             </div>
           </div>
@@ -1735,28 +1735,28 @@ const Templates: React.FC = () => {
         {loading ? (
           <div className="zkong-no-data">
             <Loader2 className="animate-spin text-primary mb-2" size={40} />
-            <p>Loading ESL Templates...</p>
+            <p>Loading ESL Templates... / جاري تحميل قوالب بطاقات الأسعار...</p>
           </div>
         ) : templates.length === 0 ? (
           <div className="zkong-no-data">
             <FolderOpen size={48} className="text-muted mb-2" />
-            <p>No Data</p>
+            <p>No Data / لا توجد بيانات</p>
           </div>
         ) : (
           <table className="zkong-table">
             <thead>
               <tr>
-                <th>Template Name</th>
-                <th>Template Code</th>
-                <th>Size</th>
-                <th>Dpi</th>
-                <th>Color</th>
-                <th>ESL Model</th>
-                <th>Template Category</th>
-                <th>Status</th>
-                <th>Latest Update Time</th>
-                <th>Template Preview</th>
-                <th>Operation</th>
+                <th>Template Name / اسم القالب</th>
+                <th>Template Code / رمز القالب</th>
+                <th>Size / الحجم</th>
+                <th>Dpi / الدقة</th>
+                <th>Color / اللون</th>
+                <th>ESL Model / طراز الشاشة</th>
+                <th>Template Category / تصنيف القالب</th>
+                <th>Status / الحالة</th>
+                <th>Latest Update Time / آخر وقت تحديث</th>
+                <th>Template Preview / معاينة القالب</th>
+                <th>Operation / الإجراءات</th>
               </tr>
             </thead>
             <tbody>
@@ -1777,13 +1777,13 @@ const Templates: React.FC = () => {
                       </div>
                     </td>
                     <td>{t.modelList?.join(', ') || 'ZKC29S'}</td>
-                    <td>{t.attrCategory || 'General'}</td>
+                    <td>{t.attrCategory || 'General / عام'}</td>
                     <td>
                       <span className={`status-pill ${isEnabled ? 'enabled' : 'disabled'}`}>
-                        {isEnabled ? 'Enabled' : 'Disabled'}
+                        {isEnabled ? 'Enabled / مفعل' : 'Disabled / معطل'}
                       </span>
                     </td>
-                    <td>{t.updateTime || t.createdTime || 'N/A'}</td>
+                    <td>{t.updateTime || t.createdTime || 'N/A / غير متوفر'}</td>
                     <td>
                       <div className="zkong-thumbnail-container" style={{ position: 'relative' }}>
                         {/* Interactive Thumbnail */}
@@ -1901,15 +1901,15 @@ const Templates: React.FC = () => {
                     <td>
                       <div className="op-buttons">
                         <button className="op-btn primary-text" onClick={() => setEditTemplateModal({ id: t.id, templateName: t.templateName, attrCategory: t.attrCategory || '' })}>
-                          Edit
+                          Edit / تعديل
                         </button>
                         <button className="op-btn primary-text" onClick={() => handleToggleStatus(t.id, t.status)}>
-                          {isEnabled ? 'Disable' : 'Enable'}
+                          {isEnabled ? 'Disable / تعطيل' : 'Enable / تفعيل'}
                         </button>
                         <button className="op-btn danger-text" onClick={() => handleDeleteTemplate(t.id)}>
-                          Delete
+                          Delete / حذف
                         </button>
-                        {activeMenuTab === 'store' && <button className="op-btn disabled-text">Copy</button>}
+                        {activeMenuTab === 'store' && <button className="op-btn disabled-text">Copy / نسخ</button>}
                       </div>
                     </td>
                   </tr>
@@ -1923,7 +1923,7 @@ const Templates: React.FC = () => {
         {totalElements > 0 && (
           <div className="dragonesl-pagination-bar glass-card" style={{ marginTop: '16px' }}>
             <div className="pagination-left">
-              <span className="pagination-total">Total {totalElements} items</span>
+              <span className="pagination-total">Total {totalElements} items / الإجمالي {totalElements} عناصر</span>
               <select
                 value={pageSize}
                 onChange={(e) => {
@@ -1932,11 +1932,11 @@ const Templates: React.FC = () => {
                 }}
                 className="pagination-size-select"
               >
-                <option value={5}>5 / page</option>
-                <option value={10}>10 / page</option>
-                <option value={20}>20 / page</option>
-                <option value={50}>50 / page</option>
-                <option value={100}>100 / page</option>
+                <option value={5}>5 / page / ٥ للصفحة</option>
+                <option value={10}>10 / page / ١٠ للصفحة</option>
+                <option value={20}>20 / page / ٢٠ للصفحة</option>
+                <option value={50}>50 / page / ٥٠ للصفحة</option>
+                <option value={100}>100 / page / ١٠٠ للصفحة</option>
               </select>
             </div>
 
@@ -1975,7 +1975,7 @@ const Templates: React.FC = () => {
               </button>
 
               <div className="pagination-jump">
-                <span>Go to</span>
+                <span>Go to / الذهاب إلى</span>
                 <input
                   type="number"
                   min={1}

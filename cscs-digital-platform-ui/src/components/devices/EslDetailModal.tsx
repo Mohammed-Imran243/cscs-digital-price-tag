@@ -30,28 +30,28 @@ export const EslDetailModal: React.FC<EslDetailModalProps> = ({
     <div className="modal-overlay" onClick={() => setDetailModalOpen(false)}>
       <div className="modal-content glass-card bind-modal scale-up" onClick={e => e.stopPropagation()}>
         <div className="modal-header">
-          <h3>ESL Device Telemetry & Operations</h3>
+          <h3>ESL Device Telemetry & Operations / قياسات وإجراءات شاشة الأسعار</h3>
           <button className="close-btn" onClick={() => setDetailModalOpen(false)}>&times;</button>
         </div>
 
         {detailLoading ? (
           <div className="modal-loading-state">
             <Loader2 className="animate-spin text-primary" size={40} />
-            <p>Loading bind information...</p>
+            <p>Loading bind information... / جاري تحميل معلومات الربط...</p>
           </div>
         ) : detailEsl ? (
           <div className="bind-modal-body">
 
             {/* Section 1: Base Infomation */}
             <div className="bind-section">
-              <div className="bind-section-title">Base Infomation</div>
+              <div className="bind-section-title">Base Information / المعلومات الأساسية</div>
               <div className="bind-base-grid">
                 <div className="bind-base-row">
-                  <span className="bind-base-label">ESL Barcode :</span>
+                  <span className="bind-base-label">ESL Barcode / باركود الشاشة:</span>
                   <span className="bind-base-value">{detailEsl.tagBarCode || detailEsl.priceTagCode || detailEsl.barCode || detailEsl.barcode || 'N/A'}</span>
-                  <span className="bind-base-label">Firmware Version :</span>
+                  <span className="bind-base-label">Firmware Version / إصدار البرمجيات:</span>
                   <span className="bind-base-value">{detailEsl.softVersion || 'N/A'}</span>
-                  <span className="bind-base-label">Status :</span>
+                  <span className="bind-base-label">Status / الحالة:</span>
                   {(() => {
                     const isOnline = detailEsl.state === 'ONLINE' || detailEsl.state === 1 || detailEsl.state === '1' || detailEsl.status === 1 || detailEsl.status === '1';
                     return (
@@ -59,17 +59,17 @@ export const EslDetailModal: React.FC<EslDetailModalProps> = ({
                         color: isOnline ? '#22c55e' : '#ef4444',
                         fontWeight: 'bold'
                       }}>
-                        {isOnline ? 'Online' : 'Offline'}
+                        {isOnline ? 'Online / متصل' : 'Offline / غير متصل'}
                       </span>
                     );
                   })()}
                 </div>
                 <div className="bind-base-row">
-                  <span className="bind-base-label">Model :</span>
+                  <span className="bind-base-label">Model / الطراز:</span>
                   <span className="bind-base-value">{detailEsl.model || 'N/A'}</span>
-                  <span className="bind-base-label">Size :</span>
+                  <span className="bind-base-label">Size / الحجم:</span>
                   <span className="bind-base-value">{detailEsl.size || 'N/A'}</span>
-                  <span className="bind-base-label">Battery Level :</span>
+                  <span className="bind-base-label">Battery Level / مستوى البطارية:</span>
                   <span className="bind-base-value" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <span style={{ fontWeight: 'bold' }}>{detailEsl.battery ?? 100}%</span>
                     {detailEsl.batteryLevel ? <span style={{ color: 'var(--text-muted)', fontSize: '11px' }}>({detailEsl.batteryLevel}/5)</span> : null}
@@ -84,23 +84,23 @@ export const EslDetailModal: React.FC<EslDetailModalProps> = ({
                   </span>
                 </div>
                 <div className="bind-base-row">
-                  <span className="bind-base-label">Shelf No. :</span>
+                  <span className="bind-base-label">Shelf No. / رقم الرف:</span>
                   <span className="bind-base-value">{detailEsl.shelfNo || detailEsl.shelfNum || '—'}</span>
-                  <span className="bind-base-label">Color :</span>
+                  <span className="bind-base-label">Color / اللون:</span>
                   <span className="bind-base-value">{detailEsl.colorType || detailEsl.colorTypeDesc || 'Black/White/Red/Yellow'}</span>
-                  <span className="bind-base-label">Invert or not :</span>
+                  <span className="bind-base-label">Invert or not / عكس الألوان أم لا:</span>
                   <span className="bind-base-value">
-                    {detailEsl.isReverse === 1 || detailEsl.turnOver === 1 || detailEsl.isReverse === '1' || detailEsl.turnOver === '1' ? 'Yes' : 'No'}
+                    {detailEsl.isReverse === 1 || detailEsl.turnOver === 1 || detailEsl.isReverse === '1' || detailEsl.turnOver === '1' ? 'Yes / نعم' : 'No / لا'}
                   </span>
                 </div>
                 <div className="bind-base-row">
-                  <span className="bind-base-label">Template Format :</span>
+                  <span className="bind-base-label">Template Format / تنسيق القالب:</span>
                   <span className="bind-base-value" style={{ color: '#2563eb', fontWeight: 'bold' }}>
                     {detailEsl.itemBindInfos?.[0]?.templateAttr || detailEsl.itemList?.[0]?.templateAttr || detailEsl.templateAttr || 'default'}
                   </span>
-                  <span className="bind-base-label">Last Comm. :</span>
+                  <span className="bind-base-label">Last Comm. / آخر اتصال:</span>
                   <span className="bind-base-value">{detailEsl.lastCommuTime || 'N/A'}</span>
-                  <span className="bind-base-label">Update Time :</span>
+                  <span className="bind-base-label">Update Time / وقت التحديث:</span>
                   <span className="bind-base-value">{detailEsl.updateTime || 'N/A'}</span>
                 </div>
               </div>
@@ -108,13 +108,13 @@ export const EslDetailModal: React.FC<EslDetailModalProps> = ({
 
             {/* Section 2: Item Infomation */}
             <div className="bind-section">
-              <div className="bind-section-title">Item Infomation</div>
+              <div className="bind-section-title">Item Information / معلومات الصنف</div>
               <table className="bind-item-table">
                 <thead>
                   <tr>
-                    <th>No.</th>
-                    <th>Item Barcode</th>
-                    <th>Item Name</th>
+                    <th>No. / الرقم</th>
+                    <th>Item Barcode / باركود الصنف</th>
+                    <th>Item Name / اسم الصنف</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -136,7 +136,7 @@ export const EslDetailModal: React.FC<EslDetailModalProps> = ({
                         <tr key={item.itemBarCode || item.itemBarcode || idx}>
                           <td>{idx + 1}</td>
                           <td>{item.itemBarCode || item.itemBarcode || 'N/A'}</td>
-                          <td>{item.itemTitle || item.itemName || 'Unnamed Product'}</td>
+                          <td>{item.itemTitle || item.itemName || 'Unnamed Product / منتج غير مسمى'}</td>
                         </tr>
                       ));
                     }
@@ -144,7 +144,7 @@ export const EslDetailModal: React.FC<EslDetailModalProps> = ({
                     return (
                       <tr>
                         <td colSpan={3} style={{textAlign:'center', color:'var(--text-muted)', padding:'12px'}}>
-                          No items bound
+                          No items bound / لا توجد عناصر مرتبطة
                         </td>
                       </tr>
                     );
@@ -155,7 +155,7 @@ export const EslDetailModal: React.FC<EslDetailModalProps> = ({
 
             {/* Section 3: ESL Infomation — e-ink display */}
             <div className="bind-section" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-              <div className="bind-section-title" style={{ width: '100%' }}>ESL Infomation</div>
+              <div className="bind-section-title" style={{ width: '100%' }}>ESL Information / معلومات الشاشة</div>
               {(() => {
                 const specs = getEslModelSpecs(detailEsl.size, detailEsl.model);
                 const rawAttr = detailEsl.itemBindInfos?.[0]?.templateAttr || detailEsl.itemList?.[0]?.templateAttr || detailEsl.templateAttr || 'default';
@@ -214,16 +214,16 @@ export const EslDetailModal: React.FC<EslDetailModalProps> = ({
                         }}>
                           <AlertCircle size={specs.layoutType === 'square' || specs.layoutType === 'compact' ? 24 : 36} style={{ color: '#ef4444' }} />
                           <div style={{ fontSize: specs.layoutType === 'square' || specs.layoutType === 'compact' ? '11px' : '14px', fontWeight: '800', lineHeight: '1.3' }}>
-                            TEMPLATE SIZE MISMATCH!
+                            TEMPLATE SIZE MISMATCH! / عدم تطابق حجم القالب!
                           </div>
                           <div style={{ fontSize: specs.layoutType === 'square' || specs.layoutType === 'compact' ? '9px' : '11px', color: '#4b5563', fontWeight: '600' }}>
-                            Designed for <span style={{ color: '#2563eb', fontWeight: 'bold' }}>{templateSize}"</span> but device is <span style={{ color: '#dc2626', fontWeight: 'bold' }}>{specs.size}"</span>.
+                            Designed for <span style={{ color: '#2563eb', fontWeight: 'bold' }}>{templateSize}"</span> but device is <span style={{ color: '#dc2626', fontWeight: 'bold' }}>{specs.size}"</span>. / مصمم لـ {templateSize} بوصة ولكن الجهاز {specs.size} بوصة.
                           </div>
                         </div>
                       ) : (
                         (() => {
                           const isComparison = templateAttr === 'K0001' || templateAttr === 'K0002' || templateAttr.includes('K0001') || templateAttr.includes('K0002') || templateAttr.includes('674') || templateAttr.includes('666');
-                          const displayTitle = detailEsl.boundProduct?.itemTitle || detailEsl.itemBindInfos?.[0]?.itemTitle || detailEsl.itemList?.[0]?.itemTitle || 'No Item Bound';
+                          const displayTitle = detailEsl.boundProduct?.itemTitle || detailEsl.itemBindInfos?.[0]?.itemTitle || detailEsl.itemList?.[0]?.itemTitle || 'No Item Bound / لا يوجد منتج مرتبط';
                           const displayPrice = detailEsl.boundProduct?.price || detailEsl.itemBindInfos?.[0]?.itemPrice || detailEsl.itemList?.[0]?.itemPrice || '—';
                           const displayOriginalPrice = detailEsl.boundProduct?.originalPrice || detailEsl.boundProduct?.original_price || '—';
                           const barcode = detailEsl.boundProduct?.barcode || detailEsl.boundProduct?.barCode || detailEsl.itemBindInfos?.[0]?.itemBarCode || detailEsl.itemBindInfos?.[0]?.itemBarcode || detailEsl.itemList?.[0]?.itemBarCode || detailEsl.itemList?.[0]?.itemBarcode || detailEsl.barCode || detailEsl.barcode || '';
@@ -250,7 +250,7 @@ export const EslDetailModal: React.FC<EslDetailModalProps> = ({
         ) : (
           <div className="modal-loading-state">
             <AlertCircle className="text-danger" size={40} />
-            <p>Unable to retrieve equipment details. Tag status might be offline.</p>
+            <p>Unable to retrieve equipment details. Tag status might be offline. / تعذر استرداد تفاصيل الجهاز. قد تكون الشاشة غير متصلة بالشبكة.</p>
           </div>
         )}
 
@@ -263,10 +263,10 @@ export const EslDetailModal: React.FC<EslDetailModalProps> = ({
                 handleForceRefresh(detailEsl.barCode || detailEsl.barcode || detailEsl.priceTagCode);
               }}
             >
-              <RefreshCw size={16} /> Force to Refresh
+              <RefreshCw size={16} /> Force to Refresh / تحديث إجباري
             </button>
           )}
-          <button className="btn-secondary" onClick={() => setDetailModalOpen(false)}>Close</button>
+          <button className="btn-secondary" onClick={() => setDetailModalOpen(false)}>Close / إغلاق</button>
         </div>
       </div>
     </div>
