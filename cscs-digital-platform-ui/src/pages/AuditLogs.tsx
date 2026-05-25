@@ -194,8 +194,7 @@ const AuditLogs: React.FC = () => {
       <div className="audit-logs-page-header">
         <div>
           <h2>Audit Logs / سجلات المراجعة</h2>
-          <p className="text-muted">Query and review operation history logs from Dragon ESL / استعلام ومراجعة سجلات عمليات Dragon ESL</p>
-        </div>
+          </div>
         <div className="audit-logs-header-actions">
           <button 
             className="btn-secondary" 
@@ -720,6 +719,20 @@ const AuditLogs: React.FC = () => {
         @keyframes spin {
           from { transform: rotate(0deg); }
           to { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 768px) {
+          .audit-logs-page-header {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 16px;
+          }
+          .audit-logs-filters {
+            grid-template-columns: 1fr;
+          }
+          .audit-logs-table-wrapper {
+            overflow-x: auto;
+          }
         }
       `}</style>
     </div>

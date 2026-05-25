@@ -215,8 +215,7 @@ const Stores: React.FC = () => {
       <div className="stores-page-header">
         <div>
           <h2>Store Management / إدارة المتاجر</h2>
-          <p className="text-muted">Manage and monitor all your store locations / إدارة ومراقبة جميع المتاجر الخاصة بك</p>
-        </div>
+         </div>
         <div className="stores-header-actions">
           <button className="btn-secondary" onClick={fetchStores} disabled={loading}>
             <RefreshCw size={18} className={loading ? 'animate-spin' : ''} /> Refresh / تحديث
@@ -825,6 +824,28 @@ const Stores: React.FC = () => {
           padding: 8px 12px;
           display: flex;
           align-items: center;
+        }
+
+        @media (max-width: 768px) {
+          .stores-page-header {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 16px;
+          }
+          .stores-grid {
+            grid-template-columns: 1fr;
+          }
+          .form-row {
+            flex-direction: column;
+          }
+          .stores-search-bar {
+            flex-direction: column;
+            align-items: stretch;
+          }
+          .stores-header-actions {
+            width: 100%;
+            justify-content: space-between;
+          }
         }
       `}</style>
     </div>

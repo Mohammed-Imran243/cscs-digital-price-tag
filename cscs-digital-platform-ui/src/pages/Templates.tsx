@@ -1746,6 +1746,30 @@ const Templates: React.FC = () => {
           from { transform: scale(0.95); opacity: 0; }
           to { transform: scale(1); opacity: 1; }
         }
+
+        @media (max-width: 768px) {
+          .templates-page-header {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 16px;
+          }
+          .templates-header-actions {
+            width: 100%;
+            justify-content: space-between;
+          }
+          .properties-layout-split {
+            grid-template-columns: 1fr;
+          }
+          .category-properties-list {
+            border-right: none;
+            border-bottom: 1px solid var(--glass-border);
+            padding-right: 0;
+            padding-bottom: 24px;
+          }
+          .zkong-table-container {
+            overflow-x: auto;
+          }
+        }
       `}</style>
     </div>
   );

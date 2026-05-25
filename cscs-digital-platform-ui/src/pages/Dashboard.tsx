@@ -204,7 +204,7 @@ const Dashboard: React.FC = () => {
       {/* ── Page Header ── */}
       <div className="dashboard-header">
         <div>
-          <h2 className="dash-title">Operations Overview / نظرة عامة على العمليات</h2>
+          <h2 className="dash-title">Dashboard / نظرة عامة على العمليات</h2>
 
         </div>
         <button
@@ -488,6 +488,9 @@ const Dashboard: React.FC = () => {
         }
         @media (max-width: 1024px) {
           .dashboard-row { grid-template-columns: 1fr; }
+        }
+        @media (max-width: 768px) {
+          .dashboard-grid { grid-template-columns: 1fr; }
         }
 
         /* ── Store breakdown card ── */

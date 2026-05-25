@@ -428,8 +428,7 @@ const Devices: React.FC = () => {
       <div className="devices-page-header">
         <div>
           <h2>Device Management / إدارة الأجهزة</h2>
-          <p className="text-muted">Monitor and control your Electronic Shelf Labels (ESL) and Base Station Access Points (AP) / مراقبة والتحكم في شاشات الأسعار الإلكترونية (ESL) ومحطات البث (AP)</p>
-        </div>
+          </div>
         <div className="devices-header-actions">
           {/* Store Selection Dropdown */}
           <div className="store-selector-wrapper glass-card">
@@ -2213,6 +2212,37 @@ const Devices: React.FC = () => {
           font-size: 13px;
           font-style: italic;
           text-align: center;
+        }
+
+        @media (max-width: 768px) {
+          .devices-page-header {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 16px;
+          }
+          .devices-header-actions {
+            width: 100%;
+            justify-content: space-between;
+          }
+          .devices-tabs-navigation {
+            flex-direction: column;
+            align-items: stretch;
+            gap: 12px;
+          }
+          .tabs-list {
+            overflow-x: auto;
+            padding-bottom: 4px;
+          }
+          .device-search-bar {
+            flex-direction: column;
+            align-items: stretch;
+          }
+          .ap-grid {
+            grid-template-columns: 1fr;
+          }
+          .devices-table-wrapper {
+            overflow-x: auto;
+          }
         }
       `}</style>
     </div>

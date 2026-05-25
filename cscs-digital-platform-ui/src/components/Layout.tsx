@@ -1,7 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useTheme } from '../context/ThemeContext';
 import { useAuth } from '../context/AuthContext';
-import { Sun, Moon, LogOut, LayoutDashboard, Store, Package, FileText, User, Cpu } from 'lucide-react';
+import { Sun, Moon, LogOut, LayoutDashboard, Store, Package, FileText, User, Cpu, Menu, X } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 
 const SidebarItem: React.FC<{ to: string, icon: React.ReactNode, label: string }> = ({ to, icon, label }) => {
@@ -23,6 +23,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { theme, toggleTheme } = useTheme();
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const handleLogout = () => {
     logout();
@@ -31,13 +32,18 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
   return (
     <div className="app-container">
-      <aside className="sidebar glass-card">
+      {/* Mobile Overlay */}
+      {isMobileMenuOpen && (
+        <div className="mobile-overlay" onClick={() => setIsMobileMenuOpen(false)}></div>
+      )}
+
+      <aside className={`sidebar glass-card ${isMobileMenuOpen ? 'mobile-open' : ''}`}>
         <div className="sidebar-header">
-          <div className="logo-container" style={{ display: 'flex', alignItems: 'center' }}>
+          <div className="logo-container" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', padding: '8px 0' }}>
             <img 
-              src={theme === 'dark' ? '/cscs-logo-full-white.png' : '/cscs-logo-full-dark.png'} 
+              src="/cscs.png" 
               alt="CSCS ESL CONNECT APP" 
-              style={{ maxHeight: '28px', width: 'auto', objectFit: 'contain' }} 
+              style={{ width: '180px', maxWidth: '100%', height: 'auto', objectFit: 'contain' }} 
             />
           </div>
         </div>
@@ -75,6 +81,9 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
       <main className="main-content">
         <header className="main-header glass-card">
           <div className="header-left">
+            <button className="mobile-menu-btn" onClick={() => setIsMobileMenuOpen(true)}>
+              <Menu size={24} />
+            </button>
             <h1 className="page-title">CSCS ESL CONNECT APP / منصة بطاقات الأسعار الرقمية</h1>
           </div>
           <div className="header-right">
@@ -125,7 +134,9 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
         .sidebar-header {
           margin-bottom: 32px;
-          padding-left: 16px;
+          padding: 0;
+          display: flex;
+          justify-content: center;
         }
 
         .logo-text {
@@ -272,6 +283,69 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
           flex: 1;
           overflow-y: auto;
           padding: 8px;
+        }
+
+        .mobile-menu-btn {
+          display: none;
+          background: none;
+          border: none;
+          color: var(--text-primary);
+          cursor: pointer;
+          padding: 8px;
+          border-radius: 8px;
+          margin-right: 12px;
+        }
+
+        .mobile-overlay {
+          display: none;
+        }
+
+        /* Responsive Media Queries */
+        @media (max-width: 1024px) {
+          .mobile-menu-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+          }
+
+          .sidebar {
+            position: fixed;
+            top: 0;
+            left: -300px;
+            height: calc(100vh - 32px);
+            transition: left 0.3s ease-in-out;
+            z-index: 1000;
+          }
+
+          .sidebar.mobile-open {
+            left: 0;
+          }
+
+          .mobile-overlay {
+            display: block;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 999;
+          }
+
+          .main-content {
+            padding-left: 16px;
+          }
+        }
+
+        @media (max-width: 768px) {
+          .main-header {
+            padding: 0 16px;
+          }
+          
+          .page-title {
+            font-size: 15px;
+          }
+
+          .user-info {
+            display: none; /* Hide user text on very small screens to save space */
+          }
         }
       `}</style>
     </div>

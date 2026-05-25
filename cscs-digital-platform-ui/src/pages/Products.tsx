@@ -398,8 +398,7 @@ const Products: React.FC = () => {
       <div className="page-header">
         <div>
           <h2>Product Management / إدارة المنتجات</h2>
-          <p className="text-muted">Manage products and prices across your stores. / إدارة المنتجات والأسعار عبر متاجرك.</p>
-        </div>
+          </div>
         <div className="header-actions">
           <select 
             className="store-selector glass-input"
@@ -1075,6 +1074,34 @@ const Products: React.FC = () => {
           font-size: 14px;
           font-style: italic;
           text-align: center;
+        }
+
+        .edit-price-form input {
+          width: 100px;
+          padding: 6px;
+        }
+
+        @media (max-width: 768px) {
+          .page-header {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 16px;
+          }
+          .header-actions {
+            width: 100%;
+            flex-direction: column;
+            align-items: stretch;
+          }
+          .products-grid {
+            grid-template-columns: 1fr;
+          }
+          .form-row {
+            flex-direction: column;
+          }
+          .search-bar {
+            flex-direction: column;
+            align-items: stretch;
+          }
         }
       `}</style>
     </div>

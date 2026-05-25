@@ -352,8 +352,7 @@ const Users: React.FC = () => {
       <div className="users-header">
         <div>
           <h2>Staff User Management / إدارة حسابات الموظفين</h2>
-          <p className="text-muted">Manage staff accounts and system operators / إدارة حسابات الموظفين ومشغلي النظام</p>
-        </div>
+          </div>
         <div className="users-header-actions">
           <button className="btn-secondary" onClick={fetchData} disabled={loading}>
             <RefreshCw size={18} className={loading ? 'animate-spin' : ''} /> Refresh / تحديث
@@ -1188,6 +1187,36 @@ const Users: React.FC = () => {
           padding: 8px 12px;
           display: flex;
           align-items: center;
+        }
+
+        @media (max-width: 768px) {
+          .users-header {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 16px;
+          }
+          .users-header-actions {
+            width: 100%;
+            justify-content: space-between;
+          }
+          .users-tabs-navigation {
+            flex-direction: column;
+            align-items: stretch;
+            gap: 12px;
+          }
+          .tabs-list {
+            overflow-x: auto;
+            padding-bottom: 4px;
+          }
+          .users-grid, .roles-grid {
+            grid-template-columns: 1fr;
+          }
+          .form-row {
+            flex-direction: column;
+          }
+          .table-wrapper {
+            overflow-x: auto;
+          }
         }
       `}</style>
     </div>
