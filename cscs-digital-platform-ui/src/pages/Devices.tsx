@@ -1803,8 +1803,8 @@ const Devices: React.FC = () => {
           color: var(--text-muted);
         }
 
-        .req {
-          color: #ef4444;
+        .required-asterisk {
+          color: var(--danger-color);
           margin-left: 2px;
         }
 

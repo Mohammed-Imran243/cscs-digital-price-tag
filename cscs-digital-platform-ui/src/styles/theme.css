@@ -60,6 +60,22 @@ body {
   min-height: 100vh;
 }
 
+/* Global Select Dropdown Indicator */
+select, select.glass-input, .modal-content select, .dropdown-input {
+  appearance: none !important;
+  -webkit-appearance: none !important;
+  -moz-appearance: none !important;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E") !important;
+  background-repeat: no-repeat !important;
+  background-position: right 12px center !important;
+  background-size: 16px !important;
+  padding-right: 36px !important;
+}
+
+[data-theme='dark'] select, [data-theme='dark'] select.glass-input, [data-theme='dark'] .modal-content select, [data-theme='dark'] .dropdown-input {
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E") !important;
+}
+
 /* Glassmorphism utility */
 .glass-card {
   background: var(--glass-bg);
@@ -86,6 +102,12 @@ body {
 
 .btn-primary:active {
   transform: scale(0.98);
+}
+
+/* Form Required Asterisk */
+.required-asterisk {
+  color: var(--danger-color);
+  margin-left: 2px;
 }
 
 /* Premium Zkong/DragonESL Pagination Design */
@@ -273,7 +295,7 @@ body {
 .modal-content .bind-input,
 .modal-content .bind-select,
 .modal-content .bind-textarea {
-  background: var(--bg-primary) !important;
+  background-color: var(--bg-primary) !important;
   border: 1px solid var(--border-color) !important;
   color: var(--text-primary) !important;
   border-radius: 8px !important;

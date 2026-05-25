@@ -892,7 +892,7 @@ const Products: React.FC = () => {
 
         /* Override glass-input inside modal */
         .modal-content .glass-input {
-          background: var(--bg-primary) !important;
+          background-color: var(--bg-primary) !important;
           border: 1px solid var(--border-color) !important;
           color: var(--text-primary) !important;
           padding: 12px !important;
@@ -972,7 +972,7 @@ const Products: React.FC = () => {
         }
 
         .glass-input {
-          background: rgba(255, 255, 255, 0.05);
+          background-color: rgba(255, 255, 255, 0.05);
           border: 1px solid rgba(255, 255, 255, 0.1);
           padding: 12px;
           border-radius: 8px;

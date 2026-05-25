@@ -623,7 +623,7 @@ const Users: React.FC = () => {
             
             <form onSubmit={handleUserSubmit} className="modal-form">
               <div className="form-group">
-                <label>Login Account * / حساب الدخول *</label>
+                <label>Login Account <span className="required-asterisk">*</span> / حساب الدخول <span className="required-asterisk">*</span></label>
                 <input 
                   required 
                   type="text" 
@@ -636,7 +636,7 @@ const Users: React.FC = () => {
               </div>
 
               <div className="form-group">
-                <label>Staff Name * / اسم الموظف *</label>
+                <label>Staff Name <span className="required-asterisk">*</span> / اسم الموظف <span className="required-asterisk">*</span></label>
                 <input 
                   required 
                   type="text" 
@@ -648,7 +648,7 @@ const Users: React.FC = () => {
               </div>
 
               <div className="form-group">
-                <label>{isEditingUser ? 'New Password (Optional) / كلمة المرور الجديدة (اختياري)' : 'Password * / كلمة المرور *'}</label>
+                <label>{isEditingUser ? 'New Password (Optional) / كلمة المرور الجديدة (اختياري)' : 'Password <span className="required-asterisk">*</span> / كلمة المرور <span className="required-asterisk">*</span>'}</label>
                 <div className="password-input-wrapper">
                   <Key size={16} className="pass-icon text-muted" />
                   <input 
@@ -663,7 +663,7 @@ const Users: React.FC = () => {
               </div>
 
               <div className="form-group">
-                <label>Assigned Role * / الدور المعين *</label>
+                <label>Assigned Role <span className="required-asterisk">*</span> / الدور المعين <span className="required-asterisk">*</span></label>
                 <select 
                   required 
                   value={userFormData.roleId}
@@ -699,7 +699,7 @@ const Users: React.FC = () => {
             
             <form onSubmit={handleRoleSubmit} className="modal-form">
               <div className="form-group">
-                <label>Role Name * / اسم الدور *</label>
+                <label>Role Name <span className="required-asterisk">*</span> / اسم الدور <span className="required-asterisk">*</span></label>
                 <input 
                   required 
                   type="text" 
