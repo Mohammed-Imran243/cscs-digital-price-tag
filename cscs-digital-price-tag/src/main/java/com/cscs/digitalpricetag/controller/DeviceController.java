@@ -7,12 +7,14 @@ import com.cscs.digitalpricetag.dto.api.PagedResponse;
 import com.cscs.digitalpricetag.service.DeviceService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.security.access.prepost.PreAuthorize;
 
 import java.util.List;
 import java.util.Map;
 
 @RestController
 @RequestMapping("/devices")
+@org.springframework.security.access.prepost.PreAuthorize("hasAuthority('equipment')")
 public class DeviceController {
 
     private final DeviceService deviceService;

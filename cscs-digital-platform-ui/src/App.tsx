@@ -15,8 +15,8 @@ import { ErrorBoundary } from './components/ErrorBoundary';
 import { Loader2 } from 'lucide-react';
 import './styles/theme.css';
  
-const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { isAuthenticated, loading } = useAuth();
+const ProtectedRoute: React.FC<{ children: React.ReactNode; requiredPermission?: string }> = ({ children, requiredPermission }) => {
+  const { isAuthenticated, loading, user } = useAuth();
   
   if (loading) {
     return (
@@ -34,6 +34,11 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
         <p style={{ fontSize: '14px', color: '#94a3b8', margin: 0 }}>Restoring session...</p>
       </div>
     );
+  }
+  if (isAuthenticated && requiredPermission) {
+    if (!user?.permissions?.includes(requiredPermission)) {
+      return <Navigate to="/" />;
+    }
   }
   
   return isAuthenticated ? <Layout>{children}</Layout> : <Navigate to="/login" />;
@@ -55,12 +60,12 @@ const App: React.FC = () => {
               } />
 
               {/* Placeholders for other routes */}
-              <Route path="/stores" element={<ProtectedRoute><Stores /></ProtectedRoute>} />
-              <Route path="/products" element={<ProtectedRoute><Products /></ProtectedRoute>} />
-              <Route path="/templates" element={<ProtectedRoute><Templates /></ProtectedRoute>} />
-              <Route path="/devices" element={<ProtectedRoute><Devices /></ProtectedRoute>} />
-              <Route path="/audit-logs" element={<ProtectedRoute><AuditLogs /></ProtectedRoute>} />
-              <Route path="/users" element={<ProtectedRoute><Users /></ProtectedRoute>} />
+              <Route path="/stores" element={<ProtectedRoute requiredPermission="store"><Stores /></ProtectedRoute>} />
+              <Route path="/products" element={<ProtectedRoute requiredPermission="product"><Products /></ProtectedRoute>} />
+              <Route path="/templates" element={<ProtectedRoute requiredPermission="template"><Templates /></ProtectedRoute>} />
+              <Route path="/devices" element={<ProtectedRoute requiredPermission="equipment"><Devices /></ProtectedRoute>} />
+              <Route path="/audit-logs" element={<ProtectedRoute requiredPermission="log"><AuditLogs /></ProtectedRoute>} />
+              <Route path="/users" element={<ProtectedRoute requiredPermission="staffManager"><Users /></ProtectedRoute>} />
 
               <Route path="*" element={<Navigate to="/" />} />
             </Routes>

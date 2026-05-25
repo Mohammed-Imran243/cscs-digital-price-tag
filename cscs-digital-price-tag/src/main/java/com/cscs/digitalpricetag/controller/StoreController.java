@@ -8,9 +8,11 @@ import com.cscs.digitalpricetag.dto.api.StoreUpdateRequest;
 import com.cscs.digitalpricetag.service.StoreService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.security.access.prepost.PreAuthorize;
 
 @RestController
 @RequestMapping("/stores")
+@PreAuthorize("hasAuthority('store')")
 public class StoreController {
 
     private final StoreService storeService;

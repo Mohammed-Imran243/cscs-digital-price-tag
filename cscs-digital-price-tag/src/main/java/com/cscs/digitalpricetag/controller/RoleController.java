@@ -4,10 +4,12 @@ import com.cscs.digitalpricetag.dto.ApiResponse;
 import com.cscs.digitalpricetag.service.RoleService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.security.access.prepost.PreAuthorize;
 
 import java.util.Map;
 
 @RestController
+@PreAuthorize("hasAuthority('staffManager')")
 @RequestMapping("/roles")
 public class RoleController {
 

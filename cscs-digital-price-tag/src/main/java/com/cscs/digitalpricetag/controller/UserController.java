@@ -4,11 +4,13 @@ import com.cscs.digitalpricetag.dto.ApiResponse;
 import com.cscs.digitalpricetag.service.UserService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.security.access.prepost.PreAuthorize;
 
 import java.util.Map;
 
 @RestController
 @RequestMapping("/users")
+@PreAuthorize("hasAuthority('staffManager')")
 public class UserController {
 
     private final UserService userService;

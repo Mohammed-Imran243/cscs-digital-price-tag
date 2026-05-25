@@ -7,7 +7,9 @@ import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
+import java.util.Collections;
 import java.util.Date;
+import java.util.List;
 
 @Component
 public class JwtUtil {
@@ -26,9 +28,16 @@ public class JwtUtil {
         return Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
     }
 
-    public String generateToken(String username, String dragonToken) {
+    public String generateToken(
+            String username,
+            String dragonToken,
+            List<String> permissions,
+            String role
+    ) {
         return Jwts.builder()
                 .subject(username)
+                .claim("permissions", permissions)
+                .claim("role", role)
                 .claim("dragonToken", dragonToken)
                 .issuedAt(new Date())
                 .expiration(new Date(System.currentTimeMillis() + expirationMs))
@@ -86,5 +95,22 @@ public class JwtUtil {
         if (username != null) {
             activeUserSessions.remove(username.toLowerCase());
         }
+    }
+
+    public List<String> extractPermissions(String token) {
+
+        Claims claims = getClaims(token);
+
+        Object permissions = claims.get("permissions");
+
+        if (permissions instanceof List<?>) {
+
+            return ((List<?>) permissions)
+                    .stream()
+                    .map(Object::toString)
+                    .toList();
+        }
+
+        return Collections.emptyList();
     }
 }

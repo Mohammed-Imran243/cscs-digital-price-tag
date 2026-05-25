@@ -12,9 +12,12 @@ import org.springframework.security.web.authentication.WebAuthenticationDetailsS
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.GrantedAuthority;
 
 import java.io.IOException;
 import java.util.Collections;
+import java.util.List;
 
 @Component
 public class JwtAuthFilter extends OncePerRequestFilter {
@@ -39,6 +42,11 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
         if (StringUtils.hasText(token) && jwtUtil.isTokenValid(token)) {
             String username = jwtUtil.extractUsername(token);
+            List<String> permissions = jwtUtil.extractPermissions(token);
+            List<GrantedAuthority> authorities =
+                    permissions.stream()
+                            .map(p -> (GrantedAuthority) new SimpleGrantedAuthority(p))
+                            .toList();
             String dragonToken = jwtUtil.extractDragonToken(token);
 
             if (username != null) {
@@ -51,16 +59,15 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                 }
 
                 if (SecurityContextHolder.getContext().getAuthentication() == null) {
-                    UsernamePasswordAuthenticationToken authentication =
+                    UsernamePasswordAuthenticationToken auth =
                             new UsernamePasswordAuthenticationToken(
                                     username,
-                                    dragonToken, // Pass user-specific Zkong token as credentials
-                                    java.util.Collections.emptyList()
+                                    null,
+                                    authorities
                             );
-                    authentication.setDetails(
-                            new WebAuthenticationDetailsSource().buildDetails(request)
-                    );
-                    SecurityContextHolder.getContext().setAuthentication(authentication);
+                    SecurityContextHolder
+                            .getContext()
+                            .setAuthentication(auth);
                 }
             }
         }

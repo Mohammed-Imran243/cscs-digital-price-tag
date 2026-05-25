@@ -63,15 +63,18 @@ public class AuthService {
             if (userListData instanceof java.util.Map) {
                 java.util.Map<?, ?> map = (java.util.Map<?, ?>) userListData;
                 Object listObj = map.get("list");
+                if (listObj == null) listObj = map.get("userRoleStoreList");
+                if (listObj == null) listObj = map.get("userVos");
                 if (listObj instanceof java.util.List) {
                     java.util.List<?> list = (java.util.List<?>) listObj;
                     for (Object item : list) {
                         if (item instanceof java.util.Map) {
-                            java.util.Map<?, ?> userMap = (java.util.Map<?, ?>) item;
+                            java.util.Map<?, ?> outerMap = (java.util.Map<?, ?>) item;
+                            java.util.Map<?, ?> userMap = outerMap.containsKey("user") ? (java.util.Map<?, ?>) outerMap.get("user") : outerMap;
                             String account = (String) userMap.get("account");
                             if (account != null && account.equalsIgnoreCase(request.getUsername())) {
                                 Object roleIdObj = userMap.get("roleId");
-                                String rName = (String) userMap.get("roleName");
+                                String rName = outerMap.containsKey("roleName") ? (String) outerMap.get("roleName") : (String) userMap.get("roleName");
                                 if (rName != null && !rName.isBlank()) {
                                     roleName = rName;
                                 }
@@ -129,13 +132,18 @@ public class AuthService {
             SecurityContextHolder.clearContext();
         }
 
-        // Default to all permissions if no menu mapping was retrieved (e.g. Super Admin or error fallback)
-        if (permissions.isEmpty()) {
+        // Default to all permissions if no menu mapping was retrieved AND user is the main super admin
+        if (permissions.isEmpty() && request.getUsername().equalsIgnoreCase("DG0358")) {
             permissions = java.util.List.of("product", "store", "equipment", "system", "log", "staffManager", "template", "alarm", "statistics", "material");
         }
 
         // Step 4: Generate local JWT and register the session for single-session invalidation
-        String jwt = jwtUtil.generateToken(request.getUsername(), dragonToken);
+        String jwt = jwtUtil.generateToken(
+                request.getUsername(),
+                dragonToken,
+                permissions,
+                roleName
+        );
         jwtUtil.registerSession(request.getUsername(), jwt);
 
         return new LoginResponse(jwt, request.getUsername(), roleName, jwtUtil.getExpirationMs(), permissions);

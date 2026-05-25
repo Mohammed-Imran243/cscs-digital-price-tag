@@ -5,42 +5,21 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="96c604f0-a5ae-4b2e-8743-8aeec3476532" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/../cscs-digital-platform-ui/vite.config.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../cscs-digital-platform-ui/vite.config.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/cscs/digitalpricetag/DigitalPriceTagApplication.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/cscs/digitalpricetag/DigitalPriceTagApplication.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/com/cscs/digitalpricetag/config/CustomAccessDeniedHandler.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/gradle.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/gradle.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/com/cscs/digitalpricetag/config/SecurityConfig.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/cscs/digitalpricetag/config/SecurityConfig.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/cscs/digitalpricetag/controller/AuditLogController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/cscs/digitalpricetag/controller/AuditLogController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/cscs/digitalpricetag/controller/AuthController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/cscs/digitalpricetag/controller/AuthController.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/com/cscs/digitalpricetag/controller/DeviceController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/cscs/digitalpricetag/controller/DeviceController.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/com/cscs/digitalpricetag/controller/ProductController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/cscs/digitalpricetag/controller/ProductController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/cscs/digitalpricetag/controller/RoleController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/cscs/digitalpricetag/controller/RoleController.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/com/cscs/digitalpricetag/controller/StoreController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/cscs/digitalpricetag/controller/StoreController.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/com/cscs/digitalpricetag/controller/TemplateController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/cscs/digitalpricetag/controller/TemplateController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/cscs/digitalpricetag/dto/DragonLoginRequest.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/cscs/digitalpricetag/dto/DragonLoginResponse.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/cscs/digitalpricetag/dto/DragonProductListResponse.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/cscs/digitalpricetag/dto/DragonPublicKeyResponse.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/cscs/digitalpricetag/dto/DragonStoreListResponse.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/cscs/digitalpricetag/dto/LoginRequest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/cscs/digitalpricetag/dto/LoginRequest.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/cscs/digitalpricetag/dto/LoginResponse.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/cscs/digitalpricetag/dto/LoginResponse.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/cscs/digitalpricetag/dto/UserInfoResponse.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/cscs/digitalpricetag/dto/UserInfoResponse.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/cscs/digitalpricetag/dto/dragon/DragonLogListResponse.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/cscs/digitalpricetag/dto/dragon/DragonLogListResponse.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/cscs/digitalpricetag/dto/dragon/DragonLogRequest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/cscs/digitalpricetag/dto/dragon/DragonLogRequest.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/cscs/digitalpricetag/dto/dragon/DragonLoginRequest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/cscs/digitalpricetag/dto/dragon/DragonLoginRequest.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/cscs/digitalpricetag/dto/dragon/DragonLoginResponse.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/cscs/digitalpricetag/dto/dragon/DragonLoginResponse.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/cscs/digitalpricetag/dto/dragon/DragonProductListResponse.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/cscs/digitalpricetag/dto/dragon/DragonProductListResponse.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/cscs/digitalpricetag/dto/dragon/DragonPublicKeyResponse.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/cscs/digitalpricetag/dto/dragon/DragonPublicKeyResponse.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/cscs/digitalpricetag/dto/dragon/DragonStoreListResponse.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/cscs/digitalpricetag/dto/dragon/DragonStoreListResponse.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/cscs/digitalpricetag/dto/dragon/DragonStoreResponse.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/cscs/digitalpricetag/dto/dragon/DragonStoreResponse.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/cscs/digitalpricetag/dto/dragon/DragonTemplateGenericResponse.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/cscs/digitalpricetag/dto/dragon/DragonTemplateGenericResponse.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/cscs/digitalpricetag/dto/dragon/DragonTemplateListResponse.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/cscs/digitalpricetag/dto/dragon/DragonTemplateListResponse.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/cscs/digitalpricetag/dto/dragon/DragonUpdateItemResponse.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/cscs/digitalpricetag/dto/dragon/DragonUpdateItemResponse.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/cscs/digitalpricetag/service/AuditLogService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/cscs/digitalpricetag/service/AuditLogService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/cscs/digitalpricetag/service/DeviceService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/cscs/digitalpricetag/service/DeviceService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/cscs/digitalpricetag/service/DragonAuthService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/cscs/digitalpricetag/service/DragonAuthService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/cscs/digitalpricetag/service/ProductService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/cscs/digitalpricetag/service/ProductService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/cscs/digitalpricetag/service/RoleService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/cscs/digitalpricetag/service/RoleService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/cscs/digitalpricetag/service/StoreService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/cscs/digitalpricetag/service/StoreService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/cscs/digitalpricetag/service/TemplateService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/cscs/digitalpricetag/service/TemplateService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/cscs/digitalpricetag/service/UserService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/cscs/digitalpricetag/service/UserService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/cscs/digitalpricetag/service/base/DragonEslServiceSupport.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/cscs/digitalpricetag/service/base/DragonEslServiceSupport.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/cscs/digitalpricetag/util/PaginationHeaderUtil.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/cscs/digitalpricetag/util/PaginationHeaderUtil.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/cscs/digitalpricetag/controller/UserController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/cscs/digitalpricetag/controller/UserController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/cscs/digitalpricetag/filter/JwtAuthFilter.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/cscs/digitalpricetag/filter/JwtAuthFilter.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/cscs/digitalpricetag/service/AuthService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/cscs/digitalpricetag/service/AuthService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/cscs/digitalpricetag/util/JwtUtil.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/cscs/digitalpricetag/util/JwtUtil.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -95,6 +74,7 @@
   <component name="PropertiesComponent"><![CDATA[{
   "keyToString": {
     "Gradle.Build cscs-digital-price-tag.executor": "Run",
+    "Gradle.cscs-digital-price-tag [:com.cscs.digitalpricetag.DigitalPriceTagApplication.main()].executor": "Run",
     "ModuleVcsDetector.initialDetectionPerformed": "true",
     "RunOnceActivity.MCP Project settings loaded": "true",
     "RunOnceActivity.ShowReadmeOnStart": "true",
@@ -106,6 +86,7 @@
     "junie.onboarding.icon.badge.shown": "true",
     "kotlin-language-version-configured": "true",
     "last_opened_file_path": "D:/cscs/CSCS DIGITAL PRICE TAG/cscs-digital-price-tag/cscs-digital-price-tag",
+    "settings.editor.selected.configurable": "reference.settingsdialog.project.gradle",
     "to.speed.mode.migration.done": "true"
   }
 }]]></component>
@@ -124,11 +105,6 @@
         <option name="Make" enabled="true" />
       </method>
     </configuration>
-    <recent_temporary>
-      <list>
-        <item itemvalue="Spring Boot.DigitalPriceTagApplication" />
-      </list>
-    </recent_temporary>
   </component>
   <component name="SharedIndexes">
     <attachedChunks>
