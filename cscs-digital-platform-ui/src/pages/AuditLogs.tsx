@@ -199,7 +199,7 @@ const AuditLogs: React.FC = () => {
       <div className="audit-logs-filters glass-card">
         <div className="filter-group">
           <label>
-            <StoreIcon size={16} /> Store Location * / موقع المتجر *
+            <StoreIcon size={16} /> Store Location <span className="required-asterisk">*</span> / موقع المتجر <span className="required-asterisk">*</span>
           </label>
           {storesLoading ? (
             <div className="filter-loader">
@@ -223,7 +223,7 @@ const AuditLogs: React.FC = () => {
 
         <div className="filter-group">
           <label>
-            <Calendar size={16} /> Start Date * / تاريخ البدء *
+            <Calendar size={16} /> Start Date <span className="required-asterisk">*</span> / تاريخ البدء <span className="required-asterisk">*</span>
           </label>
           <input 
             type="date" 
@@ -235,7 +235,7 @@ const AuditLogs: React.FC = () => {
 
         <div className="filter-group">
           <label>
-            <Calendar size={16} /> End Date * / تاريخ الانتهاء *
+            <Calendar size={16} /> End Date <span className="required-asterisk">*</span> / تاريخ الانتهاء <span className="required-asterisk">*</span>
           </label>
           <input 
             type="date" 
@@ -494,7 +494,7 @@ const AuditLogs: React.FC = () => {
         }
 
         .glass-input, .glass-select {
-          background: rgba(255, 255, 255, 0.05);
+          background-color: rgba(255, 255, 255, 0.05);
           border: 1px solid rgba(255, 255, 255, 0.1);
           padding: 10px 14px;
           border-radius: 8px;
@@ -502,7 +502,7 @@ const AuditLogs: React.FC = () => {
           font-size: 14px;
           outline: none;
           height: 42px;
-          transition: border-color 0.2s, background 0.2s;
+          transition: border-color 0.2s, background-color 0.2s;
         }
 
         .glass-select option {
@@ -512,7 +512,7 @@ const AuditLogs: React.FC = () => {
 
         .glass-input:focus, .glass-select:focus {
           border-color: var(--primary-color);
-          background: rgba(255, 255, 255, 0.08);
+          background-color: rgba(255, 255, 255, 0.08);
         }
 
         /* Table Design */

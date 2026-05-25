@@ -397,7 +397,7 @@ const Stores: React.FC = () => {
             </div>
             <form onSubmit={handleSubmit} className="store-form">
               <div className="form-group">
-                <label>Store Name * / اسم المتجر *</label>
+                <label>Store Name <span className="required-asterisk">*</span> / اسم المتجر <span className="required-asterisk">*</span></label>
                 <input required type="text" value={formData.storeName}
                   onChange={e => setFormData({ ...formData, storeName: e.target.value })}
                   className="glass-input" placeholder="e.g. Al Naseem Store / مثل متجر النسيم" />
@@ -750,7 +750,7 @@ const Stores: React.FC = () => {
         }
 
         .glass-input {
-          background: rgba(255, 255, 255, 0.05);
+          background-color: rgba(255, 255, 255, 0.05);
           border: 1px solid rgba(255, 255, 255, 0.1);
           padding: 12px;
           border-radius: 8px;
