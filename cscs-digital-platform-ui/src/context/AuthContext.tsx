@@ -59,7 +59,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         try {
           setLoading(true);
           const response = await api.get('/auth/me');
-          if (!response.data?.success || !response.data?.data?.authenticated) {
+          if (!response.data?.success || !response.data?.data?.active) {
             await logout();
           }
         } catch (err) {
