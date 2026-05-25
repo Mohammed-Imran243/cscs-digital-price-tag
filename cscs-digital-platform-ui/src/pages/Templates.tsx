@@ -767,7 +767,7 @@ const Templates: React.FC = () => {
             </div>
             <form onSubmit={handleCreateTemplate} className="modal-form">
               <div className="form-group">
-                <label>Template Name / اسم القالب</label>
+                <label>Template Type / نوع القالب</label>
                 <input
                   required
                   type="text"
@@ -861,7 +861,7 @@ const Templates: React.FC = () => {
             </div>
             <form onSubmit={handleUpdateTemplate} className="modal-form">
               <div className="form-group">
-                <label>Template Name / اسم القالب</label>
+                <label>Template Type / نوع القالب</label>
                 <input
                   required
                   type="text"
@@ -1746,7 +1746,7 @@ const Templates: React.FC = () => {
           <table className="zkong-table">
             <thead>
               <tr>
-                <th>Template Name / اسم القالب</th>
+                <th>Template Type / نوع القالب</th>
                 <th>Template Code / رمز القالب</th>
                 <th>Size / الحجم</th>
                 <th>Dpi / الدقة</th>

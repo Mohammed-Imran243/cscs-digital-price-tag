@@ -599,11 +599,11 @@ const Products: React.FC = () => {
                 </div>
                 <div className="form-group">
                   <SearchableDropdown
-                    label="Template Name / اسم القالب"
+                    label="Template Type / نوع القالب"
                     value={newProduct.attrName || ''}
                     options={templateNames}
                     onChange={handleTemplateNameChange}
-                    placeholder="Search template name... / ابحث عن اسم القالب..."
+                    placeholder="Search template type... / ابحث عن نوع القالب..."
                   />
                 </div>
               </div>
