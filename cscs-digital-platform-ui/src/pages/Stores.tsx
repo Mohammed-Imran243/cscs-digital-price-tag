@@ -70,11 +70,20 @@ const Stores: React.FC = () => {
     fetchStores();
   }, []);
 
-  const filteredStores = stores.filter(store =>
-    (store.storeName || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (store.storeId || '').toString().includes(searchTerm) ||
-    (store.address || '').toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredStores = stores.filter(store => {
+    const searchLower = searchTerm.trim().toLowerCase();
+    
+    // If search box is empty, show all stores
+    if (!searchLower) return true;
+
+    // Only search/filter by Name, Internal ID, External ID, and Address
+    return (
+      (store.storeName || '').toLowerCase().includes(searchLower) ||
+      (store.storeId || '').toString().includes(searchLower) ||
+      (store.externalStoreId || '').toString().toLowerCase().includes(searchLower) ||
+      (store.address || '').toLowerCase().includes(searchLower)
+    );
+  });
 
   const totalCount = filteredStores.length;
   const totalPages = Math.ceil(totalCount / pageSize) || 1;
@@ -262,8 +271,16 @@ const Stores: React.FC = () => {
 
                 <div className="store-card-body">
                   <h3>{store.storeName}</h3>
-                  <p className="store-id">ID / المعرف: {store.storeId}</p>
-                  {store.externalStoreId && <p className="store-id">Ext ID / المعرف الخارجي: {store.externalStoreId}</p>}
+                  <p className="store-id">
+                    <span style={{ userSelect: 'none' }}>ID / المعرف: </span>
+                    <strong style={{ userSelect: 'all' }}>{store.storeId}</strong>
+                  </p>
+                  {store.externalStoreId && (
+                    <p className="store-id">
+                      <span style={{ userSelect: 'none' }}>Ext ID / المعرف الخارجي: </span>
+                      <strong style={{ userSelect: 'all' }}>{store.externalStoreId}</strong>
+                    </p>
+                  )}
 
                   <div className="store-info-list">
                     <div className="store-info-item">

@@ -264,7 +264,15 @@ const Products: React.FC = () => {
     if (!selectedStore) return;
     setLoading(true);
     try {
-      const data = await getProducts(selectedStore, currentPage - 1, pageSize, undefined, debouncedSearch);
+      const searchTerm = debouncedSearch.trim();
+      const isNumeric = /^\d+$/.test(searchTerm);
+      const data = await getProducts(
+        selectedStore, 
+        currentPage - 1, 
+        pageSize, 
+        isNumeric ? searchTerm : undefined, 
+        !isNumeric && searchTerm ? searchTerm : undefined
+      );
       setProducts(data.content || []);
       setTotalElements(data.totalElements || 0);
     } catch (err) {
@@ -454,8 +462,14 @@ const Products: React.FC = () => {
               
               <div className="product-details">
                 <h3 className="product-title">{product.itemName}</h3>
-                <p className="product-code">Barcode / الباركود: <strong>{product.barcode}</strong></p>
-                <p className="product-code">Internal ID / الرقم الداخلي: {product.id}</p>
+                <p className="product-code">
+                  <span style={{ userSelect: 'none' }}>Barcode / الباركود: </span>
+                  <strong style={{ userSelect: 'all' }}>{product.barcode}</strong>
+                </p>
+                <p className="product-code">
+                  <span style={{ userSelect: 'none' }}>Internal ID / الرقم الداخلي: </span>
+                  <span style={{ userSelect: 'all' }}>{product.id}</span>
+                </p>
                 
                 <div className="price-section">
                   {editItem?.id === product.id ? (

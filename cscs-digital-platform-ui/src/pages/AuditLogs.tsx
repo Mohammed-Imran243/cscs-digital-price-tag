@@ -10,7 +10,8 @@ import {
   CheckCircle2,
   XCircle,
   User,
-  Loader2
+  Loader2,
+  Search
 } from 'lucide-react';
 import { storeService } from '../services/storeService';
 import type { Store } from '../services/storeService';
@@ -41,6 +42,17 @@ const AuditLogs: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const [totalCount, setTotalCount] = useState(0);
+
+  // Search state
+  const [searchQuery, setSearchQuery] = useState('');
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('');
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearchQuery(searchQuery);
+    }, 300);
+    return () => clearTimeout(handler);
+  }, [searchQuery]);
 
   // Fetch stores on mount
   useEffect(() => {
@@ -264,6 +276,19 @@ const AuditLogs: React.FC = () => {
             <option value={14}>Smart Reissue / إعادة إصدار ذكي</option>
           </select>
         </div>
+
+        <div className="filter-group">
+          <label>
+            <Search size={16} /> Search / بحث
+          </label>
+          <input 
+            type="text" 
+            placeholder="Search logs... / بحث في السجلات..." 
+            value={searchQuery} 
+            onChange={(e) => setSearchQuery(e.target.value)} 
+            className="glass-input" 
+          />
+        </div>
       </div>
 
       {/* Main content display */}
@@ -306,8 +331,20 @@ const AuditLogs: React.FC = () => {
                 </tr>
               </thead>
               <tbody>
-                {logs.map((logItem) => (
-                  <tr key={logItem.id || Math.random()}>
+                {logs
+                  .filter(log => {
+                    if (!debouncedSearchQuery) return true;
+                    const searchLower = debouncedSearchQuery.toLowerCase();
+                    return (
+                      (log.itemName && log.itemName.toLowerCase().includes(searchLower)) ||
+                      (log.itemBarCode && log.itemBarCode.toLowerCase().includes(searchLower)) ||
+                      (log.priceTagBarCode && log.priceTagBarCode.toLowerCase().includes(searchLower)) ||
+                      (log.operator && log.operator.toLowerCase().includes(searchLower)) ||
+                      (log.operationText && log.operationText.toLowerCase().includes(searchLower))
+                    );
+                  })
+                  .map((logItem, index) => (
+                  <tr key={`${logItem.id}-${index}`}>
                     <td className="col-time">
                       <div className="time-primary">{logItem.createdTime || 'N/A / غير متوفر'}</div>
                       {logItem.feedbackTime && (

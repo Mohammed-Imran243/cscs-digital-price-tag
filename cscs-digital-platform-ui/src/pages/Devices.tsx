@@ -38,6 +38,7 @@ const Devices: React.FC = () => {
   
   // Controls
   const [searchTerm, setSearchTerm] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
   const [page, setPage] = useState(0);
   const [pageSize, setPageSize] = useState(10);
   const [totalElements, setTotalElements] = useState(0);
@@ -112,7 +113,7 @@ const Devices: React.FC = () => {
     
     try {
       if (activeTab === 'esl') {
-        const response = await deviceService.getEslDevices(page, pageSize, selectedStoreId, searchTerm);
+        const response = await deviceService.getEslDevices(page, pageSize, selectedStoreId, debouncedSearch);
         if (response) {
           setEslDevices(response.content || []);
           setTotalElements(response.totalElements || 0);
@@ -121,7 +122,7 @@ const Devices: React.FC = () => {
           setError('Failed to query ESL labels.');
         }
       } else {
-        const response = await deviceService.getApDevices(page, pageSize, selectedStoreId, searchTerm);
+        const response = await deviceService.getApDevices(page, pageSize, selectedStoreId, debouncedSearch);
         if (response) {
           setApDevices(response.content || []);
           setTotalElements(response.totalElements || 0);
@@ -143,15 +144,15 @@ const Devices: React.FC = () => {
   }, [activeTab, selectedStoreId]);
 
   useEffect(() => {
-    fetchDevices();
-  }, [activeTab, selectedStoreId, page, pageSize]);
+    const handler = setTimeout(() => {
+      setDebouncedSearch(searchTerm);
+    }, 300);
+    return () => clearTimeout(handler);
+  }, [searchTerm]);
 
-  // Handle Search submit / click
-  const handleSearchSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    setPage(0);
+  useEffect(() => {
     fetchDevices();
-  };
+  }, [activeTab, selectedStoreId, page, pageSize, debouncedSearch]);
 
   // Selection Handlers
   const handleSelectRow = (barcode: string) => {
@@ -482,7 +483,7 @@ const Devices: React.FC = () => {
         </div>
 
         {/* Search */}
-        <form onSubmit={handleSearchSubmit} className="devices-search-form glass-card">
+        <div className="devices-search-form glass-card">
           <Search size={18} className="text-muted" />
           <input
             type="text"
@@ -494,8 +495,7 @@ const Devices: React.FC = () => {
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
-          <button type="submit" className="btn-primary-small">Search / بحث</button>
-        </form>
+        </div>
       </div>
 
       {/* Main Grid Content */}

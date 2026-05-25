@@ -54,7 +54,8 @@ const Templates: React.FC = () => {
   const [filterColor, setFilterColor] = useState<string>('All');
   const [filterCategory, setFilterCategory] = useState<string>('All');
   const [filterType, setFilterType] = useState<string>('All');
-  const searchQuery = '';
+  const [searchQuery, setSearchQuery] = useState('');
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('');
   // Main Templates Data
   const [templates, setTemplates] = useState<Template[]>([]);
   const [loading, setLoading] = useState(false);
@@ -116,12 +117,19 @@ const Templates: React.FC = () => {
     fetchLookups();
   }, []);
 
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearchQuery(searchQuery);
+    }, 300);
+    return () => clearTimeout(handler);
+  }, [searchQuery]);
+
   // Sync templates list based on filters/tabs
   useEffect(() => {
     if (activeMenuTab === 'merchant' || activeMenuTab === 'store') {
       fetchTemplatesList();
     }
-  }, [activeMenuTab, merchantScenario, selectedStore, filterSize, filterColor, filterCategory, page, pageSize]);
+  }, [activeMenuTab, merchantScenario, selectedStore, filterSize, filterColor, filterCategory, page, pageSize, debouncedSearchQuery]);
 
   // Fetch sample products when opening a preview template
   useEffect(() => {
@@ -232,8 +240,8 @@ const Templates: React.FC = () => {
       if (filterCategory !== 'All') {
         searchParams.attrCategory = filterCategory;
       }
-      if (searchQuery) {
-        searchParams.templateName = searchQuery;
+      if (debouncedSearchQuery) {
+        searchParams.templateName = debouncedSearchQuery;
       }
 
       const response = await getTemplates(page, pageSize, searchParams);
@@ -524,6 +532,18 @@ const Templates: React.FC = () => {
                     <option value="All">Select All / تحديد الكل</option>
                   </select>
                 </div>
+
+                <div className="filter-input-group">
+                  <label>Search / بحث</label>
+                  <input 
+                    type="text" 
+                    className="styled-select" 
+                    style={{ background: 'rgba(255, 255, 255, 0.05)', color: 'var(--text-primary)', border: '1px solid rgba(255, 255, 255, 0.1)', padding: '10px 14px', borderRadius: '8px', height: '42px' }}
+                    placeholder="Search templates..." 
+                    value={searchQuery} 
+                    onChange={e => setSearchQuery(e.target.value)} 
+                  />
+                </div>
               </div>
 
               {/* Action Buttons */}
@@ -590,14 +610,16 @@ const Templates: React.FC = () => {
                   </select>
                 </div>
 
-                <div className="form-submit-buttons">
-                  <button className="btn-primary" onClick={fetchTemplatesList}>Search / بحث</button>
-                  <button className="btn-secondary" onClick={() => {
-                    setFilterSize('All');
-                    setFilterColor('All');
-                    setFilterCategory('All');
-                    fetchTemplatesList();
-                  }}>Reset / إعادة ضبط</button>
+                <div className="filter-input-group">
+                  <label>Search / بحث</label>
+                  <input 
+                    type="text" 
+                    className="styled-select" 
+                    style={{ background: 'rgba(255, 255, 255, 0.05)', color: 'var(--text-primary)', border: '1px solid rgba(255, 255, 255, 0.1)', padding: '10px 14px', borderRadius: '8px', height: '42px' }}
+                    placeholder="Search templates..." 
+                    value={searchQuery} 
+                    onChange={e => setSearchQuery(e.target.value)} 
+                  />
                 </div>
               </div>
 
