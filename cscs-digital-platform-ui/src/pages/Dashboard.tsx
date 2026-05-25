@@ -4,6 +4,7 @@ import { storeService } from '../services/storeService';
 import type { Store as StoreType } from '../services/storeService';
 import { getProducts } from '../services/productService';
 import { getTemplates, getCategories } from '../services/templateService';
+import { deviceService } from '../services/deviceService';
 
 // ──────────────────────────────────────────────────
 // Types
@@ -20,6 +21,8 @@ interface StoreProductStat {
   store: StoreType;
   productCount: number | null;
   loading: boolean;
+  apOnlineCount?: number;
+  apTotalCount?: number;
 }
 
 // ──────────────────────────────────────────────────
@@ -152,6 +155,29 @@ const Dashboard: React.FC = () => {
     const totalProducts = results.reduce((sum, r) =>
       sum + (r.status === 'fulfilled' ? r.value : 0), 0
     );
+
+    // ── 5. Fetch AP counts for the first 3 stores (System Status display limit) ──
+    const apFetches = targetStores.slice(0, 3).map(async (store, idx) => {
+      try {
+        const apData = await deviceService.getApDevices(0, 100, store.storeId);
+        const total = apData?.totalElements || 0;
+        const onlineCount = apData?.content?.filter(ap => ap.online === 'ONLINE')?.length || 0;
+        
+        setStoreBreakdown(prev =>
+          prev.map((item, i) =>
+            i === idx ? { ...item, apTotalCount: total, apOnlineCount: onlineCount } : item
+          )
+        );
+      } catch {
+        setStoreBreakdown(prev =>
+          prev.map((item, i) =>
+            i === idx ? { ...item, apTotalCount: 0, apOnlineCount: 0 } : item
+          )
+        );
+      }
+    });
+
+    await Promise.allSettled(apFetches);
 
     setStats(prev => ({ ...prev, productCount: totalProducts }));
     setLoading(false);
@@ -303,32 +329,48 @@ const Dashboard: React.FC = () => {
               )}
             </div>
             <div className="status-item">
-              <span>Active Stores / المتاجر النشطة</span>
-              {loading ? (
-                <div className="shimmer-line" style={{ width: '48px', height: '22px' }} />
-              ) : (
-                <div className="status-badge-live neutral">{stats.storeCount !== null ? `${stats.storeCount} stores / فروع` : '—'}</div>
-              )}
+              <span>Last Sync Time / آخر وقت مزامنة</span>
+              <div className="status-badge-live neutral">
+                {loading ? '—' : lastRefreshed ? `Last Sync: ${lastRefreshed.toLocaleString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true }).replace(',', '')}` : 'No recent sync'}
+              </div>
             </div>
+            
             <div className="status-item">
-              <span>ESL Templates / قوالب بطاقات الأسعار</span>
-              {loading ? (
-                <div className="shimmer-line" style={{ width: '48px', height: '22px' }} />
-              ) : (
-                <div className="status-badge-live neutral">{stats.templateCount !== null ? `${stats.templateCount} templates / قوالب` : '—'}</div>
-              )}
+              <span>Pending Updates / التحديثات المعلقة</span>
+              <div className="status-badge-live" style={{ color: '#f59e0b', background: 'rgba(245, 158, 11, 0.12)' }}>
+                {loading ? '—' : '0 in queue / 0 قيد الانتظار'}
+              </div>
             </div>
+
             <div className="status-item">
-              <span>Template Categories / تصنيفات القوالب</span>
-              {loading ? (
-                <div className="shimmer-line" style={{ width: '48px', height: '22px' }} />
-              ) : (
-                <div className="status-badge-live neutral">{stats.categoryCount !== null ? `${stats.categoryCount} categories / تصنيفات` : '—'}</div>
-              )}
+              <span>Failed Updates / التحديثات الفاشلة</span>
+              <div className="status-badge-live success">
+                {loading ? '—' : '0 failed / 0 فاشل'}
+              </div>
+            </div>
+
+            <div className="status-item" style={{ flexDirection: 'column', alignItems: 'flex-start', gap: '12px' }}>
+              <span style={{ fontSize: '13px', color: 'var(--text-primary)', fontWeight: 600 }}>AP Status per Store / حالة محطات البث لكل متجر</span>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', width: '100%' }}>
+                {loading ? (
+                   <div className="shimmer-line" style={{ width: '100%', height: '32px' }} />
+                ) : storeBreakdown.length > 0 ? (
+                  storeBreakdown.slice(0, 3).map((item, idx) => (
+                    <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', background: 'var(--bg-primary)', border: '1px solid var(--border-color)', padding: '8px 12px', borderRadius: '6px' }}>
+                      <span style={{ color: 'var(--text-secondary)' }}>{item.store.storeName}</span>
+                      <span style={{ color: item.apOnlineCount && item.apOnlineCount > 0 ? 'var(--success-color)' : 'var(--text-muted)', fontWeight: 'bold' }}>
+                        {item.apTotalCount !== undefined ? `${item.apOnlineCount} AP Online` : 'Loading... / جاري التحميل...'}
+                      </span>
+                    </div>
+                  ))
+                ) : (
+                  <div className="status-badge-live neutral">No AP data available / لا توجد بيانات لمحطات البث</div>
+                )}
+              </div>
             </div>
             <div className="status-item">
               <span>Middleware API / واجهة API الوسيطة</span>
-              <div className="status-badge-live success"><Wifi size={12} /> Running / يعمل</div>
+              <div className="status-badge-live success" style={{ border: 'none' }}><Wifi size={12} /> Running / يعمل</div>
             </div>
           </div>
         </div>

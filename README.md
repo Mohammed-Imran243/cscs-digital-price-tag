@@ -1,1 +1,1 @@
-# cscs-digital-price-tag
+# CSCS ESL CONNECT APP
