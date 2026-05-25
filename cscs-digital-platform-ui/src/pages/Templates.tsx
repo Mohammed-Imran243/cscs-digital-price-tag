@@ -179,11 +179,11 @@ const Templates: React.FC = () => {
     setPopoverProduct(null);
   };
 
-  const showNotification = (message: string, type: 'success' | 'error' = 'success') => {
+  const showNotification = (message: string, type: 'success' | 'error' | 'warning' = 'success') => {
     setNotification({ message, type });
     setTimeout(() => {
       setNotification(null);
-    }, 4500);
+    }, 3000);
   };
 
   const fetchLookups = async () => {
@@ -263,11 +263,10 @@ const Templates: React.FC = () => {
     const label = nextStatus === '1' ? 'Enabled' : 'Disabled';
     try {
       await enableTemplate(id, nextStatus);
-      showNotification(`Template state successfully updated to ${label}.`, 'success');
+      showNotification('Template updated successfully / تم تحديث القالب بنجاح', 'success');
       fetchTemplatesList();
     } catch (err: any) {
-      const errorMsg = err.response?.data?.message || 'Failed to toggle status.';
-      showNotification(errorMsg, 'error');
+      showNotification('Failed to update template. Please try again. / فشل تحديث القالب. يرجى المحاولة مرة أخرى.', 'error');
     }
   };
 
@@ -279,11 +278,10 @@ const Templates: React.FC = () => {
       onConfirm: async () => {
         try {
           await deleteTemplate(id, '0', true);
-          showNotification('Template successfully deleted.', 'success');
+          showNotification('Template deleted successfully / تم حذف القالب بنجاح', 'success');
           fetchTemplatesList();
         } catch (err: any) {
-          const errorMsg = err.response?.data?.message || 'Failed to delete template.';
-          showNotification(errorMsg, 'error');
+          showNotification('Failed to delete template. Please try again. / فشل حذف القالب. يرجى المحاولة مرة أخرى.', 'error');
         }
       }
     });
@@ -295,7 +293,7 @@ const Templates: React.FC = () => {
     setSubmitting(true);
     try {
       await addCategory(newCategoryName);
-      showNotification(`Classification category "${newCategoryName}" created!`, 'success');
+      showNotification('Category added successfully / تمت إضافة الفئة بنجاح', 'success');
       
       // Seed attributes record for properties tab
       setCategoryAttributes(prev => ({
@@ -308,7 +306,7 @@ const Templates: React.FC = () => {
       fetchLookups();
     } catch (err: any) {
       console.error('Failed to add category', err);
-      showNotification('Failed to create category classification.', 'error');
+      showNotification('Failed to add category. Please try again. / فشل إضافة الفئة. يرجى المحاولة مرة أخرى.', 'error');
     } finally {
       setSubmitting(false);
     }
@@ -328,7 +326,7 @@ const Templates: React.FC = () => {
       };
 
       await addTemplate(payload);
-      showNotification('Template successfully registered with the cloud!', 'success');
+      showNotification('Template added successfully / تمت إضافة القالب بنجاح', 'success');
       setIsTemplateModalOpen(false);
       setNewTemplate({
         templateName: '',
@@ -341,7 +339,7 @@ const Templates: React.FC = () => {
       fetchTemplatesList();
     } catch (err: any) {
       console.error('Failed to add template', err);
-      showNotification('Failed to create ESL template.', 'error');
+      showNotification('Failed to add template. Please try again. / فشل إضافة القالب. يرجى المحاولة مرة أخرى.', 'error');
     } finally {
       setSubmitting(false);
     }
@@ -366,7 +364,7 @@ const Templates: React.FC = () => {
       ...prev,
       [selectedPropertyCat]: prev[selectedPropertyCat].filter(a => a !== attr)
     }));
-    showNotification(`Property attribute "${attr}" deleted.`, 'success');
+    showNotification('Property attribute deleted / تم حذف خاصية السمة', 'success');
   };
 
   // Update template base info (rename / category change)
@@ -379,12 +377,11 @@ const Templates: React.FC = () => {
         templateName: editTemplateModal.templateName,
         attrCategory: editTemplateModal.attrCategory
       } as any);
-      showNotification('Template updated successfully!', 'success');
+      showNotification('Template updated successfully / تم تحديث القالب بنجاح', 'success');
       setEditTemplateModal(null);
       fetchTemplatesList();
     } catch (err: any) {
-      const errorMsg = err.response?.data?.message || err.message || 'Failed to update template.';
-      showNotification(errorMsg, 'error');
+      showNotification('Failed to update template. Please try again. / فشل تحديث القالب. يرجى المحاولة مرة أخرى.', 'error');
     } finally {
       setEditSubmitting(false);
     }
@@ -396,10 +393,8 @@ const Templates: React.FC = () => {
     <div className="templates-dashboard">
       {/* Toast Notification */}
       {notification && (
-        <div className={`notification-banner ${notification.type}`}>
-          {notification.type === 'success' ? <CheckCircle2 size={18} /> : <AlertTriangle size={18} />}
+        <div className={`toast-notification ${notification.type} glass-card`}>
           <span>{notification.message}</span>
-          <button className="close-banner" onClick={() => setNotification(null)}>&times;</button>
         </div>
       )}
 

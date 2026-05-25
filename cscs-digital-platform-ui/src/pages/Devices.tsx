@@ -298,11 +298,11 @@ const Devices: React.FC = () => {
     setRefreshingBarcodes(prev => ({ ...prev, [barcode]: true }));
     try {
       await deviceService.forceRefreshEsl(selectedStoreId, [barcode]);
-      showNotification('success', `Force refresh command dispatched to ESL ${barcode}! / تم إرسال أمر التحديث الإجباري إلى الشاشة ${barcode}!`);
+      showNotification('success', 'Device refreshed successfully / تم تحديث الشاشة بنجاح');
       // Refresh grid silently
       fetchDevices(true);
     } catch (err: any) {
-      showNotification('error', err.message || 'Network failure sending force refresh. / فشل الشبكة في إرسال التحديث الإجباري.');
+      showNotification('error', 'Failed to refresh device. Please try again. / فشل تحديث الشاشة. يرجى المحاولة مرة أخرى.');
     } finally {
       setRefreshingBarcodes(prev => ({ ...prev, [barcode]: false }));
     }
@@ -319,11 +319,11 @@ const Devices: React.FC = () => {
     setLoading(true);
     try {
       await deviceService.forceRefreshEsl(selectedStoreId, selectedBarcodes);
-      showNotification('success', `Forced refresh dispatched successfully for ${selectedBarcodes.length} ESL tags! / تم إرسال أمر التحديث الجماعي بنجاح لـ ${selectedBarcodes.length} شاشة!`);
+      showNotification('success', 'Device refreshed successfully / تم تحديث الشاشة بنجاح');
       setSelectedBarcodes([]);
       fetchDevices(true);
     } catch (err: any) {
-      showNotification('error', err.message || 'Network error during batch force refresh. / خطأ في الشبكة أثناء التحديث الجماعي.');
+      showNotification('error', 'Failed to refresh device. Please try again. / فشل تحديث الشاشة. يرجى المحاولة مرة أخرى.');
     } finally {
       setLoading(false);
     }
@@ -333,7 +333,7 @@ const Devices: React.FC = () => {
     setNotification({ type, message });
     setTimeout(() => {
       setNotification(null);
-    }, 4000);
+    }, 3000);
   };
 
   const copyToClipboard = (text: string) => {
@@ -380,11 +380,11 @@ const Devices: React.FC = () => {
         eslBarcode: bindFormEslBarcode.trim(),
         apMac: bindFormApMac.trim() || undefined
       });
-      showNotification('success', `ESL ${bindFormEslBarcode} bound to item ${bindFormItemBarCode} successfully! / تم ربط الشاشة ${bindFormEslBarcode} بالمنتج ${bindFormItemBarCode} بنجاح!`);
+      showNotification('success', 'Device bound successfully / تم ربط الشاشة بنجاح');
       setBindModalOpen(false);
       fetchDevices(true);
     } catch (e: any) {
-      showNotification('error', e.message || 'Network error during bind operation. / خطأ في الشبكة أثناء عملية الربط.');
+      showNotification('error', 'Failed to bind device. Please try again. / فشل ربط الشاشة. يرجى المحاولة مرة أخرى.');
     } finally {
       setBindLoading(false);
     }
@@ -400,11 +400,11 @@ const Devices: React.FC = () => {
     setBindLoading(true);
     try {
       await deviceService.unbindEsl(bindFormStoreId, barcodes);
-      showNotification('success', `${barcodes.length} ESL label(s) unbound successfully! / تم إلغاء ربط ${barcodes.length} شاشة بنجاح!`);
+      showNotification('success', 'Device unbound successfully / تم إلغاء ربط الشاشة بنجاح');
       setBindModalOpen(false);
       fetchDevices(true);
     } catch (e: any) {
-      showNotification('error', e.message || 'Network error during unbind operation. / خطأ في الشبكة أثناء عملية إلغاء الربط.');
+      showNotification('error', 'Failed to unbind device. Please try again. / فشل إلغاء ربط الشاشة. يرجى المحاولة مرة أخرى.');
     } finally {
       setBindLoading(false);
     }

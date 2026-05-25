@@ -135,7 +135,7 @@ const Products: React.FC = () => {
     setNotification({ message, type });
     setTimeout(() => {
       setNotification(null);
-    }, 4500);
+    }, 3000);
   };
 
   // Debounce search query
@@ -310,10 +310,10 @@ const Products: React.FC = () => {
         originalPrice: 0
       });
       fetchProducts();
-      showNotification('Product successfully created! / تم إنشاء المنتج بنجاح!', 'success');
+      showNotification('Product added successfully / تمت إضافة المنتج بنجاح', 'success');
     } catch (err: any) {
       console.error('Failed to create product', err);
-      showNotification(err.message || 'Failed to create product. / فشل إنشاء المنتج.', 'error');
+      showNotification('Failed to add product. Please try again. / فشل إضافة المنتج. يرجى المحاولة مرة أخرى.', 'error');
     } finally {
       setIsCreating(false);
     }
@@ -328,10 +328,10 @@ const Products: React.FC = () => {
         try {
           await deleteProductFromStore(product.id, product.storeId, product.barcode);
           fetchProducts();
-          showNotification('Product deleted from store successfully! / تم حذف المنتج من المتجر بنجاح!', 'success');
+          showNotification('Product deleted successfully / تم حذف المنتج بنجاح', 'success');
         } catch (err: any) {
           console.error('Failed to delete product', err);
-          showNotification(err.message || 'Failed to delete product. / فشل حذف المنتج.', 'error');
+          showNotification('Failed to delete. Please try again. / فشل الحذف. يرجى المحاولة مرة أخرى.', 'error');
         }
       }
     });
@@ -346,10 +346,10 @@ const Products: React.FC = () => {
         try {
           await deleteProductGlobal(product.id, product.barcode);
           fetchProducts();
-          showNotification('Product deleted globally successfully! / تم حذف المنتج نهائياً بنجاح!', 'success');
+          showNotification('Product deleted successfully / تم حذف المنتج بنجاح', 'success');
         } catch (err: any) {
-          console.error('Failed to delete product globally', err);
-          showNotification(err.message || 'Failed to delete product globally. / فشل حذف المنتج نهائياً.', 'error');
+          console.error('Failed to delete product', err);
+          showNotification('Failed to delete. Please try again. / فشل الحذف. يرجى المحاولة مرة أخرى.', 'error');
         }
       }
     });
@@ -360,10 +360,10 @@ const Products: React.FC = () => {
       await updateProductPrice(id, selectedStore, parseFloat(newPrice));
       setEditItem(null);
       fetchProducts();
-      showNotification('Price successfully updated! / تم تحديث السعر بنجاح!', 'success');
+      showNotification('Product updated successfully / تم تحديث المنتج بنجاح', 'success');
     } catch (err: any) {
       console.error('Failed to update price', err);
-      showNotification(err.message || 'Failed to update price. / فشل تحديث السعر.', 'error');
+      showNotification('Failed to update product. Please try again. / فشل تحديث المنتج. يرجى المحاولة مرة أخرى.', 'error');
     }
   };
 
@@ -642,7 +642,7 @@ const Products: React.FC = () => {
           right: 24px;
           padding: 16px 24px;
           border-radius: 8px;
-          z-index: 1100;
+          z-index: 9999;
           font-weight: 500;
           animation: slideIn 0.3s ease-out;
         }

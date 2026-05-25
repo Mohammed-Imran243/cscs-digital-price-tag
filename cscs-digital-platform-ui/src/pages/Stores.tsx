@@ -31,7 +31,7 @@ const Stores: React.FC = () => {
     setNotification({ message, type });
     setTimeout(() => {
       setNotification(null);
-    }, 4500);
+    }, 3000);
   };
 
   useEffect(() => {
@@ -117,15 +117,15 @@ const Stores: React.FC = () => {
     try {
       if (isEditing && editingId) {
         await storeService.updateStore(editingId, formData);
-        showNotification('Store updated successfully! / تم تحديث المتجر بنجاح!', 'success');
+        showNotification('Store updated successfully / تم تحديث المتجر بنجاح', 'success');
       } else {
         await storeService.addStore(formData);
-        showNotification('Store created successfully! / تم إنشاء المتجر بنجاح!', 'success');
+        showNotification('Store added successfully / تمت إضافة المتجر بنجاح', 'success');
       }
       setIsModalOpen(false);
       fetchStores();
     } catch (err: any) {
-      showNotification(err.message || `Failed to ${isEditing ? 'update' : 'create'} store / فشل في ${isEditing ? 'تعديل' : 'إنشاء'} المتجر`, 'error');
+      showNotification(`Failed to ${isEditing ? 'update' : 'add'} store. Please try again. / فشل ${isEditing ? 'تحديث' : 'إضافة'} المتجر. يرجى المحاولة مرة أخرى.`, 'error');
       console.error(err);
     } finally {
       setFormLoading(false);
@@ -141,9 +141,9 @@ const Stores: React.FC = () => {
         try {
           await storeService.disableStore(id);
           fetchStores();
-          showNotification('Store successfully disabled. / تم تعطيل المتجر بنجاح.', 'success');
+          showNotification('Store disabled successfully / تم تعطيل المتجر بنجاح', 'success');
         } catch (err: any) {
-          showNotification(err.message || 'Failed to disable store / فشل في تعطيل المتجر', 'error');
+          showNotification('Failed to disable store. Please try again. / فشل تعطيل المتجر. يرجى المحاولة مرة أخرى.', 'error');
           console.error(err);
         }
       }
@@ -159,9 +159,9 @@ const Stores: React.FC = () => {
         try {
           await storeService.enableStore(id);
           fetchStores();
-          showNotification('Store successfully enabled. / تم تفعيل المتجر بنجاح.', 'success');
+          showNotification('Store enabled successfully / تم تفعيل المتجر بنجاح', 'success');
         } catch (err: any) {
-          showNotification(err.message || 'Failed to enable store / فشل في تفعيل المتجر', 'error');
+          showNotification('Failed to enable store. Please try again. / فشل تفعيل المتجر. يرجى المحاولة مرة أخرى.', 'error');
           console.error(err);
         }
       }
@@ -177,9 +177,9 @@ const Stores: React.FC = () => {
         try {
           await storeService.deleteStore(id);
           fetchStores();
-          showNotification('Store successfully deleted. / تم حذف المتجر بنجاح.', 'success');
+          showNotification('Store deleted successfully / تم حذف المتجر بنجاح', 'success');
         } catch (err: any) {
-          showNotification(err.message || 'Failed to delete store / فشل في حذف المتجر', 'error');
+          showNotification('Failed to delete store. Please try again. / فشل حذف المتجر. يرجى المحاولة مرة أخرى.', 'error');
           console.error(err);
         }
       }
@@ -474,7 +474,7 @@ const Stores: React.FC = () => {
           right: 24px;
           padding: 16px 24px;
           border-radius: 8px;
-          z-index: 1100;
+          z-index: 9999;
           font-weight: 500;
           animation: slideIn 0.3s ease-out;
         }
