@@ -196,14 +196,14 @@ const Templates: React.FC = () => {
     }
 
     try {
-      // 3. Fetch store branches
+      // 3. Fetch stores
       const response = await storeService.getAllStores();
       if (response && response.length > 0) {
         setStores(response);
         setSelectedStore(response[0].storeId);
       }
     } catch (err) {
-      console.error('Failed to load active branches', err);
+      console.error('Failed to load active stores', err);
     }
   };
 
@@ -780,7 +780,7 @@ const Templates: React.FC = () => {
 
               {activeMenuTab === 'store' && (
                 <div className="form-group">
-                  <label>Bound Store Branch / فرع المتجر المرتبط</label>
+                  <label>Bound Store / المتجر المرتبط</label>
                   <select
                     className="glass-input"
                     value={selectedStore}
@@ -1841,13 +1841,13 @@ const Templates: React.FC = () => {
                               right: specs.layoutType === 'square' ? '56px' : '72px',
                               transform: 'translateY(50%)',
                               width: specs.layoutType === 'square' ? '240px' : specs.layoutType === 'compact' ? '290px' : specs.layoutType === 'large' ? '340px' : '280px',
-                              background: '#ffffff',
-                              border: '1px solid #e2e8f0',
+                              background: 'var(--bg-secondary)',
+                              border: '1px solid var(--border-color)',
                               borderRadius: '8px',
                               padding: '12px',
-                              boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.15), 0 8px 10px -6px rgba(0, 0, 0, 0.15)',
+                              boxShadow: 'var(--shadow-md)',
                               zIndex: 9999,
-                              color: '#000000',
+                              color: 'var(--text-primary)',
                               fontFamily: "'Inter', sans-serif"
                             }}
                           >
@@ -1859,7 +1859,7 @@ const Templates: React.FC = () => {
                               marginTop: '-6px',
                               borderWidth: '6px',
                               borderStyle: 'solid',
-                              borderColor: 'transparent transparent transparent #ffffff',
+                              borderColor: 'transparent transparent transparent var(--bg-secondary)',
                               filter: 'drop-shadow(1px 0px 1px rgba(0,0,0,0.05))'
                             }}></div>
 

@@ -33,16 +33,19 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     <div className="app-container">
       <aside className="sidebar glass-card">
         <div className="sidebar-header">
-          <div className="logo-container">
-            <span className="logo-text">CSCS</span>
-            <span className="logo-subtext">Digital Tag / الوسم الرقمي</span>
+          <div className="logo-container" style={{ display: 'flex', alignItems: 'center' }}>
+            <img 
+              src={theme === 'dark' ? '/cscs-logo-full-white.png' : '/cscs-logo-full-dark.png'} 
+              alt="CSCS ESL CONNECT APP" 
+              style={{ maxHeight: '28px', width: 'auto', objectFit: 'contain' }} 
+            />
           </div>
         </div>
         
         <nav className="sidebar-nav">
           <SidebarItem to="/" icon={<LayoutDashboard size={20} />} label="Dashboard / لوحة التحكم" />
           {(user?.permissions?.includes('store') || false) && (
-            <SidebarItem to="/stores" icon={<Store size={20} />} label="Stores / الفروع" />
+            <SidebarItem to="/stores" icon={<Store size={20} />} label="Stores / المتاجر" />
           )}
           {(user?.permissions?.includes('product') || false) && (
             <SidebarItem to="/products" icon={<Package size={20} />} label="Products / المنتجات" />
@@ -72,7 +75,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
       <main className="main-content">
         <header className="main-header glass-card">
           <div className="header-left">
-            <h1 className="page-title">Digital Price Tag Platform / منصة بطاقات الأسعار الرقمية</h1>
+            <h1 className="page-title">CSCS ESL CONNECT APP / منصة بطاقات الأسعار الرقمية</h1>
           </div>
           <div className="header-right">
             <div className="user-profile">
@@ -121,8 +124,8 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
         }
 
         .sidebar-header {
-          margin-bottom: 40px;
-          padding-left: 12px;
+          margin-bottom: 32px;
+          padding-left: 16px;
         }
 
         .logo-text {

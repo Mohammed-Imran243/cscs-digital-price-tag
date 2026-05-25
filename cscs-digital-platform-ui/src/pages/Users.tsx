@@ -6,7 +6,7 @@ import { getPaginationRange } from '../utils/paginationUtils';
 
 const AVAILABLE_PERMISSIONS = [
   { id: 135, name: 'Product Management / إدارة المنتجات', code: 'product' },
-  { id: 138, name: 'Store Management / إدارة الفروع', code: 'store' },
+  { id: 138, name: 'Store Management / إدارة المتاجر', code: 'store' },
   { id: 133, name: 'ESL Device Management / إدارة أجهزة بطاقات الأسعار', code: 'equipment' },
   { id: 141, name: 'Role & System Settings / أدوار وإعدادات النظام', code: 'system' },
   { id: 134, name: 'ESL & System Logs / سجلات النظام وبطاقات الأسعار', code: 'log' },

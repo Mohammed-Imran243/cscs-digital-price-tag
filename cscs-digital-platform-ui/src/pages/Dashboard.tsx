@@ -179,7 +179,7 @@ const Dashboard: React.FC = () => {
       <div className="dashboard-header">
         <div>
           <h2 className="dash-title">Operations Overview / نظرة عامة على العمليات</h2>
-          <p className="dash-subtitle">Live counts from Dragon ESL Cloud — refreshed {timeSince(lastRefreshed)} / الأعداد المباشرة من سحابة Dragon ESL — تم التحديث {timeSince(lastRefreshed)}</p>
+
         </div>
         <button
           className="btn-refresh"
@@ -196,9 +196,9 @@ const Dashboard: React.FC = () => {
       <div className="dashboard-grid">
         <StatCard
           icon={<Store size={24} />}
-          label="Total Branches / إجمالي الفروع"
+          label="Total Stores / إجمالي المتاجر"
           value={formatCount(stats.storeCount)}
-          trend={stats.storeCount !== null ? `${stats.storeCount} active branch${stats.storeCount !== 1 ? 'es' : ''} / ${stats.storeCount === 1 ? 'فرع نشط' : 'فروع نشطة'}` : undefined}
+          trend={stats.storeCount !== null ? `${stats.storeCount} active store${stats.storeCount !== 1 ? 's' : ''} / ${stats.storeCount === 1 ? 'متجر نشط' : 'متاجر نشطة'}` : undefined}
           loading={loading}
           color="#6366f1"
           error={!loading && stats.storeCount === null}
@@ -207,7 +207,7 @@ const Dashboard: React.FC = () => {
           icon={<Package size={24} />}
           label="Total Products / إجمالي المنتجات"
           value={formatCount(stats.productCount)}
-          trend={stats.productCount !== null ? 'Across all stores / عبر جميع الفروع' : undefined}
+          trend={stats.productCount !== null ? 'Across all stores / عبر جميع المتاجر' : undefined}
           loading={loading}
           color="#10b981"
           error={!loading && stats.productCount === null}
@@ -221,15 +221,6 @@ const Dashboard: React.FC = () => {
           color="#f59e0b"
           error={!loading && stats.templateCount === null}
         />
-        <StatCard
-          icon={<Activity size={24} />}
-          label="Dragon ESL Status / حالة Dragon ESL"
-          value={stats.eslOnline === null ? null : stats.eslOnline ? 'Online / متصل' : 'Offline / غير متصل'}
-          trend={stats.eslOnline ? 'API connection healthy / اتصال الواجهة سليم' : 'Check network / credentials / تحقق من الشبكة / بيانات الاعتماد'}
-          loading={loading}
-          color={stats.eslOnline ? '#10b981' : '#ef4444'}
-          error={false}
-        />
       </div>
 
       {/* ── Bottom Row ── */}
@@ -238,14 +229,14 @@ const Dashboard: React.FC = () => {
         {/* Per-store product breakdown */}
         <div className="store-breakdown glass-card">
           <div className="card-header">
-            <h3>Products per Branch / المنتجات لكل فرع</h3>
+            <h3>Products per Store / المنتجات لكل متجر</h3>
             <span className="card-meta">Live product counts per store / إحصائيات المنتجات المباشرة لكل فرع</span>
           </div>
           <div className="breakdown-list">
             {storeBreakdown.length === 0 && !loading && (
               <div className="empty-breakdown">
                 <AlertTriangle size={32} className="text-warning" />
-                <p>No branch data available / لا توجد بيانات فروع متاحة</p>
+                <p>No store data available / لا توجد بيانات متاجر متاحة</p>
               </div>
             )}
             {storeBreakdown.length === 0 && loading && (
@@ -312,7 +303,7 @@ const Dashboard: React.FC = () => {
               )}
             </div>
             <div className="status-item">
-              <span>Active Branches / الفروع النشطة</span>
+              <span>Active Stores / المتاجر النشطة</span>
               {loading ? (
                 <div className="shimmer-line" style={{ width: '48px', height: '22px' }} />
               ) : (
@@ -367,10 +358,7 @@ const Dashboard: React.FC = () => {
           color: var(--text-primary);
           margin: 0 0 4px 0;
         }
-        .dash-subtitle {
-          font-size: 13px;
-          color: var(--text-muted);
-        }
+
         .btn-refresh {
           display: flex;
           align-items: center;

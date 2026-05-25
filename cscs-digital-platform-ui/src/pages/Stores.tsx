@@ -108,15 +108,15 @@ const Stores: React.FC = () => {
     try {
       if (isEditing && editingId) {
         await storeService.updateStore(editingId, formData);
-        showNotification('Store updated successfully! / تم تحديث الفرع بنجاح!', 'success');
+        showNotification('Store updated successfully! / تم تحديث المتجر بنجاح!', 'success');
       } else {
         await storeService.addStore(formData);
-        showNotification('Store created successfully! / تم إنشاء الفرع بنجاح!', 'success');
+        showNotification('Store created successfully! / تم إنشاء المتجر بنجاح!', 'success');
       }
       setIsModalOpen(false);
       fetchStores();
     } catch (err: any) {
-      showNotification(err.message || `Failed to ${isEditing ? 'update' : 'create'} store / فشل في ${isEditing ? 'تعديل' : 'إنشاء'} الفرع`, 'error');
+      showNotification(err.message || `Failed to ${isEditing ? 'update' : 'create'} store / فشل في ${isEditing ? 'تعديل' : 'إنشاء'} المتجر`, 'error');
       console.error(err);
     } finally {
       setFormLoading(false);
@@ -126,15 +126,15 @@ const Stores: React.FC = () => {
   const handleDisable = (id: string) => {
     setConfirmDialog({
       isOpen: true,
-      title: 'Disable Store / تعطيل الفرع',
-      message: 'Are you sure you want to disable this store? / هل أنت متأكد من رغبتك في تعطيل هذا الفرع؟',
+      title: 'Disable Store / تعطيل المتجر',
+      message: 'Are you sure you want to disable this store? / هل أنت متأكد من رغبتك في تعطيل هذا المتجر؟',
       onConfirm: async () => {
         try {
           await storeService.disableStore(id);
           fetchStores();
-          showNotification('Store successfully disabled. / تم تعطيل الفرع بنجاح.', 'success');
+          showNotification('Store successfully disabled. / تم تعطيل المتجر بنجاح.', 'success');
         } catch (err: any) {
-          showNotification(err.message || 'Failed to disable store / فشل في تعطيل الفرع', 'error');
+          showNotification(err.message || 'Failed to disable store / فشل في تعطيل المتجر', 'error');
           console.error(err);
         }
       }
@@ -144,15 +144,15 @@ const Stores: React.FC = () => {
   const handleEnable = (id: string) => {
     setConfirmDialog({
       isOpen: true,
-      title: 'Enable Store / تفعيل الفرع',
-      message: 'Are you sure you want to enable this store? / هل أنت متأكد من رغبتك في تفعيل هذا الفرع؟',
+      title: 'Enable Store / تفعيل المتجر',
+      message: 'Are you sure you want to enable this store? / هل أنت متأكد من رغبتك في تفعيل هذا المتجر؟',
       onConfirm: async () => {
         try {
           await storeService.enableStore(id);
           fetchStores();
-          showNotification('Store successfully enabled. / تم تفعيل الفرع بنجاح.', 'success');
+          showNotification('Store successfully enabled. / تم تفعيل المتجر بنجاح.', 'success');
         } catch (err: any) {
-          showNotification(err.message || 'Failed to enable store / فشل في تفعيل الفرع', 'error');
+          showNotification(err.message || 'Failed to enable store / فشل في تفعيل المتجر', 'error');
           console.error(err);
         }
       }
@@ -162,15 +162,15 @@ const Stores: React.FC = () => {
   const handleDelete = (id: string) => {
     setConfirmDialog({
       isOpen: true,
-      title: 'Delete Store / حذف الفرع',
-      message: 'Are you sure you want to delete this store? This will physically remove it from Dragon ESL. / هل أنت متأكد من رغبتك في حذف هذا الفرع؟ سيؤدي ذلك إلى إزالته نهائياً من Dragon ESL.',
+      title: 'Delete Store / حذف المتجر',
+      message: 'Are you sure you want to delete this store? This will physically remove it from Dragon ESL. / هل أنت متأكد من رغبتك في حذف هذا المتجر؟ سيؤدي ذلك إلى إزالته نهائياً من Dragon ESL.',
       onConfirm: async () => {
         try {
           await storeService.deleteStore(id);
           fetchStores();
-          showNotification('Store successfully deleted. / تم حذف الفرع بنجاح.', 'success');
+          showNotification('Store successfully deleted. / تم حذف المتجر بنجاح.', 'success');
         } catch (err: any) {
-          showNotification(err.message || 'Failed to delete store / فشل في حذف الفرع', 'error');
+          showNotification(err.message || 'Failed to delete store / فشل في حذف المتجر', 'error');
           console.error(err);
         }
       }
@@ -205,15 +205,15 @@ const Stores: React.FC = () => {
 
       <div className="stores-page-header">
         <div>
-          <h2>Store Management / إدارة الفروع</h2>
-          <p className="text-muted">Manage and monitor all your branch locations / إدارة ومراقبة جميع الفروع الخاصة بك</p>
+          <h2>Store Management / إدارة المتاجر</h2>
+          <p className="text-muted">Manage and monitor all your store locations / إدارة ومراقبة جميع المتاجر الخاصة بك</p>
         </div>
         <div className="stores-header-actions">
           <button className="btn-secondary" onClick={fetchStores} disabled={loading}>
             <RefreshCw size={18} className={loading ? 'animate-spin' : ''} /> Refresh / تحديث
           </button>
           <button className="btn-primary" onClick={openCreateModal}>
-            <Plus size={18} /> Add Store / إضافة فرع
+            <Plus size={18} /> Add Store / إضافة متجر
           </button>
         </div>
       </div>
@@ -222,17 +222,17 @@ const Stores: React.FC = () => {
         <Search size={20} className="text-muted" />
         <input
           type="text"
-          placeholder="Search stores by name, ID, or address... / ابحث عن الفروع بالاسم أو المعرف أو العنوان..."
+          placeholder="Search stores by name, ID, or address... / ابحث عن المتاجر بالاسم أو المعرف أو العنوان..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
         />
-        <span className="stores-total-count">{filteredStores.length} Stores / فروع</span>
+        <span className="stores-total-count">{filteredStores.length} Stores / متاجر</span>
       </div>
 
       {loading ? (
         <div className="stores-loading-state">
           <Loader2 className="animate-spin" size={40} />
-          <p>Fetching store data from Dragon ESL... / جاري جلب بيانات الفروع من Dragon ESL...</p>
+          <p>Fetching store data from Dragon ESL... / جاري جلب بيانات المتاجر من Dragon ESL...</p>
         </div>
       ) : error ? (
         <div className="stores-error-state glass-card">
@@ -242,9 +242,9 @@ const Stores: React.FC = () => {
       ) : filteredStores.length === 0 ? (
         <div className="stores-empty-state glass-card">
           <StoreIcon size={48} />
-          <h3>No Stores Found / لم يتم العثور على فروع</h3>
-          <p>Start by adding your first branch location. / ابدأ بإضافة فرعك الأول.</p>
-          <button className="btn-primary" onClick={openCreateModal}>Add Store / إضافة فرع</button>
+          <h3>No Stores Found / لم يتم العثور على متاجر</h3>
+          <p>Start by adding your first store location. / ابدأ بإضافة موقع متجرك الأول.</p>
+          <button className="btn-primary" onClick={openCreateModal}>Add Store / إضافة متجر</button>
         </div>
       ) : (
         <>
@@ -392,21 +392,21 @@ const Stores: React.FC = () => {
         <div className="modal-overlay">
           <div className="modal-content glass-card">
             <div className="modal-header">
-              <h3>{isEditing ? 'Edit Store / تعديل الفرع' : 'Create New Store / إنشاء فرع جديد'}</h3>
+              <h3>{isEditing ? 'Edit Store / تعديل المتجر' : 'Create New Store / إنشاء متجر جديد'}</h3>
               <button className="close-btn" onClick={() => setIsModalOpen(false)}><X size={20} /></button>
             </div>
             <form onSubmit={handleSubmit} className="store-form">
               <div className="form-group">
-                <label>Store Name * / اسم الفرع *</label>
+                <label>Store Name * / اسم المتجر *</label>
                 <input required type="text" value={formData.storeName}
                   onChange={e => setFormData({ ...formData, storeName: e.target.value })}
-                  className="glass-input" placeholder="e.g. Al Naseem Branch / مثل فرع النسيم" />
+                  className="glass-input" placeholder="e.g. Al Naseem Store / مثل متجر النسيم" />
               </div>
               <div className="form-group">
                 <label>Address / العنوان</label>
                 <input type="text" value={formData.address}
                   onChange={e => setFormData({ ...formData, address: e.target.value })}
-                  className="glass-input" placeholder="Full branch address / العنوان الكامل للفرع" />
+                  className="glass-input" placeholder="Full store address / العنوان الكامل للمتجر" />
               </div>
               <div className="form-row">
                 <div className="form-group">
@@ -430,16 +430,16 @@ const Stores: React.FC = () => {
                     className="glass-input" placeholder="store@example.com / store@example.com" />
                 </div>
                 <div className="form-group">
-                  <label>External Store ID / معرف الفرع الخارجي</label>
+                  <label>External Store ID / معرف المتجر الخارجي</label>
                   <input type="text" value={formData.externalStoreId}
                     onChange={e => setFormData({ ...formData, externalStoreId: e.target.value })}
-                    className="glass-input" placeholder="ERP Store Code / رمز الفرع في نظام ERP" />
+                    className="glass-input" placeholder="ERP Store Code / رمز المتجر في نظام ERP" />
                 </div>
               </div>
               <div className="modal-actions">
                 <button type="button" className="btn-secondary" onClick={() => setIsModalOpen(false)}>Cancel / إلغاء</button>
                 <button type="submit" className="btn-primary" disabled={formLoading}>
-                  {formLoading ? <Loader2 className="animate-spin" size={18} /> : isEditing ? 'Update Store / تحديث الفرع' : 'Create Store / إنشاء فرع'}
+                  {formLoading ? <Loader2 className="animate-spin" size={18} /> : isEditing ? 'Update Store / تحديث المتجر' : 'Create Store / إنشاء متجر'}
                 </button>
               </div>
             </form>

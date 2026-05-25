@@ -199,11 +199,11 @@ const AuditLogs: React.FC = () => {
       <div className="audit-logs-filters glass-card">
         <div className="filter-group">
           <label>
-            <StoreIcon size={16} /> Store Location * / موقع الفرع *
+            <StoreIcon size={16} /> Store Location * / موقع المتجر *
           </label>
           {storesLoading ? (
             <div className="filter-loader">
-              <Loader2 className="animate-spin" size={16} /> Loading stores... / جاري تحميل الفروع...
+              <Loader2 className="animate-spin" size={16} /> Loading stores... / جاري تحميل المتاجر...
             </div>
           ) : (
             <select 
@@ -288,7 +288,7 @@ const AuditLogs: React.FC = () => {
         <div className="audit-logs-empty-state glass-card">
           <ClipboardList size={48} />
           <h3>No Logs Found / لم يتم العثور على سجلات</h3>
-          <p>There are no recorded operation logs for this store in the selected date range. / لا توجد سجلات عمليات مسجلة لهذا الفرع في النطاق الزمني المحدد.</p>
+          <p>There are no recorded operation logs for this store in the selected date range. / لا توجد سجلات عمليات مسجلة لهذا المتجر في النطاق الزمني المحدد.</p>
         </div>
       ) : (
         <>

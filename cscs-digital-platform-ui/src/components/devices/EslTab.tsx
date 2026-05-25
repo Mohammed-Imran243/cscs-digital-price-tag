@@ -90,7 +90,7 @@ export const EslTab: React.FC<EslTabProps> = ({
               <tr>
                 <td colSpan={9} className="empty-table-cell">
                   <Smartphone size={36} className="empty-icon" />
-                  <p>No ESL devices registered in this branch context. / لا توجد أجهزة شاشات مسجلة في هذا الفرع.</p>
+                  <p>No ESL devices registered in this store context. / لا توجد أجهزة شاشات مسجلة في هذا المتجر.</p>
                 </td>
               </tr>
             ) : (

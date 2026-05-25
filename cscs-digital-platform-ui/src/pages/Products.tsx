@@ -835,7 +835,7 @@ const Products: React.FC = () => {
           gap: 8px;
         }
 
-        /* Modal Styles with high-contrast white bg and black text */
+        /* Modal Styles with dynamic themes */
         .modal-overlay {
           position: fixed;
           top: 0; left: 0; right: 0; bottom: 0;
@@ -851,11 +851,11 @@ const Products: React.FC = () => {
           width: 100%;
           max-width: 500px;
           padding: 32px;
-          background: #ffffff !important;
-          color: #0f172a !important;
+          background: var(--bg-secondary) !important;
+          color: var(--text-primary) !important;
           border-radius: 12px !important;
-          border: 1px solid #cbd5e1 !important;
-          box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04) !important;
+          border: 1px solid var(--border-color) !important;
+          box-shadow: var(--shadow-md) !important;
           backdrop-filter: none !important;
         }
 
@@ -867,7 +867,7 @@ const Products: React.FC = () => {
         }
 
         .modal-header h3 {
-          color: #0f172a !important;
+          color: var(--text-primary) !important;
           font-weight: 700 !important;
           margin: 0 !important;
         }
@@ -876,25 +876,25 @@ const Products: React.FC = () => {
           background: none !important;
           border: none !important;
           font-size: 24px !important;
-          color: #64748b !important;
+          color: var(--text-muted) !important;
           cursor: pointer !important;
         }
 
         .close-btn:hover {
-          color: #0f172a !important;
+          color: var(--text-primary) !important;
         }
 
         .form-group label {
           font-size: 13px !important;
-          color: #334155 !important;
+          color: var(--text-secondary) !important;
           font-weight: 600 !important;
         }
 
         /* Override glass-input inside modal */
         .modal-content .glass-input {
-          background: #ffffff !important;
-          border: 1.5px solid #cbd5e1 !important;
-          color: #0f172a !important;
+          background: var(--bg-primary) !important;
+          border: 1px solid var(--border-color) !important;
+          color: var(--text-primary) !important;
           padding: 12px !important;
           border-radius: 8px !important;
           width: 100%;
@@ -902,46 +902,46 @@ const Products: React.FC = () => {
         }
 
         .modal-content .glass-input:focus {
-          border-color: #3b82f6 !important;
+          border-color: var(--primary-color) !important;
           outline: none !important;
         }
 
         /* Searchable dropdown options inside Products modal */
         .modal-content .dropdown-options-list {
-          background: #ffffff !important;
-          border: 1px solid #cbd5e1 !important;
-          box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05) !important;
+          background: var(--bg-secondary) !important;
+          border: 1px solid var(--border-color) !important;
+          box-shadow: var(--shadow-sm) !important;
           backdrop-filter: none !important;
         }
 
         .modal-content .dropdown-option-item {
-          color: #334155 !important;
-          border-bottom: 1px solid #f1f5f9 !important;
+          color: var(--text-secondary) !important;
+          border-bottom: 1px solid var(--border-color) !important;
           background: transparent !important;
         }
 
         .modal-content .dropdown-option-item:hover {
-          background: #f1f5f9 !important;
-          color: #2563eb !important;
+          background: var(--bg-accent) !important;
+          color: var(--primary-color) !important;
         }
 
         .modal-content .dropdown-no-options {
-          color: #64748b !important;
+          color: var(--text-muted) !important;
         }
 
         /* Buttons inside the modal action footer */
         .modal-content .btn-secondary {
-          background: #f1f5f9 !important;
-          color: #334155 !important;
-          border: 1px solid #cbd5e1 !important;
+          background: var(--bg-accent) !important;
+          color: var(--text-secondary) !important;
+          border: 1px solid var(--border-color) !important;
         }
         .modal-content .btn-secondary:hover {
-          background: #e2e8f0 !important;
-          color: #0f172a !important;
+          background: var(--glass-border) !important;
+          color: var(--text-primary) !important;
         }
         
         .modal-content .confirm-dialog p {
-          color: #475569 !important;
+          color: var(--text-secondary) !important;
         }
 
         .create-form {

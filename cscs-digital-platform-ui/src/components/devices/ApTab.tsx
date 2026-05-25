@@ -47,7 +47,7 @@ export const ApTab: React.FC<ApTabProps> = ({
               <tr>
                 <td colSpan={8} className="empty-table-cell">
                   <Cpu size={36} className="empty-icon" />
-                  <p>No AP Base Stations registered in this branch context. / لا توجد محطات بث مسجلة في هذا الفرع.</p>
+                  <p>No AP Base Stations registered in this store context. / لا توجد محطات بث مسجلة في هذا المتجر.</p>
                 </td>
               </tr>
             ) : (

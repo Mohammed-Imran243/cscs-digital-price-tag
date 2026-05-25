@@ -439,7 +439,7 @@ const Devices: React.FC = () => {
               disabled={storesLoading}
             >
               {storesLoading ? (
-                <option>Loading Stores... / جاري تحميل الفروع...</option>
+                <option>Loading Stores... / جاري تحميل المتاجر...</option>
               ) : (
                 stores.map((s) => (
                   <option key={s.storeId} value={s.storeId}>
@@ -1945,7 +1945,7 @@ const Devices: React.FC = () => {
           cursor: not-allowed;
         }
 
-        /* Modal Overlay & Structure Styles with high-contrast white bg and black text */
+        /* Modal Overlay & Structure Styles with dynamic themes */
         .modal-overlay {
           position: fixed;
           top: 0; left: 0; right: 0; bottom: 0;
@@ -1961,11 +1961,11 @@ const Devices: React.FC = () => {
           width: 100%;
           max-width: 560px;
           padding: 24px;
-          background: #ffffff !important;
-          color: #0f172a !important;
+          background: var(--bg-secondary) !important;
+          color: var(--text-primary) !important;
           border-radius: 12px !important;
-          border: 1px solid #cbd5e1 !important;
-          box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04) !important;
+          border: 1px solid var(--border-color) !important;
+          box-shadow: var(--shadow-md) !important;
           backdrop-filter: none !important;
         }
 
@@ -1977,7 +1977,7 @@ const Devices: React.FC = () => {
         }
 
         .modal-header h3 {
-          color: #0f172a !important;
+          color: var(--text-primary) !important;
           font-weight: 700 !important;
           margin: 0 !important;
         }
@@ -1986,12 +1986,12 @@ const Devices: React.FC = () => {
           background: none !important;
           border: none !important;
           font-size: 24px !important;
-          color: #64748b !important;
+          color: var(--text-muted) !important;
           cursor: pointer !important;
         }
 
         .close-btn:hover {
-          color: #0f172a !important;
+          color: var(--text-primary) !important;
         }
 
         .modal-actions {
@@ -2003,46 +2003,46 @@ const Devices: React.FC = () => {
 
         /* High-contrast overrides for details/telemetry inside detail modal */
         .modal-content .bind-section {
-          border: 1px solid #cbd5e1 !important;
-          background: #f8fafc !important;
+          border: 1px solid var(--border-color) !important;
+          background: var(--bg-accent) !important;
         }
 
         .modal-content .bind-section-title {
-          color: #0f172a !important;
-          border-bottom: 1.5px solid #cbd5e1 !important;
+          color: var(--text-primary) !important;
+          border-bottom: 1.5px solid var(--border-color) !important;
         }
 
         .modal-content .bind-base-label {
-          color: #475569 !important;
+          color: var(--text-secondary) !important;
         }
 
         .modal-content .bind-base-value {
-          color: #0f172a !important;
+          color: var(--text-primary) !important;
         }
 
         .modal-content .bind-item-table th {
-          background: #f1f5f9 !important;
-          color: #475569 !important;
-          border-bottom: 1.5px solid #cbd5e1 !important;
+          background: var(--bg-accent) !important;
+          color: var(--text-secondary) !important;
+          border-bottom: 1.5px solid var(--border-color) !important;
         }
 
         .modal-content .bind-item-table td {
-          color: #0f172a !important;
-          border-bottom: 1px solid #e2e8f0 !important;
+          color: var(--text-primary) !important;
+          border-bottom: 1px solid var(--border-color) !important;
         }
 
         /* Bind Workflow Modal fields */
         .modal-content .bind-field-label {
-          color: #334155 !important;
+          color: var(--text-secondary) !important;
           font-weight: 600 !important;
         }
 
         .modal-content .bind-input,
         .modal-content .bind-select,
         .modal-content .bind-textarea {
-          background: #ffffff !important;
-          border: 1.5px solid #cbd5e1 !important;
-          color: #0f172a !important;
+          background: var(--bg-primary) !important;
+          border: 1px solid var(--border-color) !important;
+          color: var(--text-primary) !important;
           border-radius: 8px !important;
           padding: 10px 12px !important;
           font-size: 14px !important;
@@ -2051,50 +2051,50 @@ const Devices: React.FC = () => {
         .modal-content .bind-input:focus,
         .modal-content .bind-select:focus,
         .modal-content .bind-textarea:focus {
-          border-color: #3b82f6 !important;
+          border-color: var(--primary-color) !important;
           outline: none !important;
         }
 
         /* Searchable dropdown inside Bind Modal */
         .modal-content .dropdown-options-list {
-          background: #ffffff !important;
-          border: 1px solid #cbd5e1 !important;
-          box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05) !important;
+          background: var(--bg-secondary) !important;
+          border: 1px solid var(--border-color) !important;
+          box-shadow: var(--shadow-sm) !important;
           backdrop-filter: none !important;
         }
 
         .modal-content .dropdown-option-item {
-          color: #334155 !important;
-          border-bottom: 1px solid #f1f5f9 !important;
+          color: var(--text-secondary) !important;
+          border-bottom: 1px solid var(--border-color) !important;
           background: transparent !important;
         }
 
         .modal-content .dropdown-option-item:hover {
-          background: #f1f5f9 !important;
+          background: var(--bg-accent) !important;
         }
 
         .modal-content .dropdown-option-item:hover .option-item-name {
-          color: #2563eb !important;
+          color: var(--primary-color) !important;
         }
 
         .modal-content .option-item-name {
-          color: #0f172a !important;
+          color: var(--text-primary) !important;
         }
 
         .modal-content .option-item-barcode {
-          color: #64748b !important;
+          color: var(--text-muted) !important;
         }
 
         .modal-content .dropdown-no-options,
         .modal-content .dropdown-loading {
-          color: #64748b !important;
+          color: var(--text-muted) !important;
         }
 
         /* Tabs inside the bind modal */
         .modal-content .bind-tab-row {
           display: flex !important;
           gap: 8px !important;
-          border-bottom: 1.5px solid #cbd5e1 !important;
+          border-bottom: 1.5px solid var(--border-color) !important;
           margin-bottom: 20px !important;
         }
 
@@ -2102,7 +2102,7 @@ const Devices: React.FC = () => {
           padding: 8px 16px !important;
           background: none !important;
           border: none !important;
-          color: #64748b !important;
+          color: var(--text-muted) !important;
           font-weight: 600 !important;
           cursor: pointer !important;
           border-bottom: 3px solid transparent !important;
@@ -2111,43 +2111,43 @@ const Devices: React.FC = () => {
         }
 
         .modal-content .bind-tab-btn.active {
-          color: #2563eb !important;
-          border-bottom-color: #2563eb !important;
+          color: var(--primary-color) !important;
+          border-bottom-color: var(--primary-color) !important;
         }
 
         /* AP chips inside Bind modal */
         .modal-content .bind-ap-chip {
-          background: #f1f5f9 !important;
-          border: 1px solid #cbd5e1 !important;
-          color: #334155 !important;
+          background: var(--bg-accent) !important;
+          border: 1px solid var(--border-color) !important;
+          color: var(--text-secondary) !important;
         }
 
         .modal-content .bind-ap-chip:hover {
-          background: #e2e8f0 !important;
+          background: var(--glass-border) !important;
         }
 
         .modal-content .bind-ap-chip.selected {
-          border-color: #2563eb !important;
-          background: #eff6ff !important;
-          color: #1e40af !important;
+          border-color: var(--primary-color) !important;
+          background: rgba(59, 130, 246, 0.1) !important;
+          color: var(--primary-color) !important;
         }
 
         /* Form note inside modal */
         .modal-content .bind-form-note {
-          color: #64748b !important;
-          background: #f8fafc !important;
+          color: var(--text-muted) !important;
+          background: var(--bg-accent) !important;
           border-radius: 6px !important;
         }
 
         /* Buttons inside the modal action footer */
         .modal-content .btn-secondary {
-          background: #f1f5f9 !important;
-          color: #334155 !important;
-          border: 1px solid #cbd5e1 !important;
+          background: var(--bg-accent) !important;
+          color: var(--text-secondary) !important;
+          border: 1px solid var(--border-color) !important;
         }
         .modal-content .btn-secondary:hover {
-          background: #e2e8f0 !important;
-          color: #0f172a !important;
+          background: var(--glass-border) !important;
+          color: var(--text-primary) !important;
         }
 
         /* Searchable dropdown inside Bind Modal */

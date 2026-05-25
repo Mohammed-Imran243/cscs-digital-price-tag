@@ -10,7 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import com.cscs.digitalpricetag.service.StoreService;
 
 /**
- * CSCS Digital Price Tag
+ * CSCS ESL CONNECT APP
  *
  * Spring Boot middleware that:
  *   - Authenticates users via JWT

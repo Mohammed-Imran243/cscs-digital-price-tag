@@ -43,9 +43,11 @@ const LoginPage: React.FC = () => {
     <div className="login-page">
       <div className="login-card glass-card">
         <div className="login-header">
-          <div className="logo">CSCS</div>
+          <div className="logo" style={{ display: 'flex', justifyContent: 'center', marginBottom: '20px' }}>
+            <img src="/cscs-logo-full-white.png" alt="CSCS Logo" style={{ maxHeight: '38px', width: 'auto', objectFit: 'contain' }} />
+          </div>
           <h2>Welcome Back / مرحباً بعودتك</h2>
-          <p>Digital Price Tag Management Platform / منصة إدارة بطاقات الأسعار الرقمية</p>
+          <p>CSCS ESL CONNECT APP / منصة إدارة بطاقات الأسعار الرقمية</p>
         </div>
 
         <form onSubmit={handleSubmit} className="login-form" autoComplete="off">

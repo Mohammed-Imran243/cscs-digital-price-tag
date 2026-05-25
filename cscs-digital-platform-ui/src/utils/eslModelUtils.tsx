@@ -156,7 +156,7 @@ export const renderEinkLayout = (
         width: '100%'
       }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1.5px solid #000', paddingBottom: '2px', fontSize: '10px', fontWeight: 'bold' }}>
-          <span style={{ color: '#e02020' }}>CSCS DIGITAL</span>
+          <span style={{ color: '#e02020' }}>CSCS ESL CONNECT APP</span>
           <span style={{ fontSize: '8px', color: '#666' }}>{storeName}</span>
         </div>
 
@@ -311,7 +311,7 @@ export const renderEinkLayout = (
   return (
     <div className="bind-eink-canvas animate-fade-in" style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '12px', height: '100%', boxSizing: 'border-box', background: '#ffffff', minHeight: '200px', width: '100%' }}>
       <div className="bind-eink-header" style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '2px solid #000', paddingBottom: '4px', fontSize: '11px', fontWeight: '800' }}>
-        <span className="brand-logo" style={{ color: '#e02020', fontWeight: '900' }}>CSCS DIGITAL</span>
+        <span className="brand-logo" style={{ color: '#e02020', fontWeight: '900' }}>CSCS ESL CONNECT APP</span>
         <span className="brand-store">{storeName}</span>
       </div>
 

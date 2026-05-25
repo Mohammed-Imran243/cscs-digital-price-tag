@@ -1,5 +1,20 @@
 import api, { unwrapResponse } from './api';
 
+const mapStoreTerminology = (store: Store): Store => {
+  if (store.storeName) {
+    store.storeName = store.storeName
+      .replace(/Branches/g, 'Stores')
+      .replace(/branches/g, 'stores')
+      .replace(/Branch/g, 'Store')
+      .replace(/branch/g, 'store')
+      .replace(/الفروع/g, 'المتاجر')
+      .replace(/فروع/g, 'متاجر')
+      .replace(/الفرع/g, 'المتجر')
+      .replace(/فرع/g, 'متجر');
+  }
+  return store;
+};
+
 export interface Store {
   storeId: string;
   storeName: string;
@@ -25,14 +40,19 @@ export interface StoreResponseData {
 export const storeService = {
   getAllStores: async (): Promise<Store[]> => {
     const response = await api.get('/stores/all');
-    return unwrapResponse(response);
+    const stores = unwrapResponse(response) as Store[];
+    return stores.map(mapStoreTerminology);
   },
 
   listStores: async (page = 0, size = 10, search?: string): Promise<StoreResponseData> => {
     const params = new URLSearchParams({ page: page.toString(), size: size.toString() });
     if (search) params.append('search', search);
     const response = await api.get(`/stores?${params.toString()}`);
-    return unwrapResponse(response);
+    const data = unwrapResponse(response) as StoreResponseData;
+    if (data && data.content) {
+      data.content = data.content.map(mapStoreTerminology);
+    }
+    return data;
   },
 
   addStore: async (storeData: Partial<Store>): Promise<void> => {
