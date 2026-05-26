@@ -25,7 +25,8 @@ import {
   RefreshCw,
   Search,
   Tag,
-
+  Layers,
+  Trash2,
   Smartphone,
   Settings,
   FolderOpen,
@@ -738,7 +739,10 @@ const Templates: React.FC = () => {
               <div className="properties-layout-split">
                 {/* Category Sidebar List */}
                 <div className="category-properties-list">
-                  <div className="list-title">Template Classifications / تصنيفات القوالب</div>
+                  <div className="list-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <Layers size={16} style={{ color: 'var(--primary-color)' }} />
+                    <span>Template Classifications / تصنيفات القوالب</span>
+                  </div>
                   <div className="category-scroll-list">
                     {categories.map(cat => (
                       <button
@@ -763,7 +767,7 @@ const Templates: React.FC = () => {
                       );
                     })}
                   </div>
-                  <button className="btn-secondary add-new-cat-btn" onClick={() => setIsCategoryModalOpen(true)}>
+                  <button className="add-new-cat-btn" onClick={() => setIsCategoryModalOpen(true)}>
                     <Plus size={14} /> Add New Template Category / إضافة تصنيف قالب جديد
                   </button>
                 </div>
@@ -780,23 +784,38 @@ const Templates: React.FC = () => {
                       <tr>
                         <th>Serial Number / الرقم التسلسلي</th>
                         <th>Name / الاسم</th>
+                        <th>Default / افتراضي</th>
                         <th>Operation / الإجراءات</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {(categoryAttributes[selectedPropertyCat] || ['default']).map((attr, idx) => (
-                        <tr key={idx}>
-                          <td>{idx + 1}</td>
-                          <td>
-                            <span className="attribute-name-badge">{attr}</span>
-                          </td>
-                          <td>
-                            <div className="op-buttons">
-                              <button className="op-btn danger-text" onClick={() => handleDeleteAttribute(attr)}>delete / حذف</button>
-                            </div>
-                          </td>
-                        </tr>
-                      ))}
+                      {(categoryAttributes[selectedPropertyCat] || ['default']).map((attr, idx) => {
+                        const isDefault = attr.toLowerCase() === 'default';
+                        return (
+                          <tr key={idx}>
+                            <td>{idx + 1}</td>
+                            <td>
+                              <span className="attribute-name-badge">{attr}</span>
+                            </td>
+                            <td>
+                              <span className={isDefault ? 'default-badge-yes' : 'default-badge-no'}>
+                                {isDefault ? 'Yes / نعم' : 'No / لا'}
+                              </span>
+                            </td>
+                            <td>
+                              <div className="op-buttons">
+                                <button 
+                                  className="op-btn danger-text" 
+                                  onClick={() => handleDeleteAttribute(attr)}
+                                  title="Delete / حذف"
+                                >
+                                  <Trash2 size={16} />
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      })}
                     </tbody>
                   </table>
 
@@ -816,8 +835,9 @@ const Templates: React.FC = () => {
                       <button type="button" className="btn-secondary sm-btn" onClick={() => setIsAddAttrOpen(false)}>Cancel / إلغاء</button>
                     </form>
                   ) : (
-                    <button className="add-attribute-table-btn" onClick={() => setIsAddAttrOpen(true)}>
+                    <button className="add-attribute-table-btn" onClick={() => setIsAddAttrOpen(true)} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
                       <Plus size={18} />
+                      <span>Add Attribute / إضافة سمة</span>
                     </button>
                   )}
                 </div>
@@ -1224,12 +1244,13 @@ const Templates: React.FC = () => {
         }
 
         .zkong-table th {
-          background: rgba(0, 0, 0, 0.2);
-          color: var(--text-muted);
-          font-size: 12px;
-          font-weight: 600;
+          background: rgba(59,130,246,0.1);
+          color: var(--primary-color);
           text-transform: uppercase;
-          padding: 14px 16px;
+          font-size: 11px;
+          letter-spacing: 0.8px;
+          font-weight: 700;
+          padding: 12px 16px;
           border-bottom: 1px solid var(--glass-border);
         }
 
@@ -1244,8 +1265,13 @@ const Templates: React.FC = () => {
           transition: background 0.2s;
         }
 
+        .zkong-table tbody tr:nth-child(even) {
+          background: rgba(255,255,255,0.02);
+        }
+
         .zkong-table tbody tr:hover {
-          background: rgba(255, 255, 255, 0.02);
+          background: rgba(59,130,246,0.05);
+          transition: background 0.15s;
         }
 
         /* Status colors */
@@ -1316,7 +1342,14 @@ const Templates: React.FC = () => {
         }
 
         .op-btn.primary-text { color: var(--primary-color); }
-        .op-btn.danger-text { color: var(--danger-color); }
+        .op-btn.danger-text { 
+          color: var(--danger-color); 
+          font-weight: 600;
+          border-radius: 6px;
+          padding: 4px 8px;
+          transition: all 0.2s;
+        }
+        .op-btn.danger-text:hover { background: rgba(239,68,68,0.1); }
         .op-btn.disabled-text { color: var(--text-muted); }
 
         /* Empty states */
@@ -1351,6 +1384,8 @@ const Templates: React.FC = () => {
           gap: 12px;
           border-right: 1px solid var(--glass-border);
           padding-right: 24px;
+          border-top: 3px solid var(--primary-color);
+          padding-top: 16px;
         }
 
         .list-title {
@@ -1371,33 +1406,48 @@ const Templates: React.FC = () => {
         }
 
         .properties-cat-btn {
+          transition: all 0.2s ease;
+          border-left: 3px solid transparent;
+          border-radius: 8px;
+          padding: 10px 14px;
           text-align: left;
           background: transparent;
-          border: 1px solid transparent;
-          border-radius: 6px;
-          padding: 10px 14px;
           color: var(--text-muted);
           cursor: pointer;
           font-size: 14px;
           font-weight: 500;
-          transition: all 0.2s;
-        }
-
-        .properties-cat-btn:hover {
-          background: rgba(255,255,255,0.03);
-          color: var(--text-primary);
         }
 
         .properties-cat-btn.active {
-          background: rgba(255,255,255,0.06);
-          border-color: rgba(255, 255, 255, 0.1);
-          color: var(--primary-color);
+          background: linear-gradient(135deg, var(--primary-color), #6366f1);
+          color: #fff;
+          border-left: 3px solid #fff;
+          font-weight: 700;
+          box-shadow: 0 4px 15px rgba(59,130,246,0.3);
+        }
+
+        .properties-cat-btn:not(.active):hover {
+          background: rgba(59,130,246,0.08);
+          border-left: 3px solid var(--primary-color);
+          color: var(--text-primary);
         }
 
         .add-new-cat-btn {
           margin-top: 12px;
           font-size: 12px;
           padding: 10px;
+          width: 100%;
+          background: transparent;
+          color: var(--primary-color);
+          border: 1px dashed var(--primary-color);
+          border-radius: 8px;
+          cursor: pointer;
+          transition: all 0.2s;
+        }
+        
+        .add-new-cat-btn:hover {
+          background: rgba(59,130,246,0.08);
+          color: var(--primary-color);
         }
 
         .properties-attributes-panel {
@@ -1410,13 +1460,17 @@ const Templates: React.FC = () => {
           display: flex;
           justify-content: space-between;
           align-items: center;
-          padding-bottom: 12px;
-          border-bottom: 1px solid var(--glass-border);
+          padding-bottom: 16px;
+          margin-bottom: 16px;
+          border-bottom: 2px solid var(--primary-color);
         }
 
         .panel-title {
-          font-size: 15px;
+          font-size: 18px;
+          font-weight: 700;
           color: var(--text-primary);
+          border-left: 4px solid var(--primary-color);
+          padding-left: 12px;
         }
 
         .icon-edit-btn {
@@ -1429,34 +1483,60 @@ const Templates: React.FC = () => {
         .icon-edit-btn:hover { color: var(--primary-color); }
 
         .attribute-name-badge {
-          background: rgba(255,255,255,0.04);
-          border: 1px solid rgba(255,255,255,0.08);
-          border-radius: 6px;
-          padding: 4px 10px;
-          font-family: monospace;
+          background: rgba(59,130,246,0.12);
           color: var(--primary-color);
+          border: 1px solid rgba(59,130,246,0.25);
+          border-radius: 20px;
+          padding: 4px 12px;
+          font-weight: 600;
+          font-size: 13px;
+          display: inline-block;
+        }
+
+        .default-badge-yes {
+          background: rgba(34,197,94,0.12);
+          color: var(--success-color);
+          border: 1px solid rgba(34,197,94,0.25);
+          border-radius: 20px;
+          padding: 3px 10px;
+          font-size: 12px;
+          font-weight: 600;
+        }
+
+        .default-badge-no {
+          background: rgba(148,163,184,0.1);
+          color: var(--text-muted);
+          border: 1px solid var(--glass-border);
+          border-radius: 20px;
+          padding: 3px 10px;
+          font-size: 12px;
+        }
+
+        .op-btn.danger-text {
+          color: var(--danger-color);
+          background: transparent;
+          border-radius: 8px;
+          padding: 6px 10px;
+          transition: background 0.2s;
+        }
+
+        .op-btn.danger-text:hover {
+          background: rgba(239,68,68,0.12);
         }
 
         .add-attribute-table-btn {
-          align-self: center;
-          background: rgba(255,255,255,0.05);
-          border: 1px dashed rgba(255,255,255,0.2);
-          border-radius: 50%;
-          width: 44px;
-          height: 44px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          cursor: pointer;
-          margin-top: 16px;
-          color: var(--text-muted);
-          transition: all 0.2s;
+          width: 100%;
+          border: 1px dashed var(--primary-color);
+          color: var(--primary-color);
+          background: rgba(59,130,246,0.04);
+          border-radius: 8px;
+          padding: 10px;
+          font-weight: 600;
+          transition: background 0.2s;
         }
 
         .add-attribute-table-btn:hover {
-          color: var(--primary-color);
-          border-color: var(--primary-color);
-          background: rgba(255,255,255,0.08);
+          background: rgba(59,130,246,0.1);
         }
 
         .add-attribute-inline-form {
