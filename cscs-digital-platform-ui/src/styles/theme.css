@@ -106,7 +106,7 @@ select, select.glass-input, .modal-content select, .dropdown-input {
 
 /* Form Required Asterisk */
 .required-asterisk {
-  color: var(--danger-color);
+  color: var(--danger-color) !important;
   margin-left: 2px;
 }
 

@@ -1,12 +1,10 @@
 package com.cscs.digitalpricetag.service;
 
-import com.cscs.digitalpricetag.dto.ApiResponse;
 import com.cscs.digitalpricetag.dto.api.PagedResponse;
 import com.cscs.digitalpricetag.dto.api.ProductCreateRequest;
 import com.cscs.digitalpricetag.dto.api.ProductResponse;
 import com.cscs.digitalpricetag.dto.api.PriceUpdateRequest;
 import com.cscs.digitalpricetag.dto.dragon.DragonProductListResponse;
-import com.cscs.digitalpricetag.dto.dragon.DragonUpdateItemResponse;
 import com.cscs.digitalpricetag.exception.DragonEslException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,14 +25,6 @@ public class ProductService {
         this.dragonEslApiClient = dragonEslApiClient;
     }
 
-    /**
-     * Fetch products from Dragon ESL for a given store.
-     *
-     * VERIFIED endpoint: POST /zk/item/list/{page}/0/{pageSize}/{storeId}
-     * - page is 1-based in Dragon ESL (our API is 0-based → page + 1)
-     * - second path segment is always 0 (verified fixed value)
-     * - storeId is required — barcode alone is NOT unique across stores
-     */
     @SuppressWarnings("unchecked")
     public PagedResponse<ProductResponse> getProducts(
             int page, int size, String storeId, String barcode, String search) {
@@ -43,7 +33,7 @@ public class ProductService {
             throw new DragonEslException("storeId is required", HttpStatus.BAD_REQUEST);
         }
 
-        int dragonPage = page + 1; // Dragon ESL is 1-based
+        int dragonPage = page + 1;
 
         try {
             Map<String, Object> body = new HashMap<>();
@@ -61,7 +51,7 @@ public class ProductService {
             if (search != null && !search.isBlank()) {
                 body.put("itemTitle", search.trim());
             }
-            
+
             Map<?, ?> response = dragonEslApiClient.post(
                     "/zk/item/list/" + dragonPage + "/0/" + size + "/" + storeId,
                     body,
@@ -74,7 +64,6 @@ public class ProductService {
 
             log.info("Zkong getProducts response: {}", response);
 
-            // Check success — Zkong uses "success" boolean or code 10000/200/14008
             Object successObj = response.get("success");
             boolean success = Boolean.TRUE.equals(successObj);
             Object codeObj = response.get("code");
@@ -102,12 +91,8 @@ public class ProductService {
                             .collect(Collectors.toList());
                 }
                 Object totalObj = dataMap.get("totalElements");
-                if (totalObj == null) {
-                    totalObj = dataMap.get("total");
-                }
-                if (totalObj == null) {
-                    totalObj = dataMap.get("totalCount");
-                }
+                if (totalObj == null) totalObj = dataMap.get("total");
+                if (totalObj == null) totalObj = dataMap.get("totalCount");
                 if (totalObj != null) {
                     if (totalObj instanceof Number) {
                         totalElements = ((Number) totalObj).longValue();
@@ -115,16 +100,13 @@ public class ProductService {
                         try {
                             totalElements = Long.parseLong(totalObj.toString().trim());
                         } catch (NumberFormatException e) {
-                            log.warn("Failed to parse product total count from totalObj: {}", totalObj);
+                            log.warn("Failed to parse product total count: {}", totalObj);
                         }
                     }
                 }
             }
 
-            // Apply barcode filter (exact match)
             final String barcodeFilter = (barcode != null && !barcode.isBlank()) ? barcode.trim() : null;
-
-            // Apply search filter (name / itemCode partial match)
             final String searchLower = (search != null && !search.isBlank()) ? search.toLowerCase() : null;
 
             List<ProductResponse> filteredProducts = products.stream()
@@ -146,12 +128,6 @@ public class ProductService {
         }
     }
 
-    /**
-     * Fetch single product by Dragon internal ID.
-     *
-     * VERIFIED: storeId is always required for product lookup.
-     * Flow: fetch product list for storeId → find by Dragon internal id.
-     */
     public ProductResponse getProductById(String id, String storeId) {
         PagedResponse<ProductResponse> all = getProducts(0, 100, storeId, null, null);
         return all.getContent().stream()
@@ -160,25 +136,6 @@ public class ProductService {
                 .orElseThrow(() -> new DragonEslException("Product not found: " + id, HttpStatus.NOT_FOUND));
     }
 
-    /**
-     * Update product price using Dragon internal item ID.
-     *
-     * VERIFIED endpoint: PUT /zk/item/updateItem
-     *
-     * CRITICAL BUSINESS RULE (price transform):
-     *   Frontend sends:   { "price": 75 }
-     *   Dragon ESL needs: { "price": "75", "custFeature1": "75" }
-     *
-     * custFeature1 MUST always mirror price — ESL display templates depend on it.
-     *
-     * CRITICAL SAFETY RULE:
-     *   NEVER update using barcode alone — barcode is NOT unique across stores.
-     *   Always use Dragon internal item ID obtained from product list call.
-     */
-    /**
-     * Fetch raw product details directly from Zkong.
-     * VERIFIED endpoint: GET /zk/item/item/{id}?combinationShow=true
-     */
     @SuppressWarnings("unchecked")
     public Map<String, Object> getRawProductFromZkong(String itemId) {
         try {
@@ -188,7 +145,7 @@ public class ProductService {
             );
 
             if (response == null) {
-                throw new DragonEslException("No response from Dragon ESL for item details lookup", HttpStatus.BAD_GATEWAY);
+                throw new DragonEslException("No response from Dragon ESL for item details", HttpStatus.BAD_GATEWAY);
             }
 
             Object successObj = response.get("success");
@@ -216,21 +173,6 @@ public class ProductService {
         }
     }
 
-    /**
-     * Update product price using Dragon internal item ID.
-     *
-     * VERIFIED endpoint: PUT /zk/item/pcItem/{id}
-     *
-     * CRITICAL BUSINESS RULE (price transform):
-     *   Frontend sends:   { "price": 75 }
-     *   Dragon ESL needs: { "price": "75", "custFeature1": "75" }
-     *
-     * custFeature1 MUST always mirror price — ESL display templates depend on it.
-     *
-     * CRITICAL SAFETY RULE:
-     *   NEVER update using barcode alone — barcode is NOT unique across stores.
-     *   Always use Dragon internal item ID obtained from product list call.
-     */
     public void updatePrice(String itemId, PriceUpdateRequest request, String storeId) {
         if (itemId == null || itemId.isBlank()) {
             throw new DragonEslException("Item ID is required for price update", HttpStatus.BAD_REQUEST);
@@ -238,13 +180,10 @@ public class ProductService {
 
         String priceStr = request.getPriceAsString();
 
-        // 1. Retrieve the existing raw product details from Zkong to build a complete payload
         Map<String, Object> rawItem = getRawProductFromZkong(itemId);
-
-        // 2. Build update payload by cloning/modifying the raw item
         Map<String, Object> body = new HashMap<>(rawItem);
         body.put("price", priceStr);
-        body.put("custFeature1", priceStr); // Critical: display mirroring
+        body.put("custFeature1", priceStr);
         body.put("id", Long.valueOf(itemId));
         body.put("storeId", Long.valueOf(storeId));
 
@@ -281,13 +220,6 @@ public class ProductService {
         }
     }
 
-    /**
-     * Create a new product.
-     * VERIFIED endpoint: POST /zk/item/item
-     *
-     * The `merchantId` and `type` are defaulted in the request DTO.
-     * `custFeature1` must be mirrored from `price`.
-     */
     public void createProduct(ProductCreateRequest request) {
         if (request.getBarCode() == null || request.getBarCode().isBlank()) {
             throw new DragonEslException("Barcode is required", HttpStatus.BAD_REQUEST);
@@ -301,7 +233,7 @@ public class ProductService {
         body.put("productCode", request.getProductCode() != null ? request.getProductCode() : request.getBarCode());
         body.put("barCode", request.getBarCode());
         body.put("price", priceStr);
-        body.put("custFeature1", priceStr); // Critical for ESL display
+        body.put("custFeature1", priceStr);
         body.put("originalPrice", originalPriceStr);
         body.put("unit", request.getUnit());
         body.put("merchantId", request.getMerchantId());
@@ -345,85 +277,91 @@ public class ProductService {
         }
     }
 
-
     /**
-     * Store-specific delete.
-     * VERIFIED endpoint: DELETE /zk/item/businessDeleteItem/{id}
-     * Removes product only from the specified store.
+     * Store-specific delete — removes product from ONE store only.
+     * DragonESL: DELETE /zk/item/batchDeleteItem
+     * Body: { "storeId": "<storeId>", "list": ["<barcode>"] }
      */
     public void deleteFromStore(String itemId, String storeId, String barcode) {
-        if (itemId == null || itemId.isBlank()) {
-            throw new DragonEslException("Item ID is required for delete", HttpStatus.BAD_REQUEST);
-        }
         if (barcode == null || barcode.isBlank()) {
             throw new DragonEslException("Barcode is required for delete", HttpStatus.BAD_REQUEST);
         }
+        if (storeId == null || storeId.isBlank()) {
+            throw new DragonEslException("StoreId is required for store delete", HttpStatus.BAD_REQUEST);
+        }
 
         try {
-            Long itemIdLong = Long.parseLong(itemId.trim());
+            Map<String, Object> body = new HashMap<>();
+            body.put("storeId", storeId);
+            body.put("list", Collections.singletonList(barcode));
 
-            // Dragon ESL requires List<String> of barcodes as request body
-            List<String> barcodeList = Collections.singletonList(barcode);
-
-            com.cscs.digitalpricetag.dto.dragon.DragonTemplateGenericResponse response = dragonEslApiClient.delete(
-                    "/zk/item/businessDeleteItem/" + itemIdLong,
-                    barcodeList,
-                    com.cscs.digitalpricetag.dto.dragon.DragonTemplateGenericResponse.class
+            Map<?, ?> response = dragonEslApiClient.delete(
+                    "/zk/item/batchDeleteItem",
+                    body,
+                    Map.class
             );
 
             if (response != null) {
-                Integer code = response.getCode();
-                boolean codeOk = code != null && (code == 200 || code == 10000);
-                if (!response.isSuccess() && !codeOk) {
-                    throw new DragonEslException("Delete failed: " + response.getMessage(), HttpStatus.BAD_GATEWAY);
+                Object codeObj = response.get("code");
+                Object successObj = response.get("success");
+                boolean codeOk = codeObj != null &&
+                        (Integer.valueOf(200).equals(codeObj) || Integer.valueOf(10000).equals(codeObj));
+                boolean success = Boolean.TRUE.equals(successObj);
+                if (!success && !codeOk) {
+                    String msg = response.get("message") != null ?
+                            response.get("message").toString() : "Unknown error";
+                    throw new DragonEslException("Delete from store failed: " + msg, HttpStatus.BAD_GATEWAY);
                 }
             }
 
-            log.info("Product {} deleted from store {}", barcode, storeId);
+            log.info("Product barcode {} deleted from store {}", barcode, storeId);
 
         } catch (DragonEslException e) {
             throw e;
         } catch (Exception e) {
-            log.error("Error deleting product from store: {}", e.getMessage());
-            throw new DragonEslException("Store delete failed: " + e.getMessage(), HttpStatus.BAD_GATEWAY);
+            log.error("Error deleting from store: {}", e.getMessage());
+            throw new DragonEslException("Delete from store failed: " + e.getMessage(), HttpStatus.BAD_GATEWAY);
         }
     }
 
     /**
-     * Global delete (removes product from all stores).
-     * VERIFIED endpoint: DELETE /zk/item/deleteItem
-     * Body must include id field.
+     * Global delete — removes product from ALL stores.
+     * DragonESL: DELETE /zk/item/batchDeleteItem
+     * Body: { "storeId": "", "list": ["<barcode>"] }
      */
-    public void deleteGlobal(String itemId) {
-        if (itemId == null || itemId.isBlank()) {
-            throw new DragonEslException("Item ID is required for global delete", HttpStatus.BAD_REQUEST);
+    public void deleteGlobal(String itemId, String barcode) {
+        if (barcode == null || barcode.isBlank()) {
+            throw new DragonEslException("Barcode is required for global delete", HttpStatus.BAD_REQUEST);
         }
 
         try {
-            Long numericId = Long.parseLong(itemId.trim());
             Map<String, Object> body = new HashMap<>();
-            body.put("id", numericId);
+            body.put("storeId", "");
+            body.put("list", Collections.singletonList(barcode));
 
-            com.cscs.digitalpricetag.dto.dragon.DragonTemplateGenericResponse response = dragonEslApiClient.delete(
-                    "/zk/item/deleteItem",
+            Map<?, ?> response = dragonEslApiClient.delete(
+                    "/zk/item/batchDeleteItem",
                     body,
-                    com.cscs.digitalpricetag.dto.dragon.DragonTemplateGenericResponse.class
+                    Map.class
             );
 
             if (response != null) {
-                Integer code = response.getCode();
-                boolean codeOk = code != null && (code == 200 || code == 10000);
-                if (!response.isSuccess() && !codeOk) {
-                    throw new DragonEslException("Delete failed: " + response.getMessage(), HttpStatus.BAD_GATEWAY);
+                Object codeObj = response.get("code");
+                Object successObj = response.get("success");
+                boolean codeOk = codeObj != null &&
+                        (Integer.valueOf(200).equals(codeObj) || Integer.valueOf(10000).equals(codeObj));
+                boolean success = Boolean.TRUE.equals(successObj);
+                if (!success && !codeOk) {
+                    String msg = response.get("message") != null ?
+                            response.get("message").toString() : "Unknown error";
+                    throw new DragonEslException("Global delete failed: " + msg, HttpStatus.BAD_GATEWAY);
                 }
             }
 
-            log.info("Product {} deleted globally", itemId);
+            log.info("Product barcode {} deleted globally", barcode);
 
         } catch (DragonEslException e) {
             throw e;
-        } catch (NumberFormatException e) {
-            throw new DragonEslException("Item ID must be numeric: " + itemId, HttpStatus.BAD_REQUEST);
         } catch (Exception e) {
             log.error("Error deleting product globally: {}", e.getMessage());
             throw new DragonEslException("Global delete failed: " + e.getMessage(), HttpStatus.BAD_GATEWAY);
@@ -460,6 +398,12 @@ public class ProductService {
         String stateStr = state != null ? String.valueOf(state) : "";
         boolean isActive = "1".equals(bindStr) || "1".equals(stateStr);
         r.setStatus(isActive ? "ACTIVE" : "INACTIVE");
+
+        // attrName and attrCategory for edit modal
+        if (raw.get("attrName") != null) r.setAttrName(raw.get("attrName").toString());
+        if (raw.get("attrCategory") != null) r.setAttrCategory(raw.get("attrCategory").toString());
+        if (raw.get("unit") != null) r.setUnit(raw.get("unit").toString());
+
         return r;
     }
 }

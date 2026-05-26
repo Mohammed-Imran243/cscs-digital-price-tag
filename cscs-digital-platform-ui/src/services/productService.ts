@@ -33,8 +33,18 @@ export interface ProductCreateRequest {
   attrName?: string;
 }
 
-export const getProducts = async (storeId: string, page = 0, size = 10, barcode?: string, search?: string): Promise<PagedResponse<Product>> => {
-  const params = new URLSearchParams({ storeId, page: page.toString(), size: size.toString() });
+export const getProducts = async (
+  storeId: string,
+  page = 0,
+  size = 10,
+  barcode?: string,
+  search?: string
+): Promise<PagedResponse<Product>> => {
+  const params = new URLSearchParams({
+    storeId,
+    page: page.toString(),
+    size: size.toString(),
+  });
   if (barcode) params.append('barcode', barcode);
   if (search) params.append('search', search);
 
@@ -66,13 +76,22 @@ export const updateProductPrice = async (
   unwrapResponse(response);
 };
 
-export const deleteProductFromStore = async (id: string, storeId: string, barcode: string): Promise<void> => {
+export const deleteProductFromStore = async (
+  id: string,
+  storeId: string,
+  barcode: string
+): Promise<void> => {
   const params = new URLSearchParams({ storeId, barcode });
   const response = await api.delete(`/products/${id}/store?${params.toString()}`);
   unwrapResponse(response);
 };
 
+/**
+ * Global delete — removes product from ALL stores.
+ * Passes barcode as query param — backend needs barcode for DragonESL batchDeleteItem.
+ */
 export const deleteProductGlobal = async (id: string, barcode: string): Promise<void> => {
-  const response = await api.delete(`/products/${id}/global`, { data: { barCode: barcode } });
+  const params = new URLSearchParams({ barcode });
+  const response = await api.delete(`/products/${id}/global?${params.toString()}`);
   unwrapResponse(response);
 };
