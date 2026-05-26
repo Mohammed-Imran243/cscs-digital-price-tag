@@ -204,15 +204,17 @@ const AuditLogs: React.FC = () => {
       <div className="audit-logs-page-header">
         <div>
           <h2>Audit Logs / سجلات المراجعة</h2>
-          <p className="text-muted">Query and review operation history logs from Dragon ESL / استعلام ومراجعة سجلات عمليات Dragon ESL</p>
         </div>
-        {/* Toast Notification */}
-        {notification && (
-          <div className={`toast-notification ${notification.type} glass-card`}>
-            <span>{notification.message}</span>
+        <div className="audit-logs-header-actions" style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+          <div className="global-search-bar">
+            <Search size={16} className="text-muted" />
+            <input 
+              type="text" 
+              placeholder="Search logs... / بحث في السجلات..." 
+              value={searchQuery} 
+              onChange={(e) => setSearchQuery(e.target.value)} 
+            />
           </div>
-        )}
-        <div className="audit-logs-header-actions">
           <button 
             className="btn-secondary" 
             onClick={fetchLogs} 
@@ -222,6 +224,12 @@ const AuditLogs: React.FC = () => {
           </button>
         </div>
       </div>
+      {/* Toast Notification */}
+      {notification && (
+        <div className={`toast-notification ${notification.type} glass-card`}>
+          <span>{notification.message}</span>
+        </div>
+      )}
 
       {/* Filter panel */}
       <div className="audit-logs-filters glass-card">
@@ -242,7 +250,7 @@ const AuditLogs: React.FC = () => {
               <option value="" disabled>-- Select a store / اختر فرعاً --</option>
               {stores.map(store => (
                 <option key={store.storeId} value={store.storeId}>
-                  {store.storeName} ({store.storeId})
+                  {store.storeName} {store.externalStoreId ? `(${store.externalStoreId})` : ''}
                 </option>
               ))}
             </select>
@@ -293,18 +301,6 @@ const AuditLogs: React.FC = () => {
           </select>
         </div>
 
-        <div className="filter-group">
-          <label>
-            <Search size={16} /> Search / بحث
-          </label>
-          <input 
-            type="text" 
-            placeholder="Search logs... / بحث في السجلات..." 
-            value={searchQuery} 
-            onChange={(e) => setSearchQuery(e.target.value)} 
-            className="glass-input" 
-          />
-        </div>
       </div>
 
       {/* Main content display */}

@@ -352,8 +352,17 @@ const Users: React.FC = () => {
       <div className="users-header">
         <div>
           <h2>Staff User Management / إدارة حسابات الموظفين</h2>
+        </div>
+        <div className="users-header-actions" style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+          <div className="global-search-bar">
+            <Search size={16} className="text-muted" />
+            <input
+              type="text"
+              placeholder={activeTab === 'users' ? "Search by account or name... / ابحث بالحساب أو الاسم..." : "Search by role name... / ابحث باسم الدور..."}
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
           </div>
-        <div className="users-header-actions">
           <button className="btn-secondary" onClick={fetchData} disabled={loading}>
             <RefreshCw size={18} className={loading ? 'animate-spin' : ''} /> Refresh / تحديث
           </button>
@@ -370,7 +379,7 @@ const Users: React.FC = () => {
       </div>
 
       {/* Search Filter Bar */}
-      <div className="users-tabs-navigation glass-card" style={{ justifyContent: 'space-between' }}>
+      <div className="users-tabs-navigation glass-card" style={{ justifyContent: 'flex-start' }}>
         <div className="tabs-list">
           <button
             className={`tab-trigger ${activeTab === 'users' ? 'active' : ''}`}
@@ -392,15 +401,6 @@ const Users: React.FC = () => {
             <Shield size={16} />
             <span>Security Roles / أدوار الأمان</span>
           </button>
-        </div>
-        <div className="tab-search-wrapper" style={{ width: '100%', maxWidth: '360px' }}>
-          <Search size={18} className="text-muted" />
-          <input
-            type="text"
-            placeholder={activeTab === 'users' ? "Search by account or name... / ابحث بالحساب أو الاسم..." : "Search by role name... / ابحث باسم الدور..."}
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
         </div>
       </div>
 
@@ -744,7 +744,7 @@ const Users: React.FC = () => {
               <div className="modal-actions">
                 <button type="button" className="btn-secondary" onClick={() => setIsRoleModalOpen(false)}>Cancel / إلغاء</button>
                 <button type="submit" className="btn-primary" disabled={formLoading}>
-                  {formLoading ? <Loader2 className="animate-spin" size={18} /> : isEditingRole ? 'Update Role / تحديث الدور' : 'Create Role / إنشاء الدور'}
+                  {formLoading ? <Loader2 className="animate-spin" size={18} /> : isEditingRole ? 'Save Changes / حفظ التغييرات' : 'Create Role / إنشاء الدور'}
                 </button>
               </div>
             </form>

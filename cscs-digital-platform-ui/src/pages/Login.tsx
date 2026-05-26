@@ -41,10 +41,10 @@ const LoginPage: React.FC = () => {
 
   return (
     <div className="login-page">
-      <div className="login-card glass-card">
+      <div className="login-card">
         <div className="login-header">
-          <div className="logo" style={{ display: 'flex', justifyContent: 'center', marginBottom: '20px' }}>
-            <img src="/cscs-logo-full-white.png" alt="CSCS Logo" style={{ maxHeight: '38px', width: 'auto', objectFit: 'contain' }} />
+          <div className="logo">
+            <img src="/cscs.png" alt="CSCS Logo" className="logo-img" />
           </div>
           <h2>Welcome Back / مرحباً بعودتك</h2>
           <p>CSCS ESL CONNECT APP / منصة إدارة بطاقات الأسعار الرقمية</p>
@@ -104,27 +104,41 @@ const LoginPage: React.FC = () => {
 
         .login-card {
           width: 100%;
-          max-width: 400px;
-          padding: 40px;
+          max-width: 440px;
+          padding: 48px 40px;
           text-align: center;
+          background: rgba(15, 23, 42, 0.6);
+          backdrop-filter: blur(16px);
+          -webkit-backdrop-filter: blur(16px);
+          border: 1px solid rgba(255, 255, 255, 0.1);
+          border-radius: 24px;
+          box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+          margin: 20px;
         }
 
         .login-header .logo {
-          font-size: 32px;
-          font-weight: 900;
-          color: var(--primary-color);
-          margin-bottom: 8px;
+          display: flex;
+          justify-content: center;
+          margin-bottom: 8px; /* Reduced margin because the logo image might have internal padding */
+        }
+
+        .logo-img {
+          height: 120px; /* Significantly increased from 52px */
+          width: auto;
+          object-fit: contain;
+          filter: drop-shadow(0 4px 6px rgba(0,0,0,0.3)) invert(1) brightness(2);
         }
 
         .login-header h2 {
-          font-size: 24px;
+          font-size: 28px;
           margin-bottom: 8px;
-          color: white;
+          color: #f8fafc;
+          font-weight: 700;
         }
 
         .login-header p {
           color: #94a3b8;
-          font-size: 14px;
+          font-size: 15px;
           margin-bottom: 32px;
         }
 
@@ -174,13 +188,27 @@ const LoginPage: React.FC = () => {
 
         .login-btn {
           width: 100%;
-          padding: 14px;
+          padding: 16px;
           font-size: 16px;
           font-weight: 600;
           display: flex;
           align-items: center;
           justify-content: center;
           margin-top: 10px;
+          background: #3b82f6;
+          color: white;
+          border: none;
+          border-radius: 10px;
+          cursor: pointer;
+          transition: background 0.2s, transform 0.1s;
+        }
+        
+        .login-btn:hover {
+          background: #2563eb;
+        }
+        
+        .login-btn:active {
+          transform: scale(0.98);
         }
 
         .login-footer {
@@ -193,9 +221,16 @@ const LoginPage: React.FC = () => {
           animation: spin 1s linear infinite;
         }
 
-        @keyframes spin {
-          from { transform: rotate(0deg); }
-          to { transform: rotate(360deg); }
+        @media (max-width: 480px) {
+          .login-card {
+            padding: 32px 24px;
+          }
+          .login-header h2 {
+            font-size: 24px;
+          }
+          .logo-img {
+            height: 90px; /* Scaled down for mobile, but still large */
+          }
         }
       `}</style>
     </div>

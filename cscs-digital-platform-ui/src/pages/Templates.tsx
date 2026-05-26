@@ -23,6 +23,7 @@ import {
   Plus,
   Loader2,
   RefreshCw,
+  Search,
   Tag,
 
   Smartphone,
@@ -467,14 +468,30 @@ const Templates: React.FC = () => {
       )}
 
       {/* Breadcrumbs & Navigation Section */}
-      <div className="top-breadcrumb">
-        <span>Template management / إدارة القوالب</span> &gt; <span>
-          {activeMenuTab === 'merchant' && 'Merchant Template / قوالب التاجر'}
-          {activeMenuTab === 'store' && 'Store Template / قوالب المتجر'}
-          {activeMenuTab === 'business_icon' && 'Business Icon / أيقونة العمل'}
-          {activeMenuTab === 'store_icon' && 'Store Icon / أيقونة المتجر'}
-          {activeMenuTab === 'properties' && 'Template Properties / خصائص القوالب'}
-        </span>
+      <div className="top-breadcrumb" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
+        <div>
+          <span>Template management / إدارة القوالب</span> &gt; <span>
+            {activeMenuTab === 'merchant' && 'Merchant Template / قوالب التاجر'}
+            {activeMenuTab === 'store' && 'Store Template / قوالب المتجر'}
+            {activeMenuTab === 'business_icon' && 'Business Icon / أيقونة العمل'}
+            {activeMenuTab === 'store_icon' && 'Store Icon / أيقونة المتجر'}
+            {activeMenuTab === 'properties' && 'Template Properties / خصائص القوالب'}
+          </span>
+        </div>
+        <div className="templates-header-actions" style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+          <div className="global-search-bar">
+            <Search size={16} className="text-muted" />
+            <input
+              type="text"
+              placeholder="Search templates... / ابحث عن القوالب..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </div>
+          <button className="btn-secondary" onClick={fetchTemplatesList} disabled={loading}>
+            <RefreshCw size={18} className={loading ? 'animate-spin' : ''} /> Refresh / تحديث
+          </button>
+        </div>
       </div>
 
       <div className="layout-split">
@@ -579,18 +596,6 @@ const Templates: React.FC = () => {
                     {templateTypes.map(t => <option key={t} value={t}>{t}</option>)}
                   </select>
                 </div>
-
-                <div className="filter-input-group">
-                  <label>Search / بحث</label>
-                  <input 
-                    type="text" 
-                    className="styled-select" 
-                    style={{ background: 'rgba(255, 255, 255, 0.05)', color: 'var(--text-primary)', border: '1px solid rgba(255, 255, 255, 0.1)', padding: '10px 14px', borderRadius: '8px', height: '42px' }}
-                    placeholder="Search templates..." 
-                    value={searchQuery} 
-                    onChange={e => setSearchQuery(e.target.value)} 
-                  />
-                </div>
               </div>
 
               {/* Action Buttons */}
@@ -621,7 +626,7 @@ const Templates: React.FC = () => {
                     value={selectedStore} 
                     onChange={e => setSelectedStore(e.target.value)}
                   >
-                    {stores.map(s => <option key={s.storeId} value={s.storeId}>{s.storeName}</option>)}
+                    {stores.map(s => <option key={s.storeId} value={s.storeId}>{s.storeName} {s.externalStoreId ? `(${s.externalStoreId})` : ''}</option>)}
                   </select>
                 </div>
 
@@ -657,18 +662,6 @@ const Templates: React.FC = () => {
                     {templateTypes.map(t => <option key={t} value={t}>{t}</option>)}
                   </select>
                 </div>
-
-                <div className="filter-input-group">
-                  <label>Search / بحث</label>
-                  <input 
-                    type="text" 
-                    className="styled-select" 
-                    style={{ background: 'rgba(255, 255, 255, 0.05)', color: 'var(--text-primary)', border: '1px solid rgba(255, 255, 255, 0.1)', padding: '10px 14px', borderRadius: '8px', height: '42px' }}
-                    placeholder="Search templates..." 
-                    value={searchQuery} 
-                    onChange={e => setSearchQuery(e.target.value)} 
-                  />
-                </div>
               </div>
 
               {/* Action Buttons */}
@@ -699,7 +692,7 @@ const Templates: React.FC = () => {
                       onChange={e => setSelectedStore(e.target.value)}
                       className="glass-input sm-input"
                     >
-                      {stores.map(s => <option key={s.storeId} value={s.storeId}>{s.storeName}</option>)}
+                      {stores.map(s => <option key={s.storeId} value={s.storeId}>{s.storeName} {s.externalStoreId ? `(${s.externalStoreId})` : ''}</option>)}
                     </select>
                   </div>
                 )}
@@ -901,7 +894,7 @@ const Templates: React.FC = () => {
               <div className="modal-actions">
                 <button type="button" className="btn-secondary" onClick={() => setIsTemplateModalOpen(false)}>Cancel / إلغاء</button>
                 <button type="submit" className="btn-primary" disabled={submitting}>
-                  {submitting ? <Loader2 className="animate-spin" size={16} /> : 'Save / حفظ'}
+                  {submitting ? <Loader2 className="animate-spin" size={16} /> : 'Add / إضافة'}
                 </button>
               </div>
             </form>

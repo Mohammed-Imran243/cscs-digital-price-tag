@@ -3,7 +3,7 @@ import { getProducts, createProduct, updateProductPrice, deleteProductFromStore,
 import type { Product, ProductCreateRequest } from '../services/productService';
 import { storeService } from '../services/storeService';
 import type { Store } from '../services/storeService';
-import { Search, Plus, Loader2, Trash2, Edit2, AlertTriangle } from 'lucide-react';
+import { Search, Plus, Loader2, Trash2, Edit2, AlertTriangle, RefreshCw } from 'lucide-react';
 import { getPaginationRange } from '../utils/paginationUtils';
 import { getTemplates, getCategories, getTemplateTypes } from '../services/templateService';
 
@@ -536,7 +536,16 @@ const Products: React.FC = () => {
         <div>
           <h2>Product Management / إدارة المنتجات</h2>
           </div>
-        <div className="header-actions">
+        <div className="header-actions" style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+          <div className="global-search-bar">
+            <Search size={16} className="text-muted" />
+            <input 
+              type="text" 
+              placeholder="Search products... / ابحث عن المنتجات..." 
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+          </div>
           <select 
             className="store-selector glass-input"
             value={selectedStore}
@@ -544,9 +553,18 @@ const Products: React.FC = () => {
           >
             <option value="">Select a Store... / اختر متجراً...</option>
             {stores.map(store => (
-              <option key={store.storeId} value={store.storeId}>{store.storeName} ({store.storeId})</option>
+              <option key={store.storeId} value={store.storeId}>
+                {store.storeName} {store.externalStoreId ? `(${store.externalStoreId})` : ''}
+              </option>
             ))}
           </select>
+          <button 
+            className="btn-secondary" 
+            onClick={fetchProducts} 
+            disabled={loading || !selectedStore}
+          >
+            <RefreshCw size={18} className={loading ? 'animate-spin' : ''} /> Refresh / تحديث
+          </button>
           <button 
             className="btn-primary" 
             onClick={() => setIsModalOpen(true)}
@@ -555,16 +573,6 @@ const Products: React.FC = () => {
             <Plus size={18} /> Add Product / إضافة منتج
           </button>
         </div>
-      </div>
-
-      <div className="search-bar glass-card">
-        <Search size={20} className="text-muted" />
-        <input 
-          type="text" 
-          placeholder="Search products by barcode or name (auto-updates)... / ابحث عن المنتجات بالباركود أو الاسم..." 
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-        />
       </div>
 
       <div className="products-grid">
@@ -778,7 +786,7 @@ const Products: React.FC = () => {
               <div className="modal-actions">
                 <button type="button" className="btn-secondary" onClick={() => setIsModalOpen(false)}>Cancel / إلغاء</button>
                 <button type="submit" className="btn-primary" disabled={isCreating}>
-                  {isCreating ? <Loader2 className="animate-spin" size={18} /> : 'Create Product / إنشاء منتج'}
+                  {isCreating ? <Loader2 className="animate-spin" size={18} /> : 'Add Product / إنشاء منتج'}
                 </button>
               </div>
             </form>
