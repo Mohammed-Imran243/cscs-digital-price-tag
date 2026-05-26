@@ -45,63 +45,77 @@ export const EslDetailModal: React.FC<EslDetailModalProps> = ({
             {/* Section 1: Base Infomation */}
             <div className="bind-section">
               <div className="bind-section-title">Base Information / المعلومات الأساسية</div>
-              <div className="bind-base-grid">
-                <div className="bind-base-row">
-                  <span className="bind-base-label">ESL Barcode / باركود الشاشة:</span>
-                  <span className="bind-base-value">{detailEsl.tagBarCode || detailEsl.priceTagCode || detailEsl.barCode || detailEsl.barcode || 'N/A'}</span>
-                  <span className="bind-base-label">Firmware Version / إصدار البرمجيات:</span>
-                  <span className="bind-base-value">{detailEsl.softVersion || 'N/A'}</span>
-                  <span className="bind-base-label">Status / الحالة:</span>
+              <div className="bind-info-cards-grid">
+                <div className="bind-info-card">
+                  <div className="card-label">ESL Barcode / باركود الشاشة</div>
+                  <div className="card-value font-mono">{detailEsl.tagBarCode || detailEsl.priceTagCode || detailEsl.barCode || detailEsl.barcode || 'N/A'}</div>
+                </div>
+                <div className="bind-info-card">
+                  <div className="card-label">Firmware Version / إصدار البرمجيات</div>
+                  <div className="card-value">{detailEsl.softVersion || 'N/A'}</div>
+                </div>
+                <div className="bind-info-card">
+                  <div className="card-label">Status / الحالة</div>
                   {(() => {
                     const isOnline = detailEsl.state === 'ONLINE' || detailEsl.state === 1 || detailEsl.state === '1' || detailEsl.status === 1 || detailEsl.status === '1';
                     return (
-                      <span className={`bind-base-value ${isOnline ? 'bind-status-online' : 'bind-status-offline'}`} style={{
-                        color: isOnline ? '#22c55e' : '#ef4444',
-                        fontWeight: 'bold'
-                      }}>
+                      <div className={`card-value ${isOnline ? 'bind-status-online' : 'bind-status-offline'}`} style={{ color: isOnline ? '#22c55e' : '#ef4444', fontWeight: 'bold' }}>
                         {isOnline ? 'Online / متصل' : 'Offline / غير متصل'}
-                      </span>
+                      </div>
                     );
                   })()}
                 </div>
-                <div className="bind-base-row">
-                  <span className="bind-base-label">Model / الطراز:</span>
-                  <span className="bind-base-value">{detailEsl.model || 'N/A'}</span>
-                  <span className="bind-base-label">Size / الحجم:</span>
-                  <span className="bind-base-value">{detailEsl.size || 'N/A'}</span>
-                  <span className="bind-base-label">Battery Level / مستوى البطارية:</span>
-                  <span className="bind-base-value" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <span style={{ fontWeight: 'bold' }}>{detailEsl.battery ?? 100}%</span>
-                    {detailEsl.batteryLevel ? <span style={{ color: 'var(--text-muted)', fontSize: '11px' }}>({detailEsl.batteryLevel}/5)</span> : null}
-                    <span className="bind-battery-wrap" style={{ margin: 0 }}>
-                      <span className="bind-battery-bar">
-                        <span className="bind-battery-fill" style={{
+                <div className="bind-info-card">
+                  <div className="card-label">Model / الطراز</div>
+                  <div className="card-value font-mono">{detailEsl.model || 'N/A'}</div>
+                </div>
+                <div className="bind-info-card">
+                  <div className="card-label">Size / الحجم</div>
+                  <div className="card-value font-mono">{detailEsl.size || 'N/A'}</div>
+                </div>
+                <div className="bind-info-card">
+                  <div className="card-label">Battery Level / مستوى البطارية</div>
+                  <div className="card-value" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <span>{detailEsl.battery ?? 100}%</span>
+                    {detailEsl.batteryLevel ? <span style={{ color: 'var(--text-muted)', fontSize: '11px', fontWeight: 'normal' }}>({detailEsl.batteryLevel}/5)</span> : null}
+                    <div className="bind-battery-wrap" style={{ margin: 0, width: '40px', height: '10px' }}>
+                      <div className="bind-battery-bar" style={{ height: '100%', width: '100%', background: '#e2e8f0', borderRadius: '2px', overflow: 'hidden' }}>
+                        <div className="bind-battery-fill" style={{
+                          height: '100%',
                           width: `${Math.min(detailEsl.battery ?? 100, 100)}%`,
                           background: (detailEsl.battery ?? 100) > 50 ? '#22c55e' : (detailEsl.battery ?? 100) > 20 ? '#f59e0b' : '#ef4444'
                         }} />
-                      </span>
-                    </span>
-                  </span>
+                      </div>
+                    </div>
+                  </div>
                 </div>
-                <div className="bind-base-row">
-                  <span className="bind-base-label">Shelf No. / رقم الرف:</span>
-                  <span className="bind-base-value">{detailEsl.shelfNo || detailEsl.shelfNum || '—'}</span>
-                  <span className="bind-base-label">Color / اللون:</span>
-                  <span className="bind-base-value">{detailEsl.colorType || detailEsl.colorTypeDesc || 'Black/White/Red/Yellow'}</span>
-                  <span className="bind-base-label">Invert or not / عكس الألوان أم لا:</span>
-                  <span className="bind-base-value">
+                <div className="bind-info-card">
+                  <div className="card-label">Shelf No. / رقم الرف</div>
+                  <div className="card-value font-mono">{detailEsl.shelfNo || detailEsl.shelfNum || '—'}</div>
+                </div>
+                <div className="bind-info-card">
+                  <div className="card-label">Color / اللون</div>
+                  <div className="card-value">{detailEsl.colorType || detailEsl.colorTypeDesc || 'Black/White/Red/Yellow'}</div>
+                </div>
+                <div className="bind-info-card">
+                  <div className="card-label">Invert Colors / عكس الألوان</div>
+                  <div className="card-value">
                     {detailEsl.isReverse === 1 || detailEsl.turnOver === 1 || detailEsl.isReverse === '1' || detailEsl.turnOver === '1' ? 'Yes / نعم' : 'No / لا'}
-                  </span>
+                  </div>
                 </div>
-                <div className="bind-base-row">
-                  <span className="bind-base-label">Template Format / تنسيق القالب:</span>
-                  <span className="bind-base-value" style={{ color: '#2563eb', fontWeight: 'bold' }}>
+                <div className="bind-info-card">
+                  <div className="card-label">Template Format / تنسيق القالب</div>
+                  <div className="card-value" style={{ color: '#2563eb' }}>
                     {detailEsl.itemBindInfos?.[0]?.templateAttr || detailEsl.itemList?.[0]?.templateAttr || detailEsl.templateAttr || 'default'}
-                  </span>
-                  <span className="bind-base-label">Last Comm. / آخر اتصال:</span>
-                  <span className="bind-base-value">{detailEsl.lastCommuTime || 'N/A'}</span>
-                  <span className="bind-base-label">Update Time / وقت التحديث:</span>
-                  <span className="bind-base-value">{detailEsl.updateTime || 'N/A'}</span>
+                  </div>
+                </div>
+                <div className="bind-info-card">
+                  <div className="card-label">Last Comm. / آخر اتصال</div>
+                  <div className="card-value">{detailEsl.lastCommuTime || 'N/A'}</div>
+                </div>
+                <div className="bind-info-card">
+                  <div className="card-label">Update Time / وقت التحديث</div>
+                  <div className="card-value">{detailEsl.updateTime || 'N/A'}</div>
                 </div>
               </div>
             </div>

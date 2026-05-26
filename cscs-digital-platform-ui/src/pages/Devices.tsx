@@ -6,7 +6,6 @@ import {
   RefreshCw, 
   Loader2, 
   CheckCircle2, 
-  MapPin,
   AlertCircle,
   Link2,
   Store as StoreIcon

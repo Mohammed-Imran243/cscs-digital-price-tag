@@ -512,3 +512,50 @@ td, .zkong-table td, .users-table td, table td {
 }
 
 /* For Arabic text alignment (RTL fallback) - removed since it's now center aligned globally */
+
+/* ==========================================================================
+   ESL DETAIL MODAL - CLEAN INFO CARDS
+   ========================================================================== */
+.bind-info-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.bind-info-card {
+  background: var(--bg-primary);
+  border: 1px solid var(--glass-border);
+  border-radius: 8px;
+  padding: 12px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+}
+
+.bind-info-card .card-label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  letter-spacing: 0.5px;
+}
+
+.bind-info-card .card-value {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-primary);
+  word-break: break-word;
+  line-height: 1.4;
+}
+
+.bind-section {
+  overflow-x: hidden;
+}
+
+/* Fix table header spacing in modals */
+.bind-item-table th {
+  padding: 12px 16px !important;
+  white-space: nowrap;
+}

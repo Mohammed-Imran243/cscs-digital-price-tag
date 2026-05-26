@@ -193,8 +193,7 @@ export const EslTab: React.FC<EslTabProps> = ({
                           onClick={() => handleViewDetails(esl.priceTagCode, esl)}
                           title="View Binding Details & Screen Render / عرض تفاصيل الربط ومعاينة الشاشة"
                         >
-                          <Eye size={13} />
-                          <span>View / عرض</span>
+                          <Eye size={16} />
                         </button>
                         <button 
                           className={`btn-table-action refresh-btn ${!isAuthorized ? 'disabled' : ''}`}
@@ -203,11 +202,10 @@ export const EslTab: React.FC<EslTabProps> = ({
                           title={isAuthorized ? "Force Refresh & Reboot ESL / تحديث إجباري وإعادة تشغيل الشاشة" : "Admin privileges required / مطلوب صلاحيات المسؤول"}
                         >
                           {refreshingBarcodes[esl.priceTagCode] ? (
-                            <Loader2 size={13} className="animate-spin" />
+                            <Loader2 size={16} className="animate-spin" />
                           ) : (
-                            <RefreshCw size={13} />
+                            <RefreshCw size={16} />
                           )}
-                          <span>Refresh / تحديث</span>
                         </button>
                       </div>
                     </td>

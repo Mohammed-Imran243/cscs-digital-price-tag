@@ -517,6 +517,7 @@ const Templates: React.FC = () => {
             <Settings size={16} />
             <span>Store Template / قوالب المتجر</span>
           </button>
+          {/* 
           <button
             className={`menu-item-btn ${activeMenuTab === 'business_icon' ? 'active' : ''}`}
             onClick={() => setActiveMenuTab('business_icon')}
@@ -524,6 +525,7 @@ const Templates: React.FC = () => {
             <ImageIcon size={16} />
             <span>Business Icon / أيقونة العمل</span>
           </button>
+          */}
           <button
             className={`menu-item-btn ${activeMenuTab === 'store_icon' ? 'active' : ''}`}
             onClick={() => setActiveMenuTab('store_icon')}
@@ -551,6 +553,7 @@ const Templates: React.FC = () => {
                 <button className={`scenario-btn ${merchantScenario === 1 ? 'active' : ''}`} onClick={() => setMerchantScenario(1)}>
                   Single Item Template / قالب صنف واحد
                 </button>
+                {/* 
                 <button className={`scenario-btn ${merchantScenario === 4 ? 'active' : ''}`} onClick={() => setMerchantScenario(4)}>
                   Multi-Item Template / قالب أصناف متعددة
                 </button>
@@ -560,6 +563,7 @@ const Templates: React.FC = () => {
                 <button className={`scenario-btn ${merchantScenario === 2 ? 'active' : ''}`} onClick={() => setMerchantScenario(2)}>
                   Unbind Template / قالب إلغاء الربط
                 </button>
+                */}
               </div>
 
               {/* Zkong styled Filter Bar */}
@@ -603,10 +607,12 @@ const Templates: React.FC = () => {
                 <button className="btn-primary sm-btn" onClick={() => setIsTemplateModalOpen(true)}>
                   <Plus size={16} /> New Merchant Template / قالب تاجر جديد
                 </button>
+                {/* 
                 <button className="btn-secondary sm-btn">Import Template / استيراد قالب</button>
                 <button className="btn-secondary sm-btn" onClick={fetchTemplatesList}><RefreshCw size={14} /> Refresh ESL / تحديث الشاشات</button>
                 <button className="btn-secondary sm-btn">Import Template File / استيراد ملف قالب</button>
                 <button className="btn-secondary sm-btn" disabled>Export Template File / تصدير ملف قالب</button>
+                */}
               </div>
 
               {/* Data Table */}
@@ -669,10 +675,12 @@ const Templates: React.FC = () => {
                 <button className="btn-primary sm-btn" onClick={() => setIsTemplateModalOpen(true)}>
                   <Plus size={16} /> New Store Template / قالب متجر جديد
                 </button>
+                {/*
                 <button className="btn-secondary sm-btn">Import Merchant Template / استيراد قالب التاجر</button>
                 <button className="btn-secondary sm-btn" onClick={fetchTemplatesList}><RefreshCw size={14} /> Refresh ESL / تحديث الشاشات</button>
                 <button className="btn-secondary sm-btn">Import Template File / استيراد ملف قالب</button>
                 <button className="btn-secondary sm-btn" disabled>Export Template File / تصدير ملف قالب</button>
+                */}
               </div>
 
               {/* Data Table */}
