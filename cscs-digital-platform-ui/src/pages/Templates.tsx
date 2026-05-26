@@ -23,6 +23,7 @@ import {
   Plus,
   Loader2,
   RefreshCw,
+  Search,
   Tag,
 
   Smartphone,
@@ -893,7 +894,7 @@ const Templates: React.FC = () => {
               <div className="modal-actions">
                 <button type="button" className="btn-secondary" onClick={() => setIsTemplateModalOpen(false)}>Cancel / إلغاء</button>
                 <button type="submit" className="btn-primary" disabled={submitting}>
-                  {submitting ? <Loader2 className="animate-spin" size={16} /> : 'Save / حفظ'}
+                  {submitting ? <Loader2 className="animate-spin" size={16} /> : 'Add / إضافة'}
                 </button>
               </div>
             </form>

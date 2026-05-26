@@ -3,7 +3,7 @@ import { getProducts, createProduct, updateProductPrice, deleteProductFromStore,
 import type { Product, ProductCreateRequest } from '../services/productService';
 import { storeService } from '../services/storeService';
 import type { Store } from '../services/storeService';
-import { Search, Plus, Loader2, Trash2, Edit2, AlertTriangle } from 'lucide-react';
+import { Search, Plus, Loader2, Trash2, Edit2, AlertTriangle, RefreshCw } from 'lucide-react';
 import { getPaginationRange } from '../utils/paginationUtils';
 import { getTemplates, getCategories, getTemplateTypes } from '../services/templateService';
 
@@ -782,7 +782,7 @@ const Products: React.FC = () => {
               <div className="modal-actions">
                 <button type="button" className="btn-secondary" onClick={() => setIsModalOpen(false)}>Cancel / إلغاء</button>
                 <button type="submit" className="btn-primary" disabled={isCreating}>
-                  {isCreating ? <Loader2 className="animate-spin" size={18} /> : 'Create Product / إنشاء منتج'}
+                  {isCreating ? <Loader2 className="animate-spin" size={18} /> : 'Add Product / إنشاء منتج'}
                 </button>
               </div>
             </form>

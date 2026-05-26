@@ -489,3 +489,26 @@ select option {
 .spin {
   animation: spin 1s linear infinite;
 }
+
+/* ==========================================================================
+   GLOBAL TABLE HEADER STYLING (Responsive & Theme-Aware)
+   ========================================================================== */
+th, .zkong-table th, .users-table th, table th {
+  background-color: var(--bg-accent) !important;
+  color: var(--text-primary) !important;
+  font-weight: 700 !important;
+  font-size: 13px !important;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 16px 12px !important;
+  border-bottom: 2px solid var(--border-color) !important;
+  text-align: center !important;
+}
+
+td, .zkong-table td, .users-table td, table td {
+  text-align: center !important;
+  padding: 12px !important;
+  vertical-align: middle;
+}
+
+/* For Arabic text alignment (RTL fallback) - removed since it's now center aligned globally */

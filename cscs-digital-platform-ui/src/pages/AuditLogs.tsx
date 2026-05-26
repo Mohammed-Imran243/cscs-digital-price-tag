@@ -215,15 +215,6 @@ const AuditLogs: React.FC = () => {
               onChange={(e) => setSearchQuery(e.target.value)} 
             />
           </div>
-          <p className="text-muted">Query and review operation history logs from Dragon ESL / استعلام ومراجعة سجلات عمليات Dragon ESL</p>
-        </div>
-        {/* Toast Notification */}
-        {notification && (
-          <div className={`toast-notification ${notification.type} glass-card`}>
-            <span>{notification.message}</span>
-          </div>
-        )}
-        <div className="audit-logs-header-actions">
           <button 
             className="btn-secondary" 
             onClick={fetchLogs} 
@@ -233,6 +224,12 @@ const AuditLogs: React.FC = () => {
           </button>
         </div>
       </div>
+      {/* Toast Notification */}
+      {notification && (
+        <div className={`toast-notification ${notification.type} glass-card`}>
+          <span>{notification.message}</span>
+        </div>
+      )}
 
       {/* Filter panel */}
       <div className="audit-logs-filters glass-card">

@@ -8,7 +8,8 @@ import {
   CheckCircle2, 
   MapPin,
   AlertCircle,
-  Link2
+  Link2,
+  Store as StoreIcon
 } from 'lucide-react';
 import { deviceService } from '../services/deviceService';
 import type { EslDevice, ApDevice } from '../services/deviceService';

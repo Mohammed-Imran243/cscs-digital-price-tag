@@ -744,7 +744,7 @@ const Users: React.FC = () => {
               <div className="modal-actions">
                 <button type="button" className="btn-secondary" onClick={() => setIsRoleModalOpen(false)}>Cancel / إلغاء</button>
                 <button type="submit" className="btn-primary" disabled={formLoading}>
-                  {formLoading ? <Loader2 className="animate-spin" size={18} /> : isEditingRole ? 'Update Role / تحديث الدور' : 'Create Role / إنشاء الدور'}
+                  {formLoading ? <Loader2 className="animate-spin" size={18} /> : isEditingRole ? 'Save Changes / حفظ التغييرات' : 'Create Role / إنشاء الدور'}
                 </button>
               </div>
             </form>

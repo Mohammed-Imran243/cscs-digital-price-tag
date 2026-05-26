@@ -459,7 +459,7 @@ const Stores: React.FC = () => {
               <div className="modal-actions">
                 <button type="button" className="btn-secondary" onClick={() => setIsModalOpen(false)}>Cancel / إلغاء</button>
                 <button type="submit" className="btn-primary" disabled={formLoading}>
-                  {formLoading ? <Loader2 className="animate-spin" size={18} /> : isEditing ? 'Update Store / تحديث المتجر' : 'Create Store / إنشاء متجر'}
+                  {formLoading ? <Loader2 className="animate-spin" size={18} /> : isEditing ? 'Save Changes / حفظ التغييرات' : 'Add Store / إنشاء متجر'}
                 </button>
               </div>
             </form>
