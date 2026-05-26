@@ -4,14 +4,18 @@ import { useAuth } from '../context/AuthContext';
 import { Sun, Moon, LogOut, LayoutDashboard, Store, Package, FileText, User, Cpu, Menu, X } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 
-const SidebarItem: React.FC<{ to: string, icon: React.ReactNode, label: string }> = ({ to, icon, label }) => {
+const SidebarItem: React.FC<{ to: string, icon: React.ReactNode, label: string, collapsed: boolean }> = ({ to, icon, label, collapsed }) => {
   const location = useLocation();
   const isActive = location.pathname === to;
   
+  // Clean up the label for the tooltip by removing the arabic part or just keep the whole thing
+  const tooltipText = label.split(' /')[0];
+
   return (
     <Link 
       to={to} 
       className={`sidebar-item ${isActive ? 'active' : ''}`}
+      title={collapsed ? tooltipText : undefined}
     >
       <span className="icon">{icon}</span>
       <span className="label">{label}</span>
@@ -25,6 +29,8 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const navigate = useNavigate();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(true);
+
   const handleLogout = () => {
     logout();
     navigate('/login');
@@ -37,43 +43,53 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
         <div className="mobile-overlay" onClick={() => setIsMobileMenuOpen(false)}></div>
       )}
 
-      <aside className={`sidebar glass-card ${isMobileMenuOpen ? 'mobile-open' : ''}`}>
+      <aside className={`sidebar glass-card ${isMobileMenuOpen ? 'mobile-open' : ''} ${isSidebarCollapsed ? 'collapsed' : ''}`}>
         <div className="sidebar-header">
-          <div className="logo-container" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', padding: '8px 0' }}>
+          <div className="logo-container">
             <img 
               src="/cscs.png" 
               alt="CSCS ESL CONNECT APP" 
-              style={{ width: '180px', maxWidth: '100%', height: 'auto', objectFit: 'contain' }} 
+              className="logo-full"
+              style={{ width: '180px', maxWidth: '100%', height: 'auto', objectFit: 'contain', filter: theme === 'dark' ? 'brightness(0) invert(1)' : 'none' }} 
+            />
+            <img 
+              src="/cscs-logo-square-dark.png" 
+              alt="CSCS" 
+              className="logo-small"
+              style={{ filter: theme === 'dark' ? 'brightness(0) invert(1)' : 'none' }} 
             />
           </div>
+          <button className="sidebar-toggle-btn" onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}>
+            <Menu size={20} />
+          </button>
         </div>
         
         <nav className="sidebar-nav">
-          <SidebarItem to="/" icon={<LayoutDashboard size={20} />} label="Dashboard / لوحة التحكم" />
+          <SidebarItem to="/" icon={<LayoutDashboard size={20} />} label="Dashboard / لوحة التحكم" collapsed={isSidebarCollapsed} />
           {(user?.permissions?.includes('store') || false) && (
-            <SidebarItem to="/stores" icon={<Store size={20} />} label="Stores / المتاجر" />
+            <SidebarItem to="/stores" icon={<Store size={20} />} label="Stores / المتاجر" collapsed={isSidebarCollapsed} />
           )}
           {(user?.permissions?.includes('product') || false) && (
-            <SidebarItem to="/products" icon={<Package size={20} />} label="Products / المنتجات" />
+            <SidebarItem to="/products" icon={<Package size={20} />} label="Products / المنتجات" collapsed={isSidebarCollapsed} />
           )}
           {(user?.permissions?.includes('template') || false) && (
-            <SidebarItem to="/templates" icon={<FileText size={20} />} label="Templates / القوالب" />
+            <SidebarItem to="/templates" icon={<FileText size={20} />} label="Templates / القوالب" collapsed={isSidebarCollapsed} />
           )}
           {(user?.permissions?.includes('equipment') || false) && (
-            <SidebarItem to="/devices" icon={<Cpu size={20} />} label="Devices / الأجهزة" />
+            <SidebarItem to="/devices" icon={<Cpu size={20} />} label="Devices / الأجهزة" collapsed={isSidebarCollapsed} />
           )}
           {(user?.permissions?.includes('log') || false) && (
-            <SidebarItem to="/audit-logs" icon={<FileText size={20} />} label="Audit Logs / سجلات المراجعة" />
+            <SidebarItem to="/audit-logs" icon={<FileText size={20} />} label="Audit Logs / سجلات المراجعة" collapsed={isSidebarCollapsed} />
           )}
           {(user?.permissions?.includes('staffManager') || false) && (
-            <SidebarItem to="/users" icon={<User size={20} />} label="Staff Users / الموظفين" />
+            <SidebarItem to="/users" icon={<User size={20} />} label="Staff Users / الموظفين" collapsed={isSidebarCollapsed} />
           )}
         </nav>
 
         <div className="sidebar-footer">
-          <button className="theme-toggle" onClick={toggleTheme}>
+          <button className="theme-toggle" onClick={toggleTheme} title={isSidebarCollapsed ? "Toggle Theme" : undefined}>
             {theme === 'light' ? <Moon size={20} /> : <Sun size={20} />}
-            <span>{theme === 'light' ? 'Dark Mode / الوضع الداكن' : 'Light Mode / الوضع المضيء'}</span>
+            <span className="label">{theme === 'light' ? 'Dark Mode / الوضع الداكن' : 'Light Mode / الوضع المضيء'}</span>
           </button>
         </div>
       </aside>
@@ -130,12 +146,79 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
           flex-direction: column;
           padding: 24px 16px;
           z-index: 10;
+          transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+          overflow-x: hidden;
+        }
+
+        .sidebar.collapsed {
+          width: 84px;
         }
 
         .sidebar-header {
           margin-bottom: 32px;
           padding: 0;
           display: flex;
+          justify-content: space-between;
+          align-items: center;
+          gap: 8px;
+        }
+
+        .logo-container {
+          display: flex;
+          align-items: center;
+          justify-content: flex-start;
+          flex: 1;
+          padding: 8px 0;
+          overflow: hidden;
+        }
+
+        .logo-full {
+          display: block;
+          transition: opacity 0.2s;
+        }
+
+        .logo-small {
+          display: none;
+          width: 32px;
+          height: 32px;
+          object-fit: contain;
+        }
+
+        .sidebar.collapsed .logo-full {
+          display: none;
+        }
+
+        .sidebar.collapsed .logo-small {
+          display: block;
+          margin: 0 auto;
+        }
+
+        .sidebar-toggle-btn {
+          background: transparent;
+          border: none;
+          color: var(--text-secondary);
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding: 6px;
+          border-radius: 8px;
+          transition: background 0.2s;
+        }
+
+        .sidebar-toggle-btn:hover {
+          background: rgba(255, 255, 255, 0.1);
+          color: var(--primary-color);
+        }
+
+        .sidebar.collapsed .sidebar-header {
+          flex-direction: column;
+          gap: 16px;
+          justify-content: center;
+        }
+
+        .sidebar.collapsed .logo-container {
+          padding: 0;
           justify-content: center;
         }
 
@@ -144,6 +227,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
           font-weight: 800;
           color: var(--primary-color);
           letter-spacing: -0.5px;
+          white-space: nowrap;
         }
 
         .logo-subtext {
@@ -153,6 +237,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
           text-transform: uppercase;
           color: var(--text-muted);
           margin-top: -4px;
+          white-space: nowrap;
         }
 
         .sidebar-nav {
@@ -172,6 +257,17 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
           color: var(--text-secondary);
           transition: all 0.2s;
           font-weight: 500;
+          white-space: nowrap;
+          overflow: hidden;
+        }
+
+        .sidebar.collapsed .sidebar-item {
+          padding: 12px;
+          justify-content: center;
+        }
+
+        .sidebar.collapsed .sidebar-item .label {
+          display: none;
         }
 
         .sidebar-item:hover {
@@ -204,6 +300,17 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
           border-radius: 10px;
           transition: all 0.2s;
           font-weight: 500;
+          white-space: nowrap;
+          overflow: hidden;
+        }
+
+        .sidebar.collapsed .theme-toggle {
+          padding: 12px;
+          justify-content: center;
+        }
+
+        .sidebar.collapsed .theme-toggle .label {
+          display: none;
         }
 
         .theme-toggle:hover {
@@ -312,9 +419,35 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
             position: fixed;
             top: 0;
             left: -300px;
+            width: 260px; /* Always full width on mobile */
             height: calc(100vh - 32px);
             transition: left 0.3s ease-in-out;
             z-index: 1000;
+          }
+
+          .sidebar.collapsed {
+            width: 260px; /* Override collapsed state on mobile */
+          }
+
+          .sidebar.collapsed .sidebar-item {
+            padding: 12px 16px;
+            justify-content: flex-start;
+          }
+
+          .sidebar.collapsed .sidebar-item .label,
+          .sidebar.collapsed .theme-toggle .label,
+          .sidebar.collapsed .logo-full {
+            display: block;
+          }
+
+          .sidebar.collapsed .logo-small,
+          .sidebar.collapsed .sidebar-toggle-btn {
+            display: none;
+          }
+
+          .sidebar.collapsed .sidebar-header {
+            flex-direction: row;
+            justify-content: center;
           }
 
           .sidebar.mobile-open {

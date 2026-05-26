@@ -424,29 +424,34 @@ const Devices: React.FC = () => {
         </div>
       )}
 
-      {/* Header */}
       <div className="devices-page-header">
         <div>
-          <h2>Device Management / إدارة الأجهزة</h2>
+          <h2>Equipment Management / إدارة الأجهزة</h2>
+        </div>
+        <div className="devices-header-actions" style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+          <div className="global-search-bar">
+            <Search size={16} className="text-muted" />
+            <input
+              type="text"
+              placeholder="Search devices... / ابحث عن الأجهزة..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
           </div>
-        <div className="devices-header-actions">
-          {/* Store Selection Dropdown */}
-          <div className="store-selector-wrapper glass-card">
-            <MapPin size={16} className="selector-icon" />
+          
+          <div className="store-selector-wrapper">
+            <StoreIcon size={16} className="text-muted" />
             <select 
               value={selectedStoreId} 
               onChange={(e) => setSelectedStoreId(e.target.value)}
-              disabled={storesLoading}
+              className="glass-select"
             >
-              {storesLoading ? (
-                <option>Loading Stores... / جاري تحميل المتاجر...</option>
-              ) : (
-                stores.map((s) => (
-                  <option key={s.storeId} value={s.storeId}>
-                    {s.storeName} ({s.externalStoreId || s.storeId})
-                  </option>
-                ))
-              )}
+              <option value="">Select a Store... / اختر متجراً...</option>
+              {stores.map(store => (
+                <option key={store.storeId} value={store.storeId}>
+                  {store.storeName} {store.externalStoreId ? `(${store.externalStoreId})` : ''}
+                </option>
+              ))}
             </select>
           </div>
 
@@ -462,7 +467,6 @@ const Devices: React.FC = () => {
         </div>
       </div>
 
-      {/* Tabs */}
       <div className="devices-tabs-wrapper">
         <div className="devices-tabs glass-card">
           <button 
@@ -479,21 +483,6 @@ const Devices: React.FC = () => {
             <Cpu size={18} />
             <span>AP Stations / محطات البث</span>
           </button>
-        </div>
-
-        {/* Search */}
-        <div className="devices-search-form glass-card">
-          <Search size={18} className="text-muted" />
-          <input
-            type="text"
-            placeholder={
-              activeTab === 'esl' 
-                ? "Search tags by ESL barcode or bound product... / ابحث عن بطاقات الأسعار بالباركود أو المنتج المرتبط..."
-                : "Search stations by name, IP, or MAC address... / ابحث عن المحطات بالاسم أو عنوان IP أو MAC..."
-            }
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
         </div>
       </div>
 

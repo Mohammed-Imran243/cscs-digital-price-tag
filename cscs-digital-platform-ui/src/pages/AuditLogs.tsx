@@ -194,8 +194,17 @@ const AuditLogs: React.FC = () => {
       <div className="audit-logs-page-header">
         <div>
           <h2>Audit Logs / سجلات المراجعة</h2>
+        </div>
+        <div className="audit-logs-header-actions" style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+          <div className="global-search-bar">
+            <Search size={16} className="text-muted" />
+            <input 
+              type="text" 
+              placeholder="Search logs... / بحث في السجلات..." 
+              value={searchQuery} 
+              onChange={(e) => setSearchQuery(e.target.value)} 
+            />
           </div>
-        <div className="audit-logs-header-actions">
           <button 
             className="btn-secondary" 
             onClick={fetchLogs} 
@@ -225,7 +234,7 @@ const AuditLogs: React.FC = () => {
               <option value="" disabled>-- Select a store / اختر فرعاً --</option>
               {stores.map(store => (
                 <option key={store.storeId} value={store.storeId}>
-                  {store.storeName} ({store.storeId})
+                  {store.storeName} {store.externalStoreId ? `(${store.externalStoreId})` : ''}
                 </option>
               ))}
             </select>
@@ -276,18 +285,6 @@ const AuditLogs: React.FC = () => {
           </select>
         </div>
 
-        <div className="filter-group">
-          <label>
-            <Search size={16} /> Search / بحث
-          </label>
-          <input 
-            type="text" 
-            placeholder="Search logs... / بحث في السجلات..." 
-            value={searchQuery} 
-            onChange={(e) => setSearchQuery(e.target.value)} 
-            className="glass-input" 
-          />
-        </div>
       </div>
 
       {/* Main content display */}

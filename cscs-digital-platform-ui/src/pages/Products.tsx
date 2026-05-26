@@ -399,7 +399,16 @@ const Products: React.FC = () => {
         <div>
           <h2>Product Management / إدارة المنتجات</h2>
           </div>
-        <div className="header-actions">
+        <div className="header-actions" style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+          <div className="global-search-bar">
+            <Search size={16} className="text-muted" />
+            <input 
+              type="text" 
+              placeholder="Search products... / ابحث عن المنتجات..." 
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+          </div>
           <select 
             className="store-selector glass-input"
             value={selectedStore}
@@ -407,9 +416,18 @@ const Products: React.FC = () => {
           >
             <option value="">Select a Store... / اختر متجراً...</option>
             {stores.map(store => (
-              <option key={store.storeId} value={store.storeId}>{store.storeName} ({store.storeId})</option>
+              <option key={store.storeId} value={store.storeId}>
+                {store.storeName} {store.externalStoreId ? `(${store.externalStoreId})` : ''}
+              </option>
             ))}
           </select>
+          <button 
+            className="btn-secondary" 
+            onClick={fetchProducts} 
+            disabled={loading || !selectedStore}
+          >
+            <RefreshCw size={18} className={loading ? 'animate-spin' : ''} /> Refresh / تحديث
+          </button>
           <button 
             className="btn-primary" 
             onClick={() => setIsModalOpen(true)}
@@ -418,16 +436,6 @@ const Products: React.FC = () => {
             <Plus size={18} /> Add Product / إضافة منتج
           </button>
         </div>
-      </div>
-
-      <div className="search-bar glass-card">
-        <Search size={20} className="text-muted" />
-        <input 
-          type="text" 
-          placeholder="Search products by barcode or name (auto-updates)... / ابحث عن المنتجات بالباركود أو الاسم..." 
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-        />
       </div>
 
       <div className="products-grid">

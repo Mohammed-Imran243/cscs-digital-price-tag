@@ -207,15 +207,17 @@ const Dashboard: React.FC = () => {
           <h2 className="dash-title">Dashboard / نظرة عامة على العمليات</h2>
 
         </div>
-        <button
-          className="btn-refresh"
-          onClick={fetchDashboardData}
-          disabled={loading}
-          title="Refresh all stats / تحديث جميع الإحصائيات"
-        >
-          <RefreshCw size={16} className={loading ? 'spin' : ''} />
-          Refresh / تحديث
-        </button>
+        <div className="header-actions" style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+          <button
+            className="btn-secondary"
+            onClick={fetchDashboardData}
+            disabled={loading}
+            title="Refresh all stats / تحديث جميع الإحصائيات"
+          >
+            <RefreshCw size={18} className={loading ? 'animate-spin' : ''} />
+            Refresh / تحديث
+          </button>
+        </div>
       </div>
 
       {/* ── Stat Cards ── */}

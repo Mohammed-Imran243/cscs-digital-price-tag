@@ -216,7 +216,16 @@ const Stores: React.FC = () => {
         <div>
           <h2>Store Management / إدارة المتاجر</h2>
          </div>
-        <div className="stores-header-actions">
+        <div className="stores-header-actions" style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+          <div className="global-search-bar">
+            <Search size={16} className="text-muted" />
+            <input
+              type="text"
+              placeholder="Search stores... / ابحث عن المتاجر..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
           <button className="btn-secondary" onClick={fetchStores} disabled={loading}>
             <RefreshCw size={18} className={loading ? 'animate-spin' : ''} /> Refresh / تحديث
           </button>
@@ -224,17 +233,6 @@ const Stores: React.FC = () => {
             <Plus size={18} /> Add Store / إضافة متجر
           </button>
         </div>
-      </div>
-
-      <div className="stores-search-bar glass-card">
-        <Search size={20} className="text-muted" />
-        <input
-          type="text"
-          placeholder="Search stores by name, ID, or address... / ابحث عن المتاجر بالاسم أو المعرف أو العنوان..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-        />
-        <span className="stores-total-count">{filteredStores.length} Stores / متاجر</span>
       </div>
 
       {loading ? (
