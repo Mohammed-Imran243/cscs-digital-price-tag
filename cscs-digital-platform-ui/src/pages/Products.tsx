@@ -408,8 +408,11 @@ const Products: React.FC = () => {
       onConfirm: async () => {
         try {
           await deleteProductFromStore(product.id, selectedStore, product.barcode);
-          fetchProducts();
           showNotification('Product removed from store successfully / تم حذف المنتج من المتجر بنجاح', 'success');
+          // Remove deleted product from local state immediately
+          setProducts(prev => prev.filter(p => p.id !== product.id));
+          // Then refresh from server after delay
+          setTimeout(() => fetchProducts(), 2000);
         } catch (err: any) {
           console.error('Failed to delete product', err);
           showNotification('Failed to delete product from store. Please try again. / فشل حذف المنتج من المتجر. يرجى المحاولة مرة أخرى.', 'error');
@@ -426,8 +429,11 @@ const Products: React.FC = () => {
       onConfirm: async () => {
         try {
           await deleteProductGlobal(product.id, product.barcode);
-          fetchProducts();
           showNotification('Product deleted globally successfully / تم حذف المنتج نهائياً بنجاح', 'success');
+          // Remove deleted product from local state immediately
+          setProducts(prev => prev.filter(p => p.id !== product.id));
+          // Then refresh from server after delay
+          setTimeout(() => fetchProducts(), 2000);
         } catch (err: any) {
           console.error('Failed to delete product', err);
           showNotification('Failed to delete product globally. Please try again. / فشل حذف المنتج نهائياً. يرجى المحاولة مرة أخرى.', 'error');
@@ -585,9 +591,7 @@ const Products: React.FC = () => {
           products.map(product => (
             <div key={product.id} className="product-card glass-card">
               <div className="product-header">
-                <span className={`status-badge ${product.status ? product.status.toLowerCase() : 'inactive'}`}>
-                  {product.status === 'active' || product.status === 'ONLINE' ? 'Active / نشط' : product.status === 'inactive' || product.status === 'OFFLINE' ? 'Inactive / غير نشط' : product.status || 'unknown'}
-                </span>
+
               </div>
               
               <div className="product-details">

@@ -13,7 +13,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 
 @RestController
 @RequestMapping("/products")
-@org.springframework.security.access.prepost.PreAuthorize("hasAuthority('product')")
+@PreAuthorize("hasAuthority('product')")
 public class ProductController {
 
     private final ProductService productService;
@@ -22,22 +22,12 @@ public class ProductController {
         this.productService = productService;
     }
 
-    /**
-     * POST /api/products
-     *
-     * Creates a new product in the Dragon ESL system.
-     */
     @PostMapping
     public ResponseEntity<ApiResponse<Void>> createProduct(@Valid @RequestBody ProductCreateRequest request) {
         productService.createProduct(request);
         return ResponseEntity.ok(ApiResponse.success("Product created successfully", null));
     }
 
-    /**
-     * GET /api/products?storeId=1001&page=0&size=10&barcode=xxx&search=milk
-     *
-     * storeId is REQUIRED — barcode is not unique across stores.
-     */
     @GetMapping
     public ResponseEntity<ApiResponse<PagedResponse<ProductResponse>>> getProducts(
             @RequestParam String storeId,
@@ -51,12 +41,6 @@ public class ProductController {
         return ResponseEntity.ok(ApiResponse.success("Products fetched successfully", products));
     }
 
-    /**
-     * GET /api/products/{id}?storeId=1001
-     *
-     * {id} is Dragon internal item ID, not barcode.
-     * storeId is REQUIRED.
-     */
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<ProductResponse>> getProductById(
             @PathVariable String id,
@@ -66,15 +50,6 @@ public class ProductController {
         return ResponseEntity.ok(ApiResponse.success("Product fetched successfully", product));
     }
 
-    /**
-     * PUT /api/products/{id}/price?storeId=1001
-     *
-     * {id} is Dragon internal item ID — obtained from GET /api/products list.
-     * storeId is REQUIRED.
-     *
-     * CRITICAL: Frontend sends { "price": 75 }
-     * Backend transforms internally to { "price": "75", "custFeature1": "75" }
-     */
     @PutMapping("/{id}/price")
     public ResponseEntity<ApiResponse<Void>> updatePrice(
             @PathVariable String id,
@@ -85,12 +60,6 @@ public class ProductController {
         return ResponseEntity.ok(ApiResponse.success("Price updated successfully", null));
     }
 
-    /**
-     * DELETE /api/products/{id}/store
-     *
-     * Store-specific delete — removes from ONE store only.
-     * VERIFIED Dragon ESL endpoint: DELETE /zk/item/businessDeleteItem/{id}
-     */
     @DeleteMapping("/{id}/store")
     public ResponseEntity<ApiResponse<Void>> deleteFromStore(
             @PathVariable String id,
@@ -102,16 +71,15 @@ public class ProductController {
     }
 
     /**
-     * DELETE /api/products/{id}/global
-     *
-     * Global delete — removes from ALL stores.
-     * VERIFIED Dragon ESL endpoint: DELETE /zk/item/deleteItem
+     * DELETE /api/products/{id}/global?barcode=xxx
+     * barcode is REQUIRED — DragonESL batchDeleteItem needs the barcode not internal ID
      */
     @DeleteMapping("/{id}/global")
-    public ResponseEntity<ApiResponse<Void>> deleteGlobal(@PathVariable String id) {
+    public ResponseEntity<ApiResponse<Void>> deleteGlobal(
+            @PathVariable String id,
+            @RequestParam String barcode) {
 
-        productService.deleteGlobal(id);
+        productService.deleteGlobal(id,barcode);
         return ResponseEntity.ok(ApiResponse.success("Product deleted globally", null));
     }
 }
-

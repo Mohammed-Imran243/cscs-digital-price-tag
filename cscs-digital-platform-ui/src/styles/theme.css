@@ -119,7 +119,7 @@ select option {
 
 /* Form Required Asterisk */
 .required-asterisk {
-  color: var(--danger-color);
+  color: var(--danger-color) !important;
   margin-left: 2px;
 }
 
