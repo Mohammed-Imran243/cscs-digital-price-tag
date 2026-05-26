@@ -10,6 +10,9 @@ import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.List;
+import java.util.Collections;
+import java.util.stream.Collectors;
 
 @Service
 public class TemplateService {
@@ -21,8 +24,28 @@ public class TemplateService {
         this.dragonEslApiClient = dragonEslApiClient;
     }
 
-    public Object getCategories() {
-        return performGet("/zk/templateAttr/findList");
+    public List<String> getCategories() {
+        try {
+            Map<?, ?> response = dragonEslApiClient.get("/zk/attrCategory/findList", Map.class);
+            if (response != null) {
+                Object dataObj = response.get("data");
+                if (dataObj instanceof List) {
+                    List<?> list = (List<?>) dataObj;
+                    return list.stream()
+                            .filter(item -> item instanceof Map)
+                            .map(item -> (Map<?, ?>) item)
+                            .map(item -> item.get("categoryName"))
+                            .filter(name -> name != null && !name.toString().isBlank())
+                            .map(Object::toString)
+                            .distinct()
+                            .sorted()
+                            .collect(Collectors.toList());
+                }
+            }
+        } catch (Exception e) {
+            log.error("Error fetching template categories: {}", e.getMessage());
+        }
+        return Collections.emptyList();
     }
 
     public Object addCategory(Map<String, Object> request) {
@@ -83,6 +106,36 @@ public class TemplateService {
 
     public Object getTemplateBaseById(String id) {
         return performGet("/zk/template/getTemplateBaseById/" + id);
+    }
+
+    public List<String> getTemplateTypes() {
+        try {
+            Map<?, ?> response = dragonEslApiClient.get("/zk/templateAttr/findList", Map.class);
+            if (response != null) {
+                Object dataObj = response.get("data");
+                if (dataObj instanceof List) {
+                    List<?> list = (List<?>) dataObj;
+                    return list.stream()
+                            .filter(item -> item instanceof Map)
+                            .map(item -> (Map<?, ?>) item)
+                            .filter(item -> {
+                                Object flagObj = item.get("flag");
+                                if (flagObj == null) return false;
+                                String flagStr = flagObj.toString().trim();
+                                return "1".equals(flagStr) || "1.0".equals(flagStr);
+                            })
+                            .map(item -> item.get("attrName"))
+                            .filter(name -> name != null && !name.toString().isBlank())
+                            .map(Object::toString)
+                            .distinct()
+                            .sorted()
+                            .collect(Collectors.toList());
+                }
+            }
+        } catch (Exception e) {
+            log.error("Error fetching template types: {}", e.getMessage());
+        }
+        return Collections.emptyList();
     }
 
     public Object checkTemplateName(String storeId, String templateName) {

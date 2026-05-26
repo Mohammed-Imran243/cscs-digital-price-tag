@@ -68,8 +68,13 @@ export const getTemplates = async (page = 0, size = 10, searchParams?: Record<st
   return unwrapped.data; // returns DragonTemplateData (content/totalPages/totalElements)
 };
 
-export const getCategories = async (): Promise<TemplateCategory[]> => {
+export const getCategories = async (): Promise<any[]> => {
   const response = await api.get('/templates/categories');
+  return unwrapResponse(response);
+};
+
+export const getTemplateTypes = async (): Promise<any[]> => {
+  const response = await api.get('/templates/types');
   return unwrapResponse(response);
 };
 

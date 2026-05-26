@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.security.access.prepost.PreAuthorize;
 
 import java.util.Map;
+import java.util.List;
 
 @RestController
 @RequestMapping("/templates")
@@ -20,8 +21,13 @@ public class TemplateController {
     }
 
     @GetMapping("/categories")
-    public ResponseEntity<ApiResponse<Object>> getCategories() {
+    public ResponseEntity<ApiResponse<List<String>>> getCategories() {
         return ResponseEntity.ok(ApiResponse.success("Categories fetched successfully", templateService.getCategories()));
+    }
+
+    @GetMapping("/types")
+    public ResponseEntity<ApiResponse<List<String>>> getTemplateTypes() {
+        return ResponseEntity.ok(ApiResponse.success("Template types fetched successfully", templateService.getTemplateTypes()));
     }
 
     @PostMapping("/categories")

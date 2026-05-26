@@ -7,7 +7,8 @@ import {
   addTemplate,
   updateTemplateBase,
   deleteTemplate,
-  enableTemplate
+  enableTemplate,
+  getTemplateTypes
 } from '../services/templateService';
 import type {
   Template,
@@ -23,8 +24,7 @@ import {
   Loader2,
   RefreshCw,
   Tag,
-  AlertTriangle,
-  CheckCircle2,
+
   Smartphone,
   Settings,
   FolderOpen,
@@ -46,7 +46,12 @@ const Templates: React.FC = () => {
   // Live Lookups
   const [stores, setStores] = useState<Store[]>([]);
   const [categories, setCategories] = useState<TemplateCategory[]>([]);
+  const [templateTypes, setTemplateTypes] = useState<string[]>([]);
   const [models, setModels] = useState<PriceTagModel[]>([]);
+  const [storesLoading, setStoresLoading] = useState(false);
+  const [storesError, setStoresError] = useState<string | null>(null);
+  const [modelsLoading, setModelsLoading] = useState(false);
+  const [modelsError, setModelsError] = useState<string | null>(null);
 
   // Filtering States for Merchant / Store Templates
   const [selectedStore, setSelectedStore] = useState<string>('');
@@ -110,7 +115,7 @@ const Templates: React.FC = () => {
   const [newCategoryName, setNewCategoryName] = useState('');
 
   // Notification Toast Banner
-  const [notification, setNotification] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
+  const [notification, setNotification] = useState<{ message: string; type: 'success' | 'error' | 'warning' } | null>(null);
 
   // Fetch lookups on mount
   useEffect(() => {
@@ -190,21 +195,61 @@ const Templates: React.FC = () => {
     try {
       // 1. Fetch Categories
       const catData = await getCategories();
-      setCategories(catData || []);
+      if (catData && Array.isArray(catData)) {
+        const mappedCats = catData.map((c: any, index: number) => {
+          let name = '';
+          if (c && typeof c === 'object') {
+            name = c.categoryName || '';
+          } else {
+            name = String(c);
+          }
+          return {
+            id: index,
+            categoryName: name
+          };
+        }).filter(item => item.categoryName);
+        setCategories(mappedCats);
+      } else {
+        setCategories([]);
+      }
     } catch (err) {
       console.error('Failed to load categories', err);
     }
 
     try {
-      // 2. Fetch tag models
+      // 2. Fetch Template Types
+      const typesData = await getTemplateTypes();
+      if (typesData && Array.isArray(typesData)) {
+        const mapped = typesData.map((t: any) => {
+          if (typeof t === 'string') return t;
+          if (t && typeof t === 'object') return t.attrName || t.name || t.typeName || String(t);
+          return String(t);
+        }).filter(Boolean);
+        setTemplateTypes(mapped);
+      } else {
+        setTemplateTypes([]);
+      }
+    } catch (err) {
+      console.error('Failed to load template types', err);
+    }
+
+    setModelsLoading(true);
+    setModelsError(null);
+    try {
+      // 3. Fetch tag models
       const modelData = await getModels();
       setModels(modelData || []);
     } catch (err) {
       console.error('Failed to load hardware models', err);
+      setModelsError('Failed to load hardware models. / فشل تحميل طرز الأجهزة.');
+    } finally {
+      setModelsLoading(false);
     }
 
+    setStoresLoading(true);
+    setStoresError(null);
     try {
-      // 3. Fetch stores
+      // 4. Fetch stores
       const response = await storeService.getAllStores();
       if (response && response.length > 0) {
         setStores(response);
@@ -212,6 +257,9 @@ const Templates: React.FC = () => {
       }
     } catch (err) {
       console.error('Failed to load active stores', err);
+      setStoresError('Failed to load active stores. / فشل تحميل المتاجر النشطة.');
+    } finally {
+      setStoresLoading(false);
     }
   };
 
@@ -240,6 +288,9 @@ const Templates: React.FC = () => {
       if (filterCategory !== 'All') {
         searchParams.attrCategory = filterCategory;
       }
+      if (filterType !== 'All') {
+        searchParams.attrName = filterType;
+      }
       if (debouncedSearchQuery) {
         searchParams.templateName = debouncedSearchQuery;
       }
@@ -260,7 +311,6 @@ const Templates: React.FC = () => {
 
   const handleToggleStatus = async (id: string, currentStatus: string | undefined) => {
     const nextStatus = currentStatus === '1' ? '0' : '1';
-    const label = nextStatus === '1' ? 'Enabled' : 'Disabled';
     try {
       await enableTemplate(id, nextStatus);
       showNotification('Template updated successfully / تم تحديث القالب بنجاح', 'success');
@@ -320,6 +370,7 @@ const Templates: React.FC = () => {
       const modelObj = models.find(m => m.model === newTemplate.model);
       const payload = {
         ...newTemplate,
+        storeId: activeMenuTab === 'store' ? selectedStore : '0',
         size: modelObj?.size || '',
         resolution: modelObj?.resolution || '',
         sceneNumber: activeMenuTab === 'merchant' ? merchantScenario : 1
@@ -525,6 +576,7 @@ const Templates: React.FC = () => {
                   <label>Template Type / نوع القالب</label>
                   <select value={filterType} onChange={e => setFilterType(e.target.value)}>
                     <option value="All">Select All / تحديد الكل</option>
+                    {templateTypes.map(t => <option key={t} value={t}>{t}</option>)}
                   </select>
                 </div>
 
@@ -602,6 +654,7 @@ const Templates: React.FC = () => {
                   <label>Template Type / نوع القالب</label>
                   <select value={filterType} onChange={e => setFilterType(e.target.value)}>
                     <option value="All">Select All / تحديد الكل</option>
+                    {templateTypes.map(t => <option key={t} value={t}>{t}</option>)}
                   </select>
                 </div>
 
@@ -798,31 +851,51 @@ const Templates: React.FC = () => {
               {activeMenuTab === 'store' && (
                 <div className="form-group">
                   <label>Bound Store / المتجر المرتبط</label>
-                  <select
-                    className="glass-input"
-                    value={selectedStore}
-                    onChange={e => setSelectedStore(e.target.value)}
-                  >
-                    {stores.map(s => <option key={s.storeId} value={s.storeId}>{s.storeName}</option>)}
-                  </select>
+                  {storesLoading ? (
+                    <div style={{ color: 'var(--text-muted)', fontSize: '14px', padding: '8px 0', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <Loader2 className="animate-spin" size={16} /> Loading stores... / جاري تحميل المتاجر...
+                    </div>
+                  ) : storesError ? (
+                    <div style={{ color: 'var(--danger-color)', fontSize: '14px', padding: '8px 0' }}>
+                      {storesError}
+                    </div>
+                  ) : (
+                    <select
+                      className="glass-input"
+                      value={selectedStore}
+                      onChange={e => setSelectedStore(e.target.value)}
+                    >
+                      {stores.map(s => <option key={s.storeId} value={s.storeId}>{s.storeName}</option>)}
+                    </select>
+                  )}
                 </div>
               )}
 
               <div className="form-group">
                 <label>ESL Hardware Model / طراز جهاز شاشة الأسعار</label>
-                <select
-                  required
-                  className="glass-input"
-                  value={newTemplate.model}
-                  onChange={e => setNewTemplate({ ...newTemplate, model: e.target.value })}
-                >
-                  <option value="">Select Price Tag Model... / اختر طراز شاشة الأسعار...</option>
-                  {models.map(m => (
-                    <option key={m.id} value={m.model}>
-                      {m.model} ({m.size}" - {m.resolution})
-                    </option>
-                  ))}
-                </select>
+                {modelsLoading ? (
+                  <div style={{ color: 'var(--text-muted)', fontSize: '14px', padding: '8px 0', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <Loader2 className="animate-spin" size={16} /> Loading models... / جاري التحميل...
+                  </div>
+                ) : modelsError ? (
+                  <div style={{ color: 'var(--danger-color)', fontSize: '14px', padding: '8px 0' }}>
+                    {modelsError}
+                  </div>
+                ) : (
+                  <select
+                    required
+                    className="glass-input"
+                    value={newTemplate.model}
+                    onChange={e => setNewTemplate({ ...newTemplate, model: e.target.value })}
+                  >
+                    <option value="">Select Price Tag Model... / اختر طراز شاشة الأسعار...</option>
+                    {models.map(m => (
+                      <option key={m.id} value={m.model}>
+                        {m.model} ({m.size}" - {m.resolution})
+                      </option>
+                    ))}
+                  </select>
+                )}
               </div>
 
               <div className="modal-actions">
@@ -964,6 +1037,11 @@ const Templates: React.FC = () => {
 
       {/* Global CSS Layout styles matching dragonesl.com portal layout */}
       <style>{`
+        .required-asterisk {
+          color: #ef4444;
+          margin-left: 2px;
+        }
+
         .templates-dashboard {
           padding: 24px;
           min-height: 100vh;
@@ -1818,7 +1896,7 @@ const Templates: React.FC = () => {
                       </div>
                     </td>
                     <td>{t.modelList?.join(', ') || 'ZKC29S'}</td>
-                    <td>{t.attrCategory || 'General / عام'}</td>
+                    <td>{(t.attrCategory as any) && typeof t.attrCategory === 'object' ? ((t.attrCategory as any).categoryName || String(t.attrCategory)) : (t.attrCategory || 'General / عام')}</td>
                     <td>
                       <span className={`status-pill ${isEnabled ? 'enabled' : 'disabled'}`}>
                         {isEnabled ? 'Enabled / مفعل' : 'Disabled / معطل'}
@@ -1830,7 +1908,7 @@ const Templates: React.FC = () => {
                         {/* Interactive Thumbnail */}
                         <div 
                           className="zkong-mini-preview-thumbnail"
-                          onMouseEnter={() => handleMouseEnterThumbnail(t.id, t.attrCategory || '')}
+                          onMouseEnter={() => handleMouseEnterThumbnail(t.id, ((t.attrCategory as any) && typeof t.attrCategory === 'object' ? ((t.attrCategory as any).categoryName || String(t.attrCategory)) : (t.attrCategory || '')))}
                           onMouseLeave={handleMouseLeaveThumbnail}
                           onClick={() => setPreviewTemplate(t)}
                           style={{

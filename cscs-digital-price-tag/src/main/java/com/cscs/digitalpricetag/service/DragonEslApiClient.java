@@ -102,9 +102,13 @@ public class DragonEslApiClient {
 
     public <T> T delete(String uri, Object body, Class<T> responseType) {
         try {
+            if (body == null) {
+                return webClient.delete().uri(uri).retrieve().bodyToMono(responseType).block();
+            }
             return webClient.method(org.springframework.http.HttpMethod.DELETE)
                     .uri(uri)
-                    .bodyValue(body)
+                    .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
+                    .body(org.springframework.web.reactive.function.BodyInserters.fromValue(body))
                     .retrieve()
                     .bodyToMono(responseType)
                     .block();

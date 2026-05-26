@@ -25,6 +25,7 @@ export interface Store {
   phone?: string;
   mailbox?: string;
   merchantName?: string;
+  comment?: string;
   // Legacy alias used by some components
   id?: string;
 }

@@ -92,9 +92,12 @@ public class ProductController {
      * VERIFIED Dragon ESL endpoint: DELETE /zk/item/businessDeleteItem/{id}
      */
     @DeleteMapping("/{id}/store")
-    public ResponseEntity<ApiResponse<Void>> deleteFromStore(@PathVariable String id) {
+    public ResponseEntity<ApiResponse<Void>> deleteFromStore(
+            @PathVariable String id,
+            @RequestParam String storeId,
+            @RequestParam String barcode) {
 
-        productService.deleteFromStore(id);
+        productService.deleteFromStore(id, storeId, barcode);
         return ResponseEntity.ok(ApiResponse.success("Product removed from store", null));
     }
 

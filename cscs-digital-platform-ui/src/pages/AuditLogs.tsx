@@ -204,9 +204,6 @@ const AuditLogs: React.FC = () => {
       <div className="audit-logs-page-header">
         <div>
           <h2>Audit Logs / سجلات المراجعة</h2>
-<<<<<<< Updated upstream
-          </div>
-=======
           <p className="text-muted">Query and review operation history logs from Dragon ESL / استعلام ومراجعة سجلات عمليات Dragon ESL</p>
         </div>
         {/* Toast Notification */}
@@ -215,7 +212,6 @@ const AuditLogs: React.FC = () => {
             <span>{notification.message}</span>
           </div>
         )}
->>>>>>> Stashed changes
         <div className="audit-logs-header-actions">
           <button 
             className="btn-secondary" 

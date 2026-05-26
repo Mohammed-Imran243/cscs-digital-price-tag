@@ -94,6 +94,12 @@ public class DragonProductListResponse {
         @JsonProperty("status")
         private Integer status;
 
+        @JsonProperty("bindState")
+        private Integer bindState;
+
+        @JsonProperty("state")
+        private Integer state;
+
         @JsonProperty("imageUrl")
         private String imageUrl;
 
@@ -108,6 +114,12 @@ public class DragonProductListResponse {
 
         @JsonProperty("custFeature2")
         private String custFeature2;
+
+        @JsonProperty("attrCategory")
+        private String attrCategory;
+
+        @JsonProperty("attrName")
+        private String attrName;
 
         // ── Getters & Setters ──────────────────────────────────────────────
 
@@ -135,6 +147,12 @@ public class DragonProductListResponse {
         public Integer getStatus() { return status; }
         public void setStatus(Integer status) { this.status = status; }
 
+        public Integer getBindState() { return bindState; }
+        public void setBindState(Integer bindState) { this.bindState = bindState; }
+
+        public Integer getState() { return state; }
+        public void setState(Integer state) { this.state = state; }
+
         public String getImageUrl() { return imageUrl; }
         public void setImageUrl(String imageUrl) { this.imageUrl = imageUrl; }
 
@@ -149,6 +167,12 @@ public class DragonProductListResponse {
 
         public String getCustFeature2() { return custFeature2; }
         public void setCustFeature2(String custFeature2) { this.custFeature2 = custFeature2; }
+
+        public String getAttrCategory() { return attrCategory; }
+        public void setAttrCategory(String attrCategory) { this.attrCategory = attrCategory; }
+
+        public String getAttrName() { return attrName; }
+        public void setAttrName(String attrName) { this.attrName = attrName; }
     }
 }
 

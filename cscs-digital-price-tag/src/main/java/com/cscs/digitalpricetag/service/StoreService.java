@@ -144,14 +144,11 @@ public class StoreService {
                     .findFirst()
                     .orElseThrow(() -> new DragonEslException("Store not found: " + id, HttpStatus.NOT_FOUND));
 
-            String extId = store.getExternalStoreId();
-            if (extId == null || extId.isBlank()) {
-                throw new DragonEslException("Store must have an External ID to be updated via Dragon ESL API", HttpStatus.BAD_REQUEST);
-            }
+            String extId = store.getExternalStoreId() != null ? store.getExternalStoreId() : "";
 
             // 2. Prepare payload exactly as specified in Section 6.2
             Map<String, Object> body = new HashMap<>();
-            body.put("needToUpdateExternalStoreId", extId);
+            body.put("needToUpdateExternalStoreId", (request.getNeedToUpdateExternalStoreId() != null && !request.getNeedToUpdateExternalStoreId().isEmpty()) ? request.getNeedToUpdateExternalStoreId() : extId);
             body.put("storeName", request.getStoreName() != null ? request.getStoreName() : store.getStoreName());
             body.put("externalStoreId", request.getExternalStoreId() != null ? request.getExternalStoreId() : extId);
             body.put("contacts", request.getContacts() != null ? request.getContacts() : store.getContacts());
@@ -159,6 +156,21 @@ public class StoreService {
             body.put("mailbox", request.getMailbox() != null ? request.getMailbox() : store.getMailbox());
             body.put("address", request.getAddress() != null ? request.getAddress() : store.getAddress());
             body.put("comment", request.getComment() != null ? request.getComment() : "");
+
+            if (store.getId() != null) {
+                try {
+                    body.put("id", Long.parseLong(store.getId().trim()));
+                } catch (NumberFormatException e) {
+                    body.put("id", store.getId());
+                }
+            }
+            if (store.getStoreId() != null) {
+                try {
+                    body.put("storeId", Long.parseLong(store.getStoreId().trim()));
+                } catch (NumberFormatException e) {
+                    body.put("storeId", store.getStoreId());
+                }
+            }
 
             DragonStoreResponse response = dragonEslApiClient.post(
                     "/zk/store/update",

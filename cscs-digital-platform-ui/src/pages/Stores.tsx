@@ -50,6 +50,7 @@ const Stores: React.FC = () => {
     phone: '',
     mailbox: '',
     externalStoreId: '',
+    comment: '',
   });
 
   const fetchStores = async () => {
@@ -93,7 +94,7 @@ const Stores: React.FC = () => {
   const openCreateModal = () => {
     setIsEditing(false);
     setEditingId(null);
-    setFormData({ storeName: '', address: '', contacts: '', phone: '', mailbox: '', externalStoreId: '' });
+    setFormData({ storeName: '', address: '', contacts: '', phone: '', mailbox: '', externalStoreId: '', comment: '' });
     setIsModalOpen(true);
   };
 
@@ -107,6 +108,7 @@ const Stores: React.FC = () => {
       phone: store.phone || '',
       mailbox: store.mailbox || '',
       externalStoreId: store.externalStoreId || '',
+      comment: store.comment || '',
     });
     setIsModalOpen(true);
   };
@@ -419,10 +421,10 @@ const Stores: React.FC = () => {
                   className="glass-input" placeholder="e.g. Al Naseem Store / مثل متجر النسيم" />
               </div>
               <div className="form-group">
-                <label>Address / العنوان</label>
-                <input type="text" value={formData.address}
-                  onChange={e => setFormData({ ...formData, address: e.target.value })}
-                  className="glass-input" placeholder="Full store address / العنوان الكامل للمتجر" />
+                <label>External Store ID / معرف المتجر الخارجي</label>
+                <input type="text" value={formData.externalStoreId}
+                  onChange={e => setFormData({ ...formData, externalStoreId: e.target.value })}
+                  className="glass-input" placeholder="ERP Store Code / رمز المتجر في نظام ERP" />
               </div>
               <div className="form-row">
                 <div className="form-group">
@@ -438,19 +440,23 @@ const Stores: React.FC = () => {
                     className="glass-input" placeholder="+966... / ٠٠٩٦٦..." />
                 </div>
               </div>
-              <div className="form-row">
-                <div className="form-group">
-                  <label>Email / البريد الإلكتروني</label>
-                  <input type="text" value={formData.mailbox}
-                    onChange={e => setFormData({ ...formData, mailbox: e.target.value })}
-                    className="glass-input" placeholder="store@example.com / store@example.com" />
-                </div>
-                <div className="form-group">
-                  <label>External Store ID / معرف المتجر الخارجي</label>
-                  <input type="text" value={formData.externalStoreId}
-                    onChange={e => setFormData({ ...formData, externalStoreId: e.target.value })}
-                    className="glass-input" placeholder="ERP Store Code / رمز المتجر في نظام ERP" />
-                </div>
+              <div className="form-group">
+                <label>Email / البريد الإلكتروني</label>
+                <input type="email" value={formData.mailbox}
+                  onChange={e => setFormData({ ...formData, mailbox: e.target.value })}
+                  className="glass-input" placeholder="store@example.com" />
+              </div>
+              <div className="form-group">
+                <label>Address / العنوان</label>
+                <textarea value={formData.address}
+                  onChange={e => setFormData({ ...formData, address: e.target.value })}
+                  className="glass-input" rows={3} placeholder="Full store address / العنوان الكامل للمتجر" />
+              </div>
+              <div className="form-group">
+                <label>Comment / ملاحظات</label>
+                <textarea value={formData.comment}
+                  onChange={e => setFormData({ ...formData, comment: e.target.value })}
+                  className="glass-input" rows={2} placeholder="Additional notes / ملاحظات إضافية" />
               </div>
               <div className="modal-actions">
                 <button type="button" className="btn-secondary" onClick={() => setIsModalOpen(false)}>Cancel / إلغاء</button>
@@ -464,6 +470,11 @@ const Stores: React.FC = () => {
       )}
 
       <style>{`
+        .required-asterisk {
+          color: #ef4444;
+          margin-left: 2px;
+        }
+
         .stores-container {
           padding: 24px;
         }

@@ -152,7 +152,7 @@ const Users: React.FC = () => {
   const handleOpenCreateUser = () => {
     setIsEditingUser(false);
     setEditingUserId(null);
-    setUserFormData({ account: '', staffName: '', password: '', roleId: '' });
+    setUserFormData({ account: 'DG0358', staffName: '', password: '', roleId: '' });
     loadRolesDropdown();
     setIsUserModalOpen(true);
   };
@@ -647,7 +647,13 @@ const Users: React.FC = () => {
               </div>
 
               <div className="form-group">
-                <label>{isEditingUser ? 'New Password (Optional) / كلمة المرور الجديدة (اختياري)' : 'Password <span className="required-asterisk">*</span> / كلمة المرور <span className="required-asterisk">*</span>'}</label>
+                <label>
+                  {isEditingUser ? (
+                    <>New Password (Optional) / كلمة المرور الجديدة (اختياري)</>
+                  ) : (
+                    <>Password <span className="required-asterisk">*</span> / كلمة المرور <span className="required-asterisk">*</span></>
+                  )}
+                </label>
                 <div className="password-input-wrapper">
                   <Key size={16} className="pass-icon text-muted" />
                   <input 
@@ -748,6 +754,11 @@ const Users: React.FC = () => {
 
       {/* Styled Sheets */}
       <style>{`
+        .required-asterisk {
+          color: #ef4444;
+          margin-left: 2px;
+        }
+
         .users-page-container {
           padding: 24px;
           display: flex;

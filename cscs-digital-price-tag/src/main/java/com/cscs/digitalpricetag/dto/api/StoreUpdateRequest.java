@@ -14,6 +14,8 @@ public class StoreUpdateRequest {
     private String address = "";
     private String comment = "";
 
+    private String needToUpdateExternalStoreId = "";
+
     public String getStoreName() { return storeName; }
     public void setStoreName(String storeName) { this.storeName = storeName; }
 
@@ -34,4 +36,7 @@ public class StoreUpdateRequest {
 
     public String getComment() { return comment; }
     public void setComment(String comment) { this.comment = comment; }
+
+    public String getNeedToUpdateExternalStoreId() { return needToUpdateExternalStoreId; }
+    public void setNeedToUpdateExternalStoreId(String needToUpdateExternalStoreId) { this.needToUpdateExternalStoreId = needToUpdateExternalStoreId; }
 }

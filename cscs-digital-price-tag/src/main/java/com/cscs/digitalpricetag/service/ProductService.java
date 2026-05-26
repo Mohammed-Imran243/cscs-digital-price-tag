@@ -351,34 +351,35 @@ public class ProductService {
      * VERIFIED endpoint: DELETE /zk/item/businessDeleteItem/{id}
      * Removes product only from the specified store.
      */
-    public void deleteFromStore(String itemId) {
+    public void deleteFromStore(String itemId, String storeId, String barcode) {
         if (itemId == null || itemId.isBlank()) {
             throw new DragonEslException("Item ID is required for delete", HttpStatus.BAD_REQUEST);
         }
+        if (barcode == null || barcode.isBlank()) {
+            throw new DragonEslException("Barcode is required for delete", HttpStatus.BAD_REQUEST);
+        }
 
         try {
-            Map<?, ?> response = dragonEslApiClient.delete(
-                    "/zk/item/businessDeleteItem/" + itemId,
-                    Map.class
+            Long itemIdLong = Long.parseLong(itemId.trim());
+
+            // Dragon ESL requires List<String> of barcodes as request body
+            List<String> barcodeList = Collections.singletonList(barcode);
+
+            com.cscs.digitalpricetag.dto.dragon.DragonTemplateGenericResponse response = dragonEslApiClient.delete(
+                    "/zk/item/businessDeleteItem/" + itemIdLong,
+                    barcodeList,
+                    com.cscs.digitalpricetag.dto.dragon.DragonTemplateGenericResponse.class
             );
 
-            if (response == null) {
-                throw new DragonEslException("No response from Dragon ESL", HttpStatus.BAD_GATEWAY);
+            if (response != null) {
+                Integer code = response.getCode();
+                boolean codeOk = code != null && (code == 200 || code == 10000);
+                if (!response.isSuccess() && !codeOk) {
+                    throw new DragonEslException("Delete failed: " + response.getMessage(), HttpStatus.BAD_GATEWAY);
+                }
             }
 
-            log.info("Zkong deleteFromStore response: {}", response);
-
-            Object successObj = response.get("success");
-            boolean success = Boolean.TRUE.equals(successObj);
-            Object codeObj = response.get("code");
-            boolean codeOk = codeObj != null && (Integer.valueOf(10000).equals(codeObj) || Integer.valueOf(200).equals(codeObj));
-
-            if (!success && !codeOk) {
-                String msg = response.get("message") != null ? response.get("message").toString() : "Unknown error";
-                throw new DragonEslException("Store delete failed: " + msg, HttpStatus.BAD_GATEWAY);
-            }
-
-            log.info("Product {} deleted from store", itemId);
+            log.info("Product {} deleted from store {}", barcode, storeId);
 
         } catch (DragonEslException e) {
             throw e;
@@ -398,36 +399,31 @@ public class ProductService {
             throw new DragonEslException("Item ID is required for global delete", HttpStatus.BAD_REQUEST);
         }
 
-        Map<String, Object> body = new HashMap<>();
-        body.put("id", itemId);
-
         try {
-            Map<?, ?> response = dragonEslApiClient.delete(
+            Long numericId = Long.parseLong(itemId.trim());
+            Map<String, Object> body = new HashMap<>();
+            body.put("id", numericId);
+
+            com.cscs.digitalpricetag.dto.dragon.DragonTemplateGenericResponse response = dragonEslApiClient.delete(
                     "/zk/item/deleteItem",
                     body,
-                    Map.class
+                    com.cscs.digitalpricetag.dto.dragon.DragonTemplateGenericResponse.class
             );
 
-            if (response == null) {
-                throw new DragonEslException("No response from Dragon ESL", HttpStatus.BAD_GATEWAY);
-            }
-
-            log.info("Zkong deleteGlobal response: {}", response);
-
-            Object successObj = response.get("success");
-            boolean success = Boolean.TRUE.equals(successObj);
-            Object codeObj = response.get("code");
-            boolean codeOk = codeObj != null && (Integer.valueOf(10000).equals(codeObj) || Integer.valueOf(200).equals(codeObj));
-
-            if (!success && !codeOk) {
-                String msg = response.get("message") != null ? response.get("message").toString() : "Unknown error";
-                throw new DragonEslException("Global delete failed: " + msg, HttpStatus.BAD_GATEWAY);
+            if (response != null) {
+                Integer code = response.getCode();
+                boolean codeOk = code != null && (code == 200 || code == 10000);
+                if (!response.isSuccess() && !codeOk) {
+                    throw new DragonEslException("Delete failed: " + response.getMessage(), HttpStatus.BAD_GATEWAY);
+                }
             }
 
             log.info("Product {} deleted globally", itemId);
 
         } catch (DragonEslException e) {
             throw e;
+        } catch (NumberFormatException e) {
+            throw new DragonEslException("Item ID must be numeric: " + itemId, HttpStatus.BAD_REQUEST);
         } catch (Exception e) {
             log.error("Error deleting product globally: {}", e.getMessage());
             throw new DragonEslException("Global delete failed: " + e.getMessage(), HttpStatus.BAD_GATEWAY);
@@ -458,12 +454,12 @@ public class ProductService {
         r.setStoreId(raw.get("storeId") != null ? raw.get("storeId").toString() : null);
         r.setCategory(raw.get("categoryName") != null ? raw.get("categoryName").toString() : (raw.get("attrCategory") != null ? raw.get("attrCategory").toString() : null));
 
-        Object status = raw.get("status");
-        if (status != null && Integer.valueOf(1).equals(status)) {
-            r.setStatus("ACTIVE");
-        } else {
-            r.setStatus("INACTIVE");
-        }
+        Object bindState = raw.get("bindState");
+        Object state = raw.get("state");
+        String bindStr = bindState != null ? String.valueOf(bindState) : "";
+        String stateStr = state != null ? String.valueOf(state) : "";
+        boolean isActive = "1".equals(bindStr) || "1".equals(stateStr);
+        r.setStatus(isActive ? "ACTIVE" : "INACTIVE");
         return r;
     }
 }
