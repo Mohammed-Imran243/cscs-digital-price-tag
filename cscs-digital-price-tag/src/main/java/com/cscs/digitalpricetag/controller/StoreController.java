@@ -26,6 +26,7 @@ public class StoreController {
      * Returns a flat list of ALL stores for the merchant (no pagination).
      * Uses Dragon ESL: GET /zk/store/getAllStoresByMerchant
      */
+    @PreAuthorize("isAuthenticated()")
     @GetMapping("/all")
     public ResponseEntity<ApiResponse<java.util.List<StoreResponse>>> getAllStores() {
         java.util.List<StoreResponse> stores = storeService.getAllStores();

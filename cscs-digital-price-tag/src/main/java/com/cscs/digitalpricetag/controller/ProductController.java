@@ -28,6 +28,7 @@ public class ProductController {
         return ResponseEntity.ok(ApiResponse.success("Product created successfully", null));
     }
 
+    @PreAuthorize("isAuthenticated()")
     @GetMapping
     public ResponseEntity<ApiResponse<PagedResponse<ProductResponse>>> getProducts(
             @RequestParam String storeId,

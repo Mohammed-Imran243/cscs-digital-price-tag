@@ -31,4 +31,11 @@ public class AuthController {
         UserInfoResponse response = authService.getMe(bearerToken);
         return ResponseEntity.ok(ApiResponse.success("User info retrieved", response));
     }
+
+    @DeleteMapping("/logout")
+    public ResponseEntity<ApiResponse<Void>> logout() {
+        // JWT is stateless, so we just acknowledge the logout request.
+        // The client is responsible for discarding the token.
+        return ResponseEntity.ok(ApiResponse.success("Logged out successfully", null));
+    }
 }

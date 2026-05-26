@@ -470,13 +470,18 @@ const Templates: React.FC = () => {
       {/* Breadcrumbs & Navigation Section */}
       <div className="top-breadcrumb" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
         <div>
-          <span>Template management / إدارة القوالب</span> &gt; <span>
-            {activeMenuTab === 'merchant' && 'Merchant Template / قوالب التاجر'}
-            {activeMenuTab === 'store' && 'Store Template / قوالب المتجر'}
-            {activeMenuTab === 'business_icon' && 'Business Icon / أيقونة العمل'}
-            {activeMenuTab === 'store_icon' && 'Store Icon / أيقونة المتجر'}
-            {activeMenuTab === 'properties' && 'Template Properties / خصائص القوالب'}
-          </span>
+          <h2 style={{ fontSize: '24px', fontWeight: 700, color: 'var(--text-primary)', margin: '0 0 4px 0' }}>
+            Template Management / إدارة القوالب
+          </h2>
+          <div style={{ fontSize: '13px', color: 'var(--text-muted)' }}>
+            Templates &gt; <span style={{ color: 'var(--primary-color)', fontWeight: 600 }}>
+              {activeMenuTab === 'merchant' && 'Merchant Template / قوالب التاجر'}
+              {activeMenuTab === 'store' && 'Store Template / قوالب المتجر'}
+              {activeMenuTab === 'business_icon' && 'Business Icon / أيقونة العمل'}
+              {activeMenuTab === 'store_icon' && 'Store Icon / أيقونة المتجر'}
+              {activeMenuTab === 'properties' && 'Template Properties / خصائص القالب'}
+            </span>
+          </div>
         </div>
         <div className="templates-header-actions" style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
           <div className="global-search-bar">

@@ -426,7 +426,7 @@ const Devices: React.FC = () => {
 
       <div className="devices-page-header">
         <div>
-          <h2>Equipment Management / إدارة الأجهزة</h2>
+          <h2>Device Management / إدارة الأجهزة</h2>
         </div>
         <div className="devices-header-actions" style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
           <div className="global-search-bar">
