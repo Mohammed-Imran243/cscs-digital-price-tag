@@ -9,6 +9,9 @@ export interface Product {
   storeId: string;
   status: string;
   category?: string;
+  unit?: string;
+  attrCategory?: string;
+  attrName?: string;
 }
 
 export interface PagedResponse<T> {
@@ -44,9 +47,22 @@ export const createProduct = async (data: ProductCreateRequest): Promise<void> =
   unwrapResponse(response);
 };
 
-export const updateProductPrice = async (id: string, storeId: string, price: number): Promise<void> => {
+export const updateProductPrice = async (
+  id: string,
+  storeId: string,
+  productData: {
+    price: number;
+    itemTitle?: string;
+    productCode?: string;
+    barCode?: string;
+    originalPrice?: number;
+    attrCategory?: string;
+    attrName?: string;
+    unit?: string;
+  }
+): Promise<void> => {
   const params = new URLSearchParams({ storeId });
-  const response = await api.put(`/products/${id}/price?${params.toString()}`, { price });
+  const response = await api.put(`/products/${id}/price?${params.toString()}`, productData);
   unwrapResponse(response);
 };
 

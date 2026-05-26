@@ -26,6 +26,15 @@ const AuditLogs: React.FC = () => {
   const [logsLoading, setLogsLoading] = useState(false);
   const [error, setError] = useState('');
   
+  const [notification, setNotification] = useState<{ message: string; type: 'success' | 'error' | 'warning' } | null>(null);
+
+  const showNotification = (message: string, type: 'success' | 'error' | 'warning' = 'success') => {
+    setNotification({ message, type });
+    setTimeout(() => {
+      setNotification(null);
+    }, 3000);
+  };
+  
   // Filter states
   const [selectedStoreId, setSelectedStoreId] = useState('');
   const [startDate, setStartDate] = useState(() => {
@@ -95,6 +104,7 @@ const AuditLogs: React.FC = () => {
       setTotalCount(response.totalElements || 0);
     } catch (err: any) {
       setError(err.message || 'Failed to retrieve audit logs from Dragon ESL.');
+      showNotification('Failed to fetch logs. Please try again. / فشل جلب السجلات. يرجى المحاولة مرة أخرى.', 'error');
       console.error(err);
       setLogs([]);
       setTotalCount(0);
@@ -205,6 +215,15 @@ const AuditLogs: React.FC = () => {
               onChange={(e) => setSearchQuery(e.target.value)} 
             />
           </div>
+          <p className="text-muted">Query and review operation history logs from Dragon ESL / استعلام ومراجعة سجلات عمليات Dragon ESL</p>
+        </div>
+        {/* Toast Notification */}
+        {notification && (
+          <div className={`toast-notification ${notification.type} glass-card`}>
+            <span>{notification.message}</span>
+          </div>
+        )}
+        <div className="audit-logs-header-actions">
           <button 
             className="btn-secondary" 
             onClick={fetchLogs} 

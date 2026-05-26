@@ -59,4 +59,13 @@ public class ProductResponse {
 
     public String getCategory() { return category; }
     public void setCategory(String category) { this.category = category; }
+
+    private String attrCategory;
+    private String attrName;
+
+    public String getAttrCategory() { return attrCategory; }
+    public void setAttrCategory(String attrCategory) { this.attrCategory = attrCategory; }
+
+    public String getAttrName() { return attrName; }
+    public void setAttrName(String attrName) { this.attrName = attrName; }
 }

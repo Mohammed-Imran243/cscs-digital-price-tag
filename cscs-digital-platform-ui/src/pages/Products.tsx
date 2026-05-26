@@ -5,7 +5,7 @@ import { storeService } from '../services/storeService';
 import type { Store } from '../services/storeService';
 import { Search, Plus, Loader2, Trash2, Edit2, AlertTriangle } from 'lucide-react';
 import { getPaginationRange } from '../utils/paginationUtils';
-import { getTemplates, getCategories } from '../services/templateService';
+import { getTemplates, getCategories, getTemplateTypes } from '../services/templateService';
 
 interface SearchableDropdownProps {
   label: string;
@@ -14,6 +14,8 @@ interface SearchableDropdownProps {
   options: string[];
   placeholder: string;
   required?: boolean;
+  loading?: boolean;
+  error?: string | null;
 }
 
 const SearchableDropdown: React.FC<SearchableDropdownProps> = ({
@@ -22,7 +24,9 @@ const SearchableDropdown: React.FC<SearchableDropdownProps> = ({
   onChange,
   options,
   placeholder,
-  required = false
+  required = false,
+  loading = false,
+  error = null
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [search, setSearch] = useState('');
@@ -79,8 +83,18 @@ const SearchableDropdown: React.FC<SearchableDropdownProps> = ({
         />
         {isOpen && (
           <div className="dropdown-options-list">
-            {filteredOptions.length === 0 ? (
-              <div className="dropdown-no-options">No options found / لم يتم العثور على خيارات</div>
+            {loading ? (
+              <div className="dropdown-loading" style={{ padding: '10px 16px', color: 'var(--text-muted)', fontSize: '14px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <Loader2 className="animate-spin" size={16} /> Loading... / جاري التحميل...
+              </div>
+            ) : error ? (
+              <div className="dropdown-no-options text-danger" style={{ padding: '10px 16px', color: 'var(--danger-color)', fontSize: '14px' }}>
+                {error}
+              </div>
+            ) : filteredOptions.length === 0 ? (
+              <div className="dropdown-no-options" style={{ padding: '10px 16px', color: 'var(--text-muted)', fontSize: '14px' }}>
+                No options found / لم يتم العثور على خيارات
+              </div>
             ) : (
               filteredOptions.map((option) => (
                 <div
@@ -135,7 +149,7 @@ const Products: React.FC = () => {
     setNotification({ message, type });
     setTimeout(() => {
       setNotification(null);
-    }, 4500);
+    }, 3000);
   };
 
   // Debounce search query
@@ -153,26 +167,44 @@ const Products: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
   
-  const [editItem, setEditItem] = useState<{ id: string, price: string } | null>(null);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editingProduct, setEditingProduct] = useState<any>({
+    id: '',
+    productCode: '',
+    barCode: '',
+    itemTitle: '',
+    price: 0,
+    originalPrice: 0,
+    attrCategory: '',
+    attrName: '',
+    unit: '1PCS'
+  });
+  const [isUpdating, setIsUpdating] = useState(false);
   
   // New Product State
   const [newProduct, setNewProduct] = useState<ProductCreateRequest>({
     itemTitle: '',
+    productCode: '',
     barCode: '',
     price: 0,
     originalPrice: 0,
     storeId: '',
     unit: '1PCS',
-    attrCategory: 'General',
-    attrName: 'Normal Price'
+    attrCategory: '',
+    attrName: ''
   });
 
   // Fetch available templates for store
   const [availableTemplates, setAvailableTemplates] = useState<any[]>([]);
   const [apiCategories, setApiCategories] = useState<string[]>([]);
+  const [categoriesLoading, setCategoriesLoading] = useState<boolean>(false);
+  const [categoriesError, setCategoriesError] = useState<string | null>(null);
+  const [apiTemplateTypes, setApiTemplateTypes] = useState<string[]>([]);
+  const [typesLoading, setTypesLoading] = useState<boolean>(false);
+  const [typesError, setTypesError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (isModalOpen && selectedStore) {
+    if ((isModalOpen || isEditModalOpen) && selectedStore) {
       const fetchTemplates = async () => {
         try {
           const response = await getTemplates(0, 500, { storeId: selectedStore });
@@ -185,47 +217,50 @@ const Products: React.FC = () => {
       };
 
       const fetchCategories = async () => {
+        setCategoriesLoading(true);
+        setCategoriesError(null);
         try {
           const response = await getCategories();
           if (response && Array.isArray(response)) {
-            setApiCategories(response.map((c: any) => c.categoryName));
+            const mapped = response.map((c: any) => {
+              if (c && typeof c === 'object') {
+                return c.categoryName || '';
+              }
+              return String(c);
+            }).filter(Boolean);
+            setApiCategories(mapped);
           }
         } catch (err) {
           console.error('Failed to fetch categories', err);
+          setCategoriesError('Failed to load template categories. / فشل تحميل تصنيفات القوالب.');
+        } finally {
+          setCategoriesLoading(false);
+        }
+      };
+
+      const fetchTemplateTypesData = async () => {
+        setTypesLoading(true);
+        setTypesError(null);
+        try {
+          const response = await getTemplateTypes();
+          console.log('Template types loaded:', response);
+          if (response && Array.isArray(response)) {
+            setApiTemplateTypes(response);
+          }
+        } catch (err) {
+          console.error('Failed to fetch template types', err);
+          setTypesError('Failed to load template types. / فشل تحميل أنواع القوالب.');
+        } finally {
+          setTypesLoading(false);
         }
       };
 
       fetchTemplates();
       fetchCategories();
+      fetchTemplateTypesData();
     }
-  }, [isModalOpen, selectedStore]);
+  }, [isModalOpen, isEditModalOpen, selectedStore]);
 
-  const templateCategories = Array.from(
-    new Set([
-      'default',
-      'General',
-      'Thobe',
-      'ALL',
-      'K0001',
-      'K0002',
-      'K0003',
-      ...apiCategories,
-      ...availableTemplates.map((t) => t.attrCategory)
-    ])
-  ).filter(Boolean);
-
-  const templateNames = Array.from(
-    new Set([
-      'Normal Price',
-      'Promo Price',
-      'K0001',
-      'K0002',
-      'K0003',
-      ...availableTemplates
-        .filter((t) => !newProduct.attrCategory || (t.attrCategory || '').toLowerCase() === (newProduct.attrCategory || '').toLowerCase())
-        .map((t) => t.templateName)
-    ])
-  ).filter(Boolean);
 
   const handleTemplateNameChange = (name: string) => {
     setNewProduct(prev => {
@@ -240,6 +275,27 @@ const Products: React.FC = () => {
 
   const handleCategoryChange = (category: string) => {
     setNewProduct(prev => ({
+      ...prev,
+      attrCategory: category,
+      attrName: availableTemplates.some(t => (t.attrCategory || '').toLowerCase() === (category || '').toLowerCase() && t.templateName === prev.attrName)
+        ? prev.attrName
+        : ''
+    }));
+  };
+
+  const handleEditTemplateNameChange = (name: string) => {
+    setEditingProduct((prev: any) => {
+      const updated = { ...prev, attrName: name };
+      const matchedTemp = availableTemplates.find(t => t.templateName === name);
+      if (matchedTemp && matchedTemp.attrCategory) {
+        updated.attrCategory = matchedTemp.attrCategory;
+      }
+      return updated;
+    });
+  };
+
+  const handleEditCategoryChange = (category: string) => {
+    setEditingProduct((prev: any) => ({
       ...prev,
       attrCategory: category,
       attrName: availableTemplates.some(t => (t.attrCategory || '').toLowerCase() === (category || '').toLowerCase() && t.templateName === prev.attrName)
@@ -298,6 +354,28 @@ const Products: React.FC = () => {
 
   const handleCreateProduct = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!newProduct.barCode?.trim()) {
+      showNotification('Barcode is required / الرمز الشريطي مطلوب', 'error');
+      return;
+    }
+    if (!newProduct.itemTitle?.trim()) {
+      showNotification('Product name is required / اسم المنتج مطلوب', 'error');
+      return;
+    }
+    if (newProduct.price === undefined || newProduct.price === null || isNaN(newProduct.price)) {
+      showNotification('Selling price is required / سعر البيع مطلوب', 'error');
+      return;
+    }
+    if (!newProduct.attrCategory?.trim()) {
+      showNotification('Template category is required / تصنيف القالب مطلوب', 'error');
+      return;
+    }
+    if (!newProduct.attrName?.trim()) {
+      showNotification('Template type is required / نوع القالب مطلوب', 'error');
+      return;
+    }
+
     setIsCreating(true);
     try {
       await createProduct(newProduct);
@@ -305,15 +383,18 @@ const Products: React.FC = () => {
       setNewProduct({
         ...newProduct,
         itemTitle: '',
+        productCode: '',
         barCode: '',
         price: 0,
-        originalPrice: 0
+        originalPrice: 0,
+        attrCategory: '',
+        attrName: ''
       });
       fetchProducts();
-      showNotification('Product successfully created! / تم إنشاء المنتج بنجاح!', 'success');
+      showNotification('Product added successfully / تمت إضافة المنتج بنجاح', 'success');
     } catch (err: any) {
       console.error('Failed to create product', err);
-      showNotification(err.message || 'Failed to create product. / فشل إنشاء المنتج.', 'error');
+      showNotification('Failed to add product. Please try again. / فشل إضافة المنتج. يرجى المحاولة مرة أخرى.', 'error');
     } finally {
       setIsCreating(false);
     }
@@ -323,15 +404,15 @@ const Products: React.FC = () => {
     setConfirmDialog({
       isOpen: true,
       title: 'Delete Product From Store / حذف المنتج من المتجر',
-      message: `Are you sure you want to delete "${product.itemName}" (${product.barcode}) from this store only? / هل أنت متأكد من حذف "${product.itemName}" (${product.barcode}) من هذا المتجر فقط؟`,
+      message: 'This removes the product from this store only. Other stores are not affected. / سيزيل هذا المنتج من هذا المتجر فقط.',
       onConfirm: async () => {
         try {
-          await deleteProductFromStore(product.id, product.storeId, product.barcode);
+          await deleteProductFromStore(product.id, selectedStore, product.barcode);
           fetchProducts();
-          showNotification('Product deleted from store successfully! / تم حذف المنتج من المتجر بنجاح!', 'success');
+          showNotification('Product removed from store successfully / تم حذف المنتج من المتجر بنجاح', 'success');
         } catch (err: any) {
           console.error('Failed to delete product', err);
-          showNotification(err.message || 'Failed to delete product. / فشل حذف المنتج.', 'error');
+          showNotification('Failed to delete product from store. Please try again. / فشل حذف المنتج من المتجر. يرجى المحاولة مرة أخرى.', 'error');
         }
       }
     });
@@ -340,30 +421,80 @@ const Products: React.FC = () => {
   const handleDeleteGlobal = (product: Product) => {
     setConfirmDialog({
       isOpen: true,
-      title: 'Global Product Deletion / حذف المنتج نهائياً',
-      message: `Warning: Delete "${product.itemName}" (${product.barcode}) from all stores? This will break any price tags associated with it. / تحذير: حذف "${product.itemName}" (${product.barcode}) من جميع المتاجر؟ سيؤدي هذا إلى إلغاء ربط أي بطاقة سعر مرتبطة به.`,
+      title: 'Global Delete / حذف نهائي',
+      message: 'WARNING: This permanently deletes the product from ALL stores and breaks any bound ESL tags. This cannot be undone. / تحذير: سيحذف هذا المنتج نهائياً من جميع المتاجر.',
       onConfirm: async () => {
         try {
           await deleteProductGlobal(product.id, product.barcode);
           fetchProducts();
-          showNotification('Product deleted globally successfully! / تم حذف المنتج نهائياً بنجاح!', 'success');
+          showNotification('Product deleted globally successfully / تم حذف المنتج نهائياً بنجاح', 'success');
         } catch (err: any) {
-          console.error('Failed to delete product globally', err);
-          showNotification(err.message || 'Failed to delete product globally. / فشل حذف المنتج نهائياً.', 'error');
+          console.error('Failed to delete product', err);
+          showNotification('Failed to delete product globally. Please try again. / فشل حذف المنتج نهائياً. يرجى المحاولة مرة أخرى.', 'error');
         }
       }
     });
   };
 
-  const handleUpdatePrice = async (id: string, newPrice: string) => {
+  const openEditProductModal = (product: Product) => {
+    setEditingProduct({
+      id: product.id,
+      productCode: product.barcode,
+      barCode: product.barcode,
+      itemTitle: product.itemName,
+      price: parseFloat(product.price) || 0,
+      originalPrice: product.originalPrice ? parseFloat(product.originalPrice) : 0,
+      attrCategory: product.attrCategory || product.category || '',
+      attrName: product.attrName || '', 
+      unit: product.unit || '1PCS'
+    });
+    setIsEditModalOpen(true);
+  };
+
+  const handleUpdateProduct = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!editingProduct.barCode?.trim()) {
+      showNotification('Barcode is required / الرمز الشريطي مطلوب', 'error');
+      return;
+    }
+    if (!editingProduct.itemTitle?.trim()) {
+      showNotification('Product name is required / اسم المنتج مطلوب', 'error');
+      return;
+    }
+    if (editingProduct.price === undefined || editingProduct.price === null || isNaN(editingProduct.price)) {
+      showNotification('Selling price is required / سعر البيع مطلوب', 'error');
+      return;
+    }
+    if (!editingProduct.attrCategory?.trim()) {
+      showNotification('Template category is required / تصنيف القالب مطلوب', 'error');
+      return;
+    }
+    if (!editingProduct.attrName?.trim()) {
+      showNotification('Template type is required / نوع القالب مطلوب', 'error');
+      return;
+    }
+
+    setIsUpdating(true);
     try {
-      await updateProductPrice(id, selectedStore, parseFloat(newPrice));
-      setEditItem(null);
+      await updateProductPrice(editingProduct.id, selectedStore, {
+        price: editingProduct.price,
+        itemTitle: editingProduct.itemTitle,
+        productCode: editingProduct.productCode || editingProduct.barCode,
+        barCode: editingProduct.barCode,
+        originalPrice: editingProduct.originalPrice || 0,
+        attrCategory: editingProduct.attrCategory,
+        attrName: editingProduct.attrName,
+        unit: editingProduct.unit || '1PCS'
+      });
+      setIsEditModalOpen(false);
       fetchProducts();
-      showNotification('Price successfully updated! / تم تحديث السعر بنجاح!', 'success');
+      showNotification('Product updated successfully / تم تحديث المنتج بنجاح', 'success');
     } catch (err: any) {
-      console.error('Failed to update price', err);
-      showNotification(err.message || 'Failed to update price. / فشل تحديث السعر.', 'error');
+      console.error('Failed to update product', err);
+      showNotification('Failed to update product. Please try again. / فشل تحديث المنتج. يرجى المحاولة مرة أخرى.', 'error');
+    } finally {
+      setIsUpdating(false);
     }
   };
 
@@ -457,14 +588,6 @@ const Products: React.FC = () => {
                 <span className={`status-badge ${product.status ? product.status.toLowerCase() : 'inactive'}`}>
                   {product.status === 'active' || product.status === 'ONLINE' ? 'Active / نشط' : product.status === 'inactive' || product.status === 'OFFLINE' ? 'Inactive / غير نشط' : product.status || 'unknown'}
                 </span>
-                <div className="actions">
-                  <button className="icon-btn danger" onClick={() => handleDeleteStoreOnly(product)} title="Delete from Store / حذف من المتجر">
-                    <Trash2 size={16} />
-                  </button>
-                  <button className="icon-btn warning" onClick={() => handleDeleteGlobal(product)} title="Delete Globally / حذف نهائي">
-                    <AlertTriangle size={16} />
-                  </button>
-                </div>
               </div>
               
               <div className="product-details">
@@ -477,30 +600,39 @@ const Products: React.FC = () => {
                   <span style={{ userSelect: 'none' }}>Internal ID / الرقم الداخلي: </span>
                   <span style={{ userSelect: 'all' }}>{product.id}</span>
                 </p>
+                {product.unit && (
+                  <p className="product-code">
+                    <span style={{ userSelect: 'none' }}>Unit / الوحدة: </span>
+                    <span>{product.unit}</span>
+                  </p>
+                )}
                 
                 <div className="price-section">
-                  {editItem?.id === product.id ? (
-                    <div className="edit-price-form">
-                      <input 
-                        type="number" 
-                        value={editItem.price}
-                        onChange={(e) => setEditItem({ ...editItem, price: e.target.value })}
-                        className="glass-input"
-                        autoFocus
-                      />
-                      <button className="btn-primary sm" onClick={() => handleUpdatePrice(product.id, editItem.price)}>Save / حفظ</button>
-                      <button className="btn-secondary sm" onClick={() => setEditItem(null)}>Cancel / إلغاء</button>
-                    </div>
-                  ) : (
-                    <div className="price-display">
-                      <span className="currency">SAR / ر.س</span>
-                      <span className="amount">{product.price}</span>
-                      <button className="icon-btn edit" onClick={() => setEditItem({ id: product.id, price: product.price })}>
-                        <Edit2 size={14} />
-                      </button>
+                  <div className="price-display">
+                    <span className="currency">SAR / ر.س</span>
+                    <span className="amount">{product.price}</span>
+                  </div>
+                  {product.originalPrice && parseFloat(product.originalPrice) > 0 && (
+                    <div className="original-price-display" style={{ textDecoration: 'line-through', color: 'var(--text-muted)', fontSize: '13px', marginTop: '2px' }}>
+                      <span>Original: {product.originalPrice} SAR / الأصلي: {product.originalPrice} ر.س</span>
                     </div>
                   )}
                 </div>
+              </div>
+
+              <div className="product-card-actions">
+                <button className="btn-text edit-btn" onClick={() => openEditProductModal(product)}>
+                  <Edit2 size={16} />
+                  <span>Edit / تعديل</span>
+                </button>
+                <button className="btn-text disable-btn" onClick={() => handleDeleteStoreOnly(product)}>
+                  <Trash2 size={16} />
+                  <span>Delete from Store / حذف من المتجر</span>
+                </button>
+                <button className="btn-text delete-btn" onClick={() => handleDeleteGlobal(product)}>
+                  <AlertTriangle size={16} />
+                  <span>Global Delete / حذف نهائي</span>
+                </button>
               </div>
             </div>
           ))
@@ -590,43 +722,62 @@ const Products: React.FC = () => {
               <button className="close-btn" onClick={() => setIsModalOpen(false)}>&times;</button>
             </div>
             <form onSubmit={handleCreateProduct} className="create-form">
-              <div className="form-group">
-                <label>Item Title / اسم المنتج</label>
-                <input required type="text" value={newProduct.itemTitle} onChange={e => setNewProduct({...newProduct, itemTitle: e.target.value})} className="glass-input" />
+              <div className="form-row">
+                <div className="form-group">
+                  <label>Commodity Code / كود السلعة</label>
+                  <input type="text" value={newProduct.productCode} onChange={e => setNewProduct({...newProduct, productCode: e.target.value})} className="glass-input" />
+                </div>
+                <div className="form-group">
+                  <label>Commodity Barcode <span className="required-asterisk">*</span> / باركود السلعة <span className="required-asterisk">*</span></label>
+                  <input required type="text" value={newProduct.barCode} onChange={e => setNewProduct({...newProduct, barCode: e.target.value})} className="glass-input" />
+                </div>
               </div>
               <div className="form-group">
-                <label>Barcode / الباركود</label>
-                <input required type="text" value={newProduct.barCode} onChange={e => setNewProduct({...newProduct, barCode: e.target.value})} className="glass-input" />
+                <label>Commodity Name <span className="required-asterisk">*</span> / اسم السلعة <span className="required-asterisk">*</span></label>
+                <input required type="text" value={newProduct.itemTitle} onChange={e => setNewProduct({...newProduct, itemTitle: e.target.value})} className="glass-input" />
               </div>
               <div className="form-row">
                 <div className="form-group">
-                  <label>Price (SAR) / السعر (ر.س)</label>
-                  <input required type="number" step="0.01" value={newProduct.price || ''} onChange={e => setNewProduct({...newProduct, price: parseFloat(e.target.value)})} className="glass-input" />
+                  <label>Selling Price (SAR) <span className="required-asterisk">*</span> / سعر البيع (ر.س) <span className="required-asterisk">*</span></label>
+                  <input required type="number" step="0.01" value={newProduct.price === 0 && !newProduct.price ? '' : newProduct.price} onChange={e => setNewProduct({...newProduct, price: parseFloat(e.target.value)})} className="glass-input" />
                 </div>
                 <div className="form-group">
                   <label>Original Price / السعر الأصلي</label>
-                  <input type="number" step="0.01" value={newProduct.originalPrice || ''} onChange={e => setNewProduct({...newProduct, originalPrice: parseFloat(e.target.value)})} className="glass-input" />
+                  <input type="number" step="0.01" value={newProduct.originalPrice === 0 && !newProduct.originalPrice ? '' : newProduct.originalPrice} onChange={e => setNewProduct({...newProduct, originalPrice: parseFloat(e.target.value)})} className="glass-input" />
                 </div>
               </div>
               <div className="form-row">
                 <div className="form-group">
                   <SearchableDropdown
-                    label="Template Category / تصنيف القالب"
+                    required={true}
+                    label="Template Category * / تصنيف القالب *"
                     value={newProduct.attrCategory || ''}
-                    options={templateCategories}
+                    options={apiCategories}
+                    loading={categoriesLoading}
+                    error={categoriesError}
                     onChange={handleCategoryChange}
                     placeholder="Search template category... / ابحث عن تصنيف القالب..."
                   />
                 </div>
                 <div className="form-group">
                   <SearchableDropdown
-                    label="Template Type / نوع القالب"
+                    required={true}
+                    label="Template Type * / نوع القالب *"
                     value={newProduct.attrName || ''}
-                    options={templateNames}
+                    options={apiTemplateTypes}
+                    loading={typesLoading}
+                    error={typesError}
                     onChange={handleTemplateNameChange}
                     placeholder="Search template type... / ابحث عن نوع القالب..."
                   />
                 </div>
+              </div>
+              <div className="form-row">
+                <div className="form-group">
+                  <label>Unit / الوحدة</label>
+                  <input type="text" value={newProduct.unit} onChange={e => setNewProduct({...newProduct, unit: e.target.value})} className="glass-input" />
+                </div>
+                <div className="form-group" />
               </div>
               <div className="modal-actions">
                 <button type="button" className="btn-secondary" onClick={() => setIsModalOpen(false)}>Cancel / إلغاء</button>
@@ -639,7 +790,124 @@ const Products: React.FC = () => {
         </div>
       )}
 
+      {isEditModalOpen && (
+        <div className="modal-overlay">
+          <div className="modal-content glass-card">
+            <div className="modal-header">
+              <h3>Edit Product / تعديل المنتج</h3>
+              <button className="close-btn" onClick={() => setIsEditModalOpen(false)}>&times;</button>
+            </div>
+            <form onSubmit={handleUpdateProduct} className="create-form">
+              <div className="form-row">
+                <div className="form-group">
+                  <label>Commodity Code / كود السلعة</label>
+                  <input 
+                    type="text" 
+                    value={editingProduct.productCode} 
+                    onChange={e => setEditingProduct({...editingProduct, productCode: e.target.value})} 
+                    className="glass-input" 
+                  />
+                </div>
+                <div className="form-group">
+                  <label>Commodity Barcode <span className="required-asterisk">*</span> / باركود السلعة <span className="required-asterisk">*</span></label>
+                  <input 
+                    required 
+                    readOnly 
+                    type="text" 
+                    value={editingProduct.barCode} 
+                    className="glass-input readonly-input" 
+                    style={{ background: 'rgba(255,255,255,0.05)', color: 'var(--text-muted)', cursor: 'not-allowed' }}
+                  />
+                </div>
+              </div>
+              <div className="form-group">
+                <label>Commodity Name <span className="required-asterisk">*</span> / اسم السلعة <span className="required-asterisk">*</span></label>
+                <input 
+                  required 
+                  type="text" 
+                  value={editingProduct.itemTitle} 
+                  onChange={e => setEditingProduct({...editingProduct, itemTitle: e.target.value})} 
+                  className="glass-input" 
+                />
+              </div>
+              <div className="form-row">
+                <div className="form-group">
+                  <label>Selling Price (SAR) <span className="required-asterisk">*</span> / سعر البيع (ر.س) <span className="required-asterisk">*</span></label>
+                  <input 
+                    required 
+                    type="number" 
+                    step="0.01" 
+                    value={editingProduct.price === 0 && !editingProduct.price ? '' : editingProduct.price} 
+                    onChange={e => setEditingProduct({...editingProduct, price: parseFloat(e.target.value)})} 
+                    className="glass-input" 
+                  />
+                </div>
+                <div className="form-group">
+                  <label>Original Price / السعر الأصلي</label>
+                  <input 
+                    type="number" 
+                    step="0.01" 
+                    value={editingProduct.originalPrice === 0 && !editingProduct.originalPrice ? '' : editingProduct.originalPrice} 
+                    onChange={e => setEditingProduct({...editingProduct, originalPrice: parseFloat(e.target.value)})} 
+                    className="glass-input" 
+                  />
+                </div>
+              </div>
+              <div className="form-row">
+                <div className="form-group">
+                  <SearchableDropdown
+                    required={true}
+                    label="Template Category * / تصنيف القالب *"
+                    value={editingProduct.attrCategory || ''}
+                    options={apiCategories}
+                    loading={categoriesLoading}
+                    error={categoriesError}
+                    onChange={handleEditCategoryChange}
+                    placeholder="Search template category... / ابحث عن تصنيف القالب..."
+                  />
+                </div>
+                <div className="form-group">
+                  <SearchableDropdown
+                    required={true}
+                    label="Template Type * / نوع القالب *"
+                    value={editingProduct.attrName || ''}
+                    options={apiTemplateTypes}
+                    loading={typesLoading}
+                    error={typesError}
+                    onChange={handleEditTemplateNameChange}
+                    placeholder="Search template type... / ابحث عن نوع القالب..."
+                  />
+                </div>
+              </div>
+              <div className="form-row">
+                <div className="form-group">
+                  <label>Unit / الوحدة</label>
+                  <input 
+                    type="text" 
+                    value={editingProduct.unit} 
+                    onChange={e => setEditingProduct({...editingProduct, unit: e.target.value})} 
+                    className="glass-input" 
+                  />
+                </div>
+                <div className="form-group" />
+              </div>
+              <div className="modal-actions">
+                <button type="button" className="btn-secondary" onClick={() => setIsEditModalOpen(false)}>Cancel / إلغاء</button>
+                <button type="submit" className="btn-primary" disabled={isUpdating}>
+                  {isUpdating ? <Loader2 className="animate-spin" size={18} /> : 'Save Changes / حفظ التغييرات'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
       <style>{`
+        .required-asterisk {
+          color: #ef4444;
+          margin-left: 2px;
+        }
+
         .products-page {
           padding: 24px;
         }
@@ -650,7 +918,7 @@ const Products: React.FC = () => {
           right: 24px;
           padding: 16px 24px;
           border-radius: 8px;
-          z-index: 1100;
+          z-index: 9999;
           font-weight: 500;
           animation: slideIn 0.3s ease-out;
         }
@@ -771,26 +1039,52 @@ const Products: React.FC = () => {
           color: var(--text-muted);
         }
 
-        .actions {
+        .product-card-actions {
           display: flex;
-          gap: 8px;
+          gap: 12px;
+          padding-top: 16px;
+          border-top: 1px solid var(--glass-border);
+          margin-top: auto;
         }
 
-        .icon-btn {
-          background: transparent;
+        .btn-text {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          background: none;
           border: none;
+          color: var(--primary-color);
           cursor: pointer;
-          padding: 6px;
-          border-radius: 6px;
+          font-size: 13px;
+          font-weight: 600;
+          padding: 6px 12px;
+          border-radius: 8px;
           transition: background 0.2s;
         }
 
-        .icon-btn.edit { color: var(--primary-color); }
-        .icon-btn.danger { color: var(--danger-color); }
-        .icon-btn.warning { color: var(--warning-color); }
+        .btn-text:hover {
+          background: rgba(59, 130, 246, 0.1);
+        }
 
-        .icon-btn:hover {
-          background: rgba(255, 255, 255, 0.1);
+        .btn-text.edit-btn {
+          color: var(--primary-color);
+        }
+        .btn-text.edit-btn:hover {
+          background: rgba(59, 130, 246, 0.1);
+        }
+
+        .btn-text.disable-btn {
+          color: #f59e0b;
+        }
+        .btn-text.disable-btn:hover {
+          background: rgba(245, 158, 11, 0.1);
+        }
+
+        .btn-text.delete-btn {
+          color: var(--danger-color);
+        }
+        .btn-text.delete-btn:hover {
+          background: rgba(239, 68, 68, 0.1);
         }
 
         .product-title {
@@ -1044,6 +1338,7 @@ const Products: React.FC = () => {
         .dropdown-input {
           width: 100%;
           box-sizing: border-box;
+          padding-right: 40px !important;
         }
 
         .dropdown-options-list {

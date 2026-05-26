@@ -50,7 +50,7 @@ const Users: React.FC = () => {
     setNotification({ message, type });
     setTimeout(() => {
       setNotification(null);
-    }, 4500);
+    }, 3000);
   };
 
   useEffect(() => {
@@ -152,7 +152,7 @@ const Users: React.FC = () => {
   const handleOpenCreateUser = () => {
     setIsEditingUser(false);
     setEditingUserId(null);
-    setUserFormData({ account: '', staffName: '', password: '', roleId: '' });
+    setUserFormData({ account: 'DG0358', staffName: '', password: '', roleId: '' });
     loadRolesDropdown();
     setIsUserModalOpen(true);
   };
@@ -186,7 +186,7 @@ const Users: React.FC = () => {
 
       if (isEditingUser && editingUserId) {
         await userService.updateUser(editingUserId, payload);
-        showNotification('User updated successfully! / تم تحديث المستخدم بنجاح!', 'success');
+        showNotification('User updated successfully / تم تحديث المستخدم بنجاح', 'success');
       } else {
         if (!userFormData.password) {
           showNotification('Password is required for new users / كلمة المرور مطلوبة للمستخدمين الجدد', 'error');
@@ -194,13 +194,13 @@ const Users: React.FC = () => {
           return;
         }
         await userService.addUser(payload);
-        showNotification('User created successfully! / تم إنشاء المستخدم بنجاح!', 'success');
+        showNotification('User added successfully / تمت إضافة المستخدم بنجاح', 'success');
       }
       
       setIsUserModalOpen(false);
       fetchData();
     } catch (err: any) {
-      showNotification(err.message || `Failed to ${isEditingUser ? 'update / تحديث' : 'create / إنشاء'} user / المستخدم`, 'error');
+      showNotification(`Failed to ${isEditingUser ? 'update' : 'add'} user. Please try again. / فشل ${isEditingUser ? 'تحديث' : 'إضافة'} المستخدم. يرجى المحاولة مرة أخرى.`, 'error');
       console.error(err);
     } finally {
       setFormLoading(false);
@@ -216,9 +216,9 @@ const Users: React.FC = () => {
         try {
           await userService.deleteUser(id);
           fetchData();
-          showNotification('User deleted successfully. / تم حذف المستخدم بنجاح.', 'success');
+          showNotification('User deleted successfully / تم حذف المستخدم بنجاح', 'success');
         } catch (err: any) {
-          showNotification(err.message || 'Failed to delete user. / فشل حذف المستخدم.', 'error');
+          showNotification('Failed to delete user. Please try again. / فشل حذف المستخدم. يرجى المحاولة مرة أخرى.', 'error');
           console.error(err);
         }
       }
@@ -273,15 +273,15 @@ const Users: React.FC = () => {
     try {
       if (isEditingRole && editingRoleId) {
         await userService.updateRole(editingRoleId, roleFormData);
-        showNotification('Role updated successfully! / تم تحديث الدور بنجاح!', 'success');
+        showNotification('Role updated successfully / تم تحديث الدور بنجاح', 'success');
       } else {
         await userService.addRole(roleFormData);
-        showNotification('Role created successfully! / تم إنشاء الدور بنجاح!', 'success');
+        showNotification('Role added successfully / تمت إضافة الدور بنجاح', 'success');
       }
       setIsRoleModalOpen(false);
       fetchData();
     } catch (err: any) {
-      showNotification(err.message || `Failed to ${isEditingRole ? 'update / تحديث' : 'create / إنشاء'} role / الدور`, 'error');
+      showNotification(`Failed to ${isEditingRole ? 'update' : 'add'} role. Please try again. / فشل ${isEditingRole ? 'تحديث' : 'إضافة'} الدور. يرجى المحاولة مرة أخرى.`, 'error');
       console.error(err);
     } finally {
       setFormLoading(false);
@@ -297,9 +297,9 @@ const Users: React.FC = () => {
         try {
           await userService.deleteRole(id);
           fetchData();
-          showNotification('Role deleted successfully. / تم حذف الدور بنجاح.', 'success');
+          showNotification('Role deleted successfully / تم حذف الدور بنجاح', 'success');
         } catch (err: any) {
-          showNotification(err.message || 'Failed to delete role. Ensure no users are assigned to this role. / فشل حذف الدور. تأكد من عدم وجود مستخدمين معينين لهذا الدور.', 'error');
+          showNotification('Failed to delete role. Please try again. / فشل حذف الدور. يرجى المحاولة مرة أخرى.', 'error');
           console.error(err);
         }
       }
@@ -647,7 +647,13 @@ const Users: React.FC = () => {
               </div>
 
               <div className="form-group">
-                <label>{isEditingUser ? 'New Password (Optional) / كلمة المرور الجديدة (اختياري)' : 'Password <span className="required-asterisk">*</span> / كلمة المرور <span className="required-asterisk">*</span>'}</label>
+                <label>
+                  {isEditingUser ? (
+                    <>New Password (Optional) / كلمة المرور الجديدة (اختياري)</>
+                  ) : (
+                    <>Password <span className="required-asterisk">*</span> / كلمة المرور <span className="required-asterisk">*</span></>
+                  )}
+                </label>
                 <div className="password-input-wrapper">
                   <Key size={16} className="pass-icon text-muted" />
                   <input 
@@ -748,6 +754,11 @@ const Users: React.FC = () => {
 
       {/* Styled Sheets */}
       <style>{`
+        .required-asterisk {
+          color: #ef4444;
+          margin-left: 2px;
+        }
+
         .users-page-container {
           padding: 24px;
           display: flex;
@@ -761,7 +772,7 @@ const Users: React.FC = () => {
           right: 24px;
           padding: 16px 24px;
           border-radius: 8px;
-          z-index: 1100;
+          z-index: 9999;
           font-weight: 500;
           animation: slideIn 0.3s ease-out;
         }

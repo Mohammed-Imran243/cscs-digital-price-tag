@@ -31,7 +31,7 @@ const Stores: React.FC = () => {
     setNotification({ message, type });
     setTimeout(() => {
       setNotification(null);
-    }, 4500);
+    }, 3000);
   };
 
   useEffect(() => {
@@ -50,6 +50,7 @@ const Stores: React.FC = () => {
     phone: '',
     mailbox: '',
     externalStoreId: '',
+    comment: '',
   });
 
   const fetchStores = async () => {
@@ -93,7 +94,7 @@ const Stores: React.FC = () => {
   const openCreateModal = () => {
     setIsEditing(false);
     setEditingId(null);
-    setFormData({ storeName: '', address: '', contacts: '', phone: '', mailbox: '', externalStoreId: '' });
+    setFormData({ storeName: '', address: '', contacts: '', phone: '', mailbox: '', externalStoreId: '', comment: '' });
     setIsModalOpen(true);
   };
 
@@ -107,6 +108,7 @@ const Stores: React.FC = () => {
       phone: store.phone || '',
       mailbox: store.mailbox || '',
       externalStoreId: store.externalStoreId || '',
+      comment: store.comment || '',
     });
     setIsModalOpen(true);
   };
@@ -117,15 +119,15 @@ const Stores: React.FC = () => {
     try {
       if (isEditing && editingId) {
         await storeService.updateStore(editingId, formData);
-        showNotification('Store updated successfully! / تم تحديث المتجر بنجاح!', 'success');
+        showNotification('Store updated successfully / تم تحديث المتجر بنجاح', 'success');
       } else {
         await storeService.addStore(formData);
-        showNotification('Store created successfully! / تم إنشاء المتجر بنجاح!', 'success');
+        showNotification('Store added successfully / تمت إضافة المتجر بنجاح', 'success');
       }
       setIsModalOpen(false);
       fetchStores();
     } catch (err: any) {
-      showNotification(err.message || `Failed to ${isEditing ? 'update' : 'create'} store / فشل في ${isEditing ? 'تعديل' : 'إنشاء'} المتجر`, 'error');
+      showNotification(`Failed to ${isEditing ? 'update' : 'add'} store. Please try again. / فشل ${isEditing ? 'تحديث' : 'إضافة'} المتجر. يرجى المحاولة مرة أخرى.`, 'error');
       console.error(err);
     } finally {
       setFormLoading(false);
@@ -141,9 +143,9 @@ const Stores: React.FC = () => {
         try {
           await storeService.disableStore(id);
           fetchStores();
-          showNotification('Store successfully disabled. / تم تعطيل المتجر بنجاح.', 'success');
+          showNotification('Store disabled successfully / تم تعطيل المتجر بنجاح', 'success');
         } catch (err: any) {
-          showNotification(err.message || 'Failed to disable store / فشل في تعطيل المتجر', 'error');
+          showNotification('Failed to disable store. Please try again. / فشل تعطيل المتجر. يرجى المحاولة مرة أخرى.', 'error');
           console.error(err);
         }
       }
@@ -159,9 +161,9 @@ const Stores: React.FC = () => {
         try {
           await storeService.enableStore(id);
           fetchStores();
-          showNotification('Store successfully enabled. / تم تفعيل المتجر بنجاح.', 'success');
+          showNotification('Store enabled successfully / تم تفعيل المتجر بنجاح', 'success');
         } catch (err: any) {
-          showNotification(err.message || 'Failed to enable store / فشل في تفعيل المتجر', 'error');
+          showNotification('Failed to enable store. Please try again. / فشل تفعيل المتجر. يرجى المحاولة مرة أخرى.', 'error');
           console.error(err);
         }
       }
@@ -177,9 +179,9 @@ const Stores: React.FC = () => {
         try {
           await storeService.deleteStore(id);
           fetchStores();
-          showNotification('Store successfully deleted. / تم حذف المتجر بنجاح.', 'success');
+          showNotification('Store deleted successfully / تم حذف المتجر بنجاح', 'success');
         } catch (err: any) {
-          showNotification(err.message || 'Failed to delete store / فشل في حذف المتجر', 'error');
+          showNotification('Failed to delete store. Please try again. / فشل حذف المتجر. يرجى المحاولة مرة أخرى.', 'error');
           console.error(err);
         }
       }
@@ -417,10 +419,10 @@ const Stores: React.FC = () => {
                   className="glass-input" placeholder="e.g. Al Naseem Store / مثل متجر النسيم" />
               </div>
               <div className="form-group">
-                <label>Address / العنوان</label>
-                <input type="text" value={formData.address}
-                  onChange={e => setFormData({ ...formData, address: e.target.value })}
-                  className="glass-input" placeholder="Full store address / العنوان الكامل للمتجر" />
+                <label>External Store ID / معرف المتجر الخارجي</label>
+                <input type="text" value={formData.externalStoreId}
+                  onChange={e => setFormData({ ...formData, externalStoreId: e.target.value })}
+                  className="glass-input" placeholder="ERP Store Code / رمز المتجر في نظام ERP" />
               </div>
               <div className="form-row">
                 <div className="form-group">
@@ -436,19 +438,23 @@ const Stores: React.FC = () => {
                     className="glass-input" placeholder="+966... / ٠٠٩٦٦..." />
                 </div>
               </div>
-              <div className="form-row">
-                <div className="form-group">
-                  <label>Email / البريد الإلكتروني</label>
-                  <input type="text" value={formData.mailbox}
-                    onChange={e => setFormData({ ...formData, mailbox: e.target.value })}
-                    className="glass-input" placeholder="store@example.com / store@example.com" />
-                </div>
-                <div className="form-group">
-                  <label>External Store ID / معرف المتجر الخارجي</label>
-                  <input type="text" value={formData.externalStoreId}
-                    onChange={e => setFormData({ ...formData, externalStoreId: e.target.value })}
-                    className="glass-input" placeholder="ERP Store Code / رمز المتجر في نظام ERP" />
-                </div>
+              <div className="form-group">
+                <label>Email / البريد الإلكتروني</label>
+                <input type="email" value={formData.mailbox}
+                  onChange={e => setFormData({ ...formData, mailbox: e.target.value })}
+                  className="glass-input" placeholder="store@example.com" />
+              </div>
+              <div className="form-group">
+                <label>Address / العنوان</label>
+                <textarea value={formData.address}
+                  onChange={e => setFormData({ ...formData, address: e.target.value })}
+                  className="glass-input" rows={3} placeholder="Full store address / العنوان الكامل للمتجر" />
+              </div>
+              <div className="form-group">
+                <label>Comment / ملاحظات</label>
+                <textarea value={formData.comment}
+                  onChange={e => setFormData({ ...formData, comment: e.target.value })}
+                  className="glass-input" rows={2} placeholder="Additional notes / ملاحظات إضافية" />
               </div>
               <div className="modal-actions">
                 <button type="button" className="btn-secondary" onClick={() => setIsModalOpen(false)}>Cancel / إلغاء</button>
@@ -462,6 +468,11 @@ const Stores: React.FC = () => {
       )}
 
       <style>{`
+        .required-asterisk {
+          color: #ef4444;
+          margin-left: 2px;
+        }
+
         .stores-container {
           padding: 24px;
         }
@@ -472,7 +483,7 @@ const Stores: React.FC = () => {
           right: 24px;
           padding: 16px 24px;
           border-radius: 8px;
-          z-index: 1100;
+          z-index: 9999;
           font-weight: 500;
           animation: slideIn 0.3s ease-out;
         }

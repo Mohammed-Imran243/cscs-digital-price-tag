@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Store, Package, FileText, Activity, RefreshCw, Wifi, WifiOff, AlertTriangle, CheckCircle } from 'lucide-react';
+import { Store, Package, FileText, RefreshCw, Wifi, WifiOff, AlertTriangle, CheckCircle } from 'lucide-react';
 import { storeService } from '../services/storeService';
 import type { Store as StoreType } from '../services/storeService';
 import { getProducts } from '../services/productService';
@@ -191,12 +191,7 @@ const Dashboard: React.FC = () => {
   const formatCount = (n: number | null) =>
     n === null ? '—' : n.toLocaleString();
 
-  const timeSince = (date: Date) => {
-    const diff = Math.floor((Date.now() - date.getTime()) / 1000);
-    if (diff < 60) return `${diff}s ago / منذ ${diff} ثانية`;
-    const mins = Math.floor(diff / 60);
-    return `${mins}m ago / منذ ${mins} دقيقة`;
-  };
+
 
   return (
     <div className="dashboard-page">
