@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Search, Shield, User as UserIcon, Edit2, Trash2, Key, Calendar, RefreshCw, Loader2, X, CheckSquare, Square, Info } from 'lucide-react';
+import { Plus, Search, Shield, User as UserIcon, Edit2, Trash2, Key, Calendar, RefreshCw, Loader2, X, CheckSquare, Square, Info, ChevronDown, ChevronRight, MinusSquare } from 'lucide-react';
 import { userService } from '../services/userService';
-import type { User, Role } from '../services/userService';
+import type { User, Role, PermissionMenu } from '../services/userService';
 import { getPaginationRange } from '../utils/paginationUtils';
 
 const AVAILABLE_PERMISSIONS = [
@@ -16,6 +16,35 @@ const AVAILABLE_PERMISSIONS = [
   { id: 309, name: 'Dashboard Statistics / إحصائيات لوحة التحكم', code: 'statistics' },
   { id: 224, name: 'Material Assets / الأصول والمواد', code: 'material' },
 ];
+
+// Helper to sort permission menu items in depth-first hierarchical order
+const getSortedTreeList = (permissions: PermissionMenu[]): PermissionMenu[] => {
+  const ids = new Set(permissions.map(p => p.id));
+  const roots = permissions.filter(p => !p.parentId || p.parentId === 0 || !ids.has(p.parentId));
+  const childrenMap = new Map<number, PermissionMenu[]>();
+  
+  permissions.forEach(p => {
+    if (p.parentId && p.parentId !== 0 && ids.has(p.parentId)) {
+      if (!childrenMap.has(p.parentId)) {
+        childrenMap.set(p.parentId, []);
+      }
+      childrenMap.get(p.parentId)!.push(p);
+    }
+  });
+
+  const result: PermissionMenu[] = [];
+  const traverse = (node: PermissionMenu) => {
+    result.push(node);
+    const children = childrenMap.get(node.id) || [];
+    children.sort((a, b) => a.id - b.id);
+    children.forEach(child => traverse(child));
+  };
+
+  roots.sort((a, b) => a.id - b.id);
+  roots.forEach(root => traverse(root));
+  
+  return result;
+};
 
 const Users: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'users' | 'roles'>('users');
@@ -82,6 +111,103 @@ const Users: React.FC = () => {
     roleName: '',
     menuIdList: [],
   });
+  const [availablePermissions, setAvailablePermissions] = useState<PermissionMenu[]>([]);
+  const [permissionsLoading, setPermissionsLoading] = useState(false);
+  const [expandedMenuIds, setExpandedMenuIds] = useState<Record<number, boolean>>({});
+
+  const normalizePermissionItems = (data: any): PermissionMenu[] => {
+    if (!data) {
+      return [];
+    }
+
+    const list = Array.isArray(data?.list)
+      ? data.list
+      : Array.isArray(data?.menuList)
+        ? data.menuList
+        : Array.isArray(data)
+          ? data
+          : [];
+
+    return list.map((item: any) => ({
+      id: Number(item.id),
+      menuName: String(item.menuName || item.name || item.title || `Permission ${item.id}`),
+      level: Number(item.level ?? item.levelNo ?? 0),
+      parentId: item.pid != null ? Number(item.pid) : (item.parentId != null ? Number(item.parentId) : undefined),
+      zkUrl: item.zkUrl || item.url || item.path || undefined,
+    }));
+  };
+
+  const loadPermissions = async (roleId?: string | number) => {
+    setPermissionsLoading(true);
+    try {
+      const permissionsData = await userService.getPermissions(roleId);
+      const normalized = normalizePermissionItems(permissionsData);
+      setAvailablePermissions(normalized);
+      return normalized;
+    } catch (err) {
+      console.error('Failed to load permission tree from Dragon ESL, falling back to static permissions', err);
+      const fallbackList: PermissionMenu[] = AVAILABLE_PERMISSIONS.map(item => ({
+        id: item.id,
+        menuName: item.name,
+        level: 1,
+        parentId: 0,
+      }));
+      setAvailablePermissions(fallbackList);
+      return fallbackList;
+    } finally {
+      setPermissionsLoading(false);
+    }
+  };
+
+  const getDescendantIds = (id: number, items: PermissionMenu[]) => {
+    const children = items.filter(item => item.parentId === id);
+    if (!children.length) {
+      return [];
+    }
+    return children.reduce<number[]>((acc, child) => {
+      acc.push(child.id);
+      acc.push(...getDescendantIds(child.id, items));
+      return acc;
+    }, []);
+  };
+
+  const getAncestorIds = (id: number, items: PermissionMenu[]): number[] => {
+    const item = items.find(entry => entry.id === id);
+    if (!item || !item.parentId || item.parentId === 0) {
+      return [];
+    }
+    return [item.parentId, ...getAncestorIds(item.parentId, items)];
+  };
+
+  // Helper to determine if a menu item should be visible based on expanded state
+  const isMenuVisible = (perm: PermissionMenu): boolean => {
+    if (!perm.parentId || perm.parentId === 0) {
+      return true;
+    }
+    const parentExpanded = expandedMenuIds[perm.parentId];
+    if (!parentExpanded) {
+      return false;
+    }
+    const parent = availablePermissions.find(p => p.id === perm.parentId);
+    if (!parent) {
+      return false;
+    }
+    return isMenuVisible(parent);
+  };
+
+  // Auto-expand all parent menus upon loading
+  useEffect(() => {
+    if (availablePermissions.length > 0) {
+      const initialExpanded: Record<number, boolean> = {};
+      availablePermissions.forEach(perm => {
+        const hasChildren = availablePermissions.some(child => child.parentId === perm.id);
+        if (hasChildren) {
+          initialExpanded[perm.id] = true;
+        }
+      });
+      setExpandedMenuIds(initialExpanded);
+    }
+  }, [availablePermissions]);
 
   const fetchData = async () => {
     setLoading(true);
@@ -115,6 +241,7 @@ const Users: React.FC = () => {
           roleName: r.roleName || r.name || 'Unnamed Role / دور غير مسمى',
           merchantId: r.merchantId || '1775639851383',
           createTime: r.createTime || 'Shared / مشترك',
+          _pending: r._pending === true || r.id === -1,
         }));
         setRoles(mappedRoles);
       }
@@ -136,12 +263,14 @@ const Users: React.FC = () => {
       const rolesRes = await userService.listRoles(1, 100);
       const rawData = rolesRes;
       const rolesList = Array.isArray(rawData) ? rawData : (rawData?.list || []);
-      const mappedRoles = rolesList.map((r: any) => ({
-        id: r.id,
-        roleName: r.roleName || r.name || 'Unnamed Role / دور غير مسمى',
-        merchantId: r.merchantId || '1775639851383',
-        createTime: r.createTime || 'Shared / مشترك',
-      }));
+      const mappedRoles = rolesList
+        .filter((r: any) => r.id !== -1 && r._pending !== true) // exclude pending roles not yet propagated to ZKong
+        .map((r: any) => ({
+          id: r.id,
+          roleName: r.roleName || r.name || 'Unnamed Role / دور غير مسمى',
+          merchantId: r.merchantId || '1775639851383',
+          createTime: r.createTime || 'Shared / مشترك',
+        }));
       setRoles(mappedRoles);
     } catch (err) {
       console.error('Failed to load roles for dropdown', err);
@@ -226,44 +355,60 @@ const Users: React.FC = () => {
   };
 
   // Role Actions
-  const handleOpenCreateRole = () => {
+  const handleOpenCreateRole = async () => {
     setIsEditingRole(false);
     setEditingRoleId(null);
     setRoleFormData({ roleName: '', menuIdList: [] });
+    await loadPermissions(3);
     setIsRoleModalOpen(true);
   };
 
   const handleOpenEditRole = async (role: Role) => {
     setIsEditingRole(true);
     setEditingRoleId(role.id || null);
-    
-    // Fetch detailed permissions for this role
+    setRoleFormData({ roleName: role.roleName || '', menuIdList: [] });
+    const basePermissions = await loadPermissions(3);
+
     try {
       const permissionsData = await userService.getPermissions(role.id);
-      const activeIds = (permissionsData?.list || []).map((m: any) => m.id);
+      const existingIds = normalizePermissionItems(permissionsData).map((m: any) => m.id);
       setRoleFormData({
         roleName: role.roleName || '',
-        menuIdList: activeIds,
+        menuIdList: existingIds,
       });
     } catch (err) {
+      console.error('Failed to load selected permissions for role', err);
       setRoleFormData({
         roleName: role.roleName || '',
         menuIdList: role.menuIdList || [],
       });
     }
-    
+
+    if (!basePermissions.length) {
+      await loadPermissions(3);
+    }
     setIsRoleModalOpen(true);
   };
 
   const handleTogglePermission = (id: number) => {
     setRoleFormData(prev => {
       const alreadyChecked = prev.menuIdList.includes(id);
-      return {
-        ...prev,
-        menuIdList: alreadyChecked
-          ? prev.menuIdList.filter(permId => permId !== id)
-          : [...prev.menuIdList, id]
-      };
+      if (alreadyChecked) {
+        // Unchecking: uncheck this item and all its descendants
+        const descendants = getDescendantIds(id, availablePermissions);
+        const toRemove = [id, ...descendants];
+        return {
+          ...prev,
+          menuIdList: prev.menuIdList.filter(permId => !toRemove.includes(permId)),
+        };
+      } else {
+        // Checking: check this item and all its ancestors
+        const ancestors = getAncestorIds(id, availablePermissions);
+        return {
+          ...prev,
+          menuIdList: Array.from(new Set([...prev.menuIdList, id, ...ancestors])),
+        };
+      }
     });
   };
 
@@ -575,14 +720,19 @@ const Users: React.FC = () => {
         ) : (
           <div className="roles-grid">
             {filteredRoles.map(role => (
-              <div key={role.id} className="role-card glass-card">
+              <div key={role.id} className={`role-card glass-card${role._pending ? ' role-card-pending' : ''}`}>
                 <div className="role-card-header">
                   <div className="role-card-icon">
                     <Shield size={24} />
                   </div>
                   <div>
-                    <h3>{role.roleName}</h3>
-                    <span className="role-card-subtitle">ID: {role.id}</span>
+                    <h3>
+                      {role.roleName}
+                      {role._pending && (
+                        <span className="role-pending-badge">Syncing... / جاري المزامنة</span>
+                      )}
+                    </h3>
+                    <span className="role-card-subtitle">ID: {role._pending ? 'Syncing... / جاري' : role.id}</span>
                   </div>
                 </div>
                 
@@ -598,12 +748,18 @@ const Users: React.FC = () => {
                 </div>
 
                 <div className="role-card-actions">
-                  <button className="btn-text" onClick={() => handleOpenEditRole(role)}>
-                    <Edit2 size={15} /> Edit Role / تعديل الدور
-                  </button>
-                  <button className="btn-text danger" onClick={() => role.id && handleRoleDelete(role.id)}>
-                    <Trash2 size={15} /> Delete / حذف
-                  </button>
+                  {role._pending ? (
+                    <span className="role-syncing-note">Waiting for ZKong sync... / في انتظار المزامنة</span>
+                  ) : (
+                    <>
+                      <button className="btn-text" onClick={() => handleOpenEditRole(role)}>
+                        <Edit2 size={15} /> Edit Role / تعديل الدور
+                      </button>
+                      <button className="btn-text danger" onClick={() => role.id && handleRoleDelete(role.id)}>
+                        <Trash2 size={15} /> Delete / حذف
+                      </button>
+                    </>
+                  )}
                 </div>
               </div>
             ))}
@@ -719,26 +875,83 @@ const Users: React.FC = () => {
                 <label>Functional Authority (Menu Access Permissions) / الصلاحية الوظيفية (صلاحيات الوصول للقائمة)</label>
                 <p className="permissions-help text-xs text-muted">Select the specific pages and features that users with this role can access. / اختر الصفحات والميزات المحددة التي يمكن للمستخدمين الذين يمتلكون هذا الدور الوصول إليها.</p>
                 
-                <div className="permissions-grid">
-                  {AVAILABLE_PERMISSIONS.map(perm => {
-                    const isChecked = roleFormData.menuIdList.includes(perm.id);
-                    return (
-                      <div 
-                        key={perm.id} 
-                        className={`permission-item glass-card ${isChecked ? 'selected' : ''}`}
-                        onClick={() => handleTogglePermission(perm.id)}
-                      >
-                        <div className="perm-checkbox">
-                          {isChecked ? <CheckSquare size={18} className="text-primary" /> : <Square size={18} />}
+                {permissionsLoading ? (
+                  <div className="permissions-loading">Loading permission tree from Dragon ESL...</div>
+                ) : (
+                  <div className="permissions-grid">
+                    {getSortedTreeList(availablePermissions).map(perm => {
+                      const isChecked = roleFormData.menuIdList.includes(perm.id);
+                      const hasChildren = availablePermissions.some(child => child.parentId === perm.id);
+                      const isExpanded = expandedMenuIds[perm.id];
+                      
+                      const isIndeterminate = (() => {
+                        if (!isChecked) return false;
+                        const descendants = getDescendantIds(perm.id, availablePermissions);
+                        if (descendants.length === 0) return false;
+                        const allChecked = descendants.every(childId => roleFormData.menuIdList.includes(childId));
+                        return !allChecked;
+                      })();
+
+                      return (
+                        <div 
+                          key={perm.id} 
+                          className={`permission-item glass-card ${isChecked ? 'selected' : ''}`}
+                          onClick={() => handleTogglePermission(perm.id)}
+                          style={{ 
+                            paddingLeft: `${(perm.level || 0) * 16 + 8}px`,
+                            display: isMenuVisible(perm) ? 'flex' : 'none',
+                            alignItems: 'center',
+                            gap: '8px',
+                            cursor: 'pointer'
+                          }}
+                        >
+                          {hasChildren ? (
+                            <button
+                              type="button"
+                              className="tree-expand-btn"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setExpandedMenuIds(prev => ({ ...prev, [perm.id]: !prev[perm.id] }));
+                              }}
+                              style={{ 
+                                background: 'none', 
+                                border: 'none', 
+                                cursor: 'pointer', 
+                                padding: '4px',
+                                display: 'flex', 
+                                alignItems: 'center',
+                                color: 'var(--text-muted)'
+                              }}
+                            >
+                              {isExpanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+                            </button>
+                          ) : (
+                            <div style={{ width: '22px' }} />
+                          )}
+                          <div 
+                            className="perm-checkbox" 
+                            style={{ display: 'flex', alignItems: 'center' }}
+                          >
+                            {isIndeterminate ? (
+                              <MinusSquare size={18} className="text-primary-semi" style={{ color: 'var(--text-muted)' }} />
+                            ) : isChecked ? (
+                              <CheckSquare size={18} className="text-primary" />
+                            ) : (
+                              <Square size={18} />
+                            )}
+                          </div>
+                          <div className="perm-details">
+                            <span className="font-semibold text-sm">{perm.menuName}</span>
+                            <span className="text-xs text-muted" style={{ marginLeft: '6px' }}>ID: {perm.id}{perm.zkUrl ? ` • ${perm.zkUrl}` : ''}</span>
+                          </div>
                         </div>
-                        <div className="perm-details">
-                          <span className="font-semibold text-sm">{perm.name}</span>
-                          <span className="text-xs text-muted">Key: {perm.code} (ID: {perm.id})</span>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
+                      );
+                    })}
+                    {availablePermissions.length === 0 && !permissionsLoading && (
+                      <div className="text-muted">No permission tree available. Please refresh or check Dragon ESL connectivity.</div>
+                    )}
+                  </div>
+                )}
               </div>
 
               <div className="modal-actions">
@@ -1144,10 +1357,10 @@ const Users: React.FC = () => {
         }
 
         .permissions-grid {
-          display: grid;
-          grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-          gap: 12px;
-          max-height: 280px;
+          display: flex;
+          flex-direction: column;
+          gap: 6px;
+          max-height: 380px;
           overflow-y: auto;
           padding: 4px;
         }
@@ -1156,19 +1369,21 @@ const Users: React.FC = () => {
           display: flex;
           align-items: center;
           gap: 12px;
-          padding: 12px 16px;
+          padding: 8px 12px;
           cursor: pointer;
           transition: all 0.2s;
+          width: 100%;
+          border-radius: 6px;
         }
 
         .permission-item:hover {
           background: rgba(255, 255, 255, 0.05);
-          border-color: var(--primary-color);
+          border-color: rgba(59, 130, 246, 0.3);
         }
 
         .permission-item.selected {
           background: rgba(59, 130, 246, 0.06);
-          border-color: var(--primary-color);
+          border-color: rgba(59, 130, 246, 0.2);
         }
 
         .perm-checkbox {

@@ -50,21 +50,20 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             String dragonToken = jwtUtil.extractDragonToken(token);
 
             if (username != null) {
-                // Enforce single active session rule
-                if (!jwtUtil.isSessionActive(username, token)) {
-                    response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                    response.setContentType("application/json;charset=UTF-8");
-                    response.getWriter().write("{\"success\":false,\"status\":401,\"message\":\"Session invalidated due to concurrent login elsewhere\",\"data\":null}");
-                    return; // Short-circuit the request
-                }
+                // JWT signature is valid — trust it.
+                // Single-session enforcement is NOT done here because activeUserSessions
+                // is in-memory and resets on every server restart, causing instant 401s
+                // for valid browser sessions. Voluntary session invalidation (e.g., on
+                // password change) should call jwtUtil.invalidateSession() directly.
 
                 if (SecurityContextHolder.getContext().getAuthentication() == null) {
                     UsernamePasswordAuthenticationToken auth =
                             new UsernamePasswordAuthenticationToken(
                                     username,
-                                    null,
+                                    dragonToken,
                                     authorities
                             );
+                    auth.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                     SecurityContextHolder
                             .getContext()
                             .setAuthentication(auth);

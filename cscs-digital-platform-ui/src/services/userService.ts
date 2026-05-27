@@ -24,6 +24,7 @@ export interface PermissionMenu {
   id: number;
   menuName: string;
   level: number;
+  parentId?: number;
   zkUrl?: string;
 }
 

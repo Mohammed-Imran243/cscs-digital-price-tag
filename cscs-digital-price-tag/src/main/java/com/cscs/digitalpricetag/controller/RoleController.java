@@ -1,12 +1,11 @@
 package com.cscs.digitalpricetag.controller;
 
 import com.cscs.digitalpricetag.dto.ApiResponse;
+import com.cscs.digitalpricetag.dto.CreateRoleRequestDto;
 import com.cscs.digitalpricetag.service.RoleService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.security.access.prepost.PreAuthorize;
-
-import java.util.Map;
 
 @RestController
 @PreAuthorize("hasAuthority('staffManager')")
@@ -32,14 +31,14 @@ public class RoleController {
     }
 
     @PostMapping
-    public ResponseEntity<ApiResponse<Object>> addRole(@RequestBody Map<String, Object> request) {
+    public ResponseEntity<ApiResponse<Object>> addRole(@RequestBody CreateRoleRequestDto request) {
         return ResponseEntity.ok(ApiResponse.success("Role added successfully", roleService.addRole(request)));
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<ApiResponse<Object>> updateRole(
             @PathVariable String id,
-            @RequestBody Map<String, Object> request) {
+            @RequestBody CreateRoleRequestDto request) {
         return ResponseEntity.ok(ApiResponse.success("Role updated successfully", roleService.updateRole(id, request)));
     }
 

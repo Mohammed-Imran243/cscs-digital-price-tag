@@ -62,7 +62,6 @@ const Devices: React.FC = () => {
   const [pageSize, setPageSize] = useState(10);
   const [totalElements, setTotalElements] = useState(0);
 
-  // Role validation
   // const { user } = useAuth();
   const isAuthorized = true;
 
@@ -353,7 +352,6 @@ const Devices: React.FC = () => {
       setLoading(false);
     }
   };
-
   // Store-wide Force Refresh / Reboot ESL
   // const handleStoreForceRefresh = async () => {
   //   if (!isAuthorized) {

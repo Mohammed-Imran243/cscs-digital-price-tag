@@ -174,15 +174,23 @@ public class WebClientConfig {
     }
 
     private ExchangeFilterFunction logRequest() {
-        return ExchangeFilterFunction.ofRequestProcessor(request -> {
-            log.debug("Dragon ESL --> {} {}", request.method(), request.url());
-            return Mono.just(request);
-        });
+        return (request, next) -> {
+            boolean hasAuth = request.headers().containsKey(HttpHeaders.AUTHORIZATION);
+            String authHeader = request.headers().getFirst(HttpHeaders.AUTHORIZATION);
+            String tokenPreview = "null";
+            if (authHeader != null) {
+                tokenPreview = authHeader.length() > 15 ? authHeader.substring(0, 15) + "..." : authHeader;
+            }
+            log.info("Dragon ESL WebClient Request: {} {} | Headers: {} | Authorization Token Preview: {}",
+                    request.method(), request.url(), request.headers(), tokenPreview);
+            return next.exchange(request);
+        };
     }
 
     private ExchangeFilterFunction logResponse() {
-        return ExchangeFilterFunction.ofResponseProcessor(response -> {
-            log.debug("Dragon ESL <-- HTTP {}", response.statusCode());
+        return (request, next) -> next.exchange(request).flatMap(response -> {
+            log.info("Dragon ESL WebClient Response: Status: {} | Headers: {}",
+                    response.statusCode(), response.headers().asHttpHeaders());
             return Mono.just(response);
         });
     }
