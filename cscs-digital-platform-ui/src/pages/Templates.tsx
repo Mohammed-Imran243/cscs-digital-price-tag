@@ -8,7 +8,8 @@ import {
   updateTemplateBase,
   deleteTemplate,
   enableTemplate,
-  getTemplateTypes
+  getTemplateTypes,
+  getStoreIcons
 } from '../services/templateService';
 import type {
   Template,
@@ -65,6 +66,7 @@ const Templates: React.FC = () => {
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('');
   // Main Templates Data
   const [templates, setTemplates] = useState<Template[]>([]);
+  const [storeIcons, setStoreIcons] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [page, setPage] = useState(0);
   const [pageSize, setPageSize] = useState(10);
@@ -135,6 +137,8 @@ const Templates: React.FC = () => {
   useEffect(() => {
     if (activeMenuTab === 'merchant' || activeMenuTab === 'store') {
       fetchTemplatesList();
+    } else if (activeMenuTab === 'store_icon') {
+      fetchStoreIconsList();
     }
   }, [activeMenuTab, merchantScenario, selectedStore, filterSize, filterColor, filterCategory, page, pageSize, debouncedSearchQuery]);
 
@@ -306,6 +310,30 @@ const Templates: React.FC = () => {
     } catch (err: any) {
       console.error('Failed to query templates', err);
       showNotification('Failed to fetch template list.', 'error');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchStoreIconsList = async () => {
+    setLoading(true);
+    try {
+      const response = await getStoreIcons(page, pageSize, { storeId: selectedStore });
+      if (response && (response.content || response.list || response.data)) {
+        setStoreIcons(response.content || response.list || response.data || []);
+        setTotalElements(response.totalElements || response.total || 0);
+      } else if (response && Array.isArray(response)) {
+        setStoreIcons(response);
+        setTotalElements(response.length);
+      } else {
+        setStoreIcons([]);
+        setTotalElements(0);
+      }
+    } catch (err: any) {
+      console.error('Failed to query store icons', err);
+      showNotification('Failed to fetch store icons list.', 'error');
+      setStoreIcons([]);
+      setTotalElements(0);
     } finally {
       setLoading(false);
     }
@@ -716,24 +744,151 @@ const Templates: React.FC = () => {
               </div>
 
               {/* Custom Folder Empty State Table */}
-              <div className="empty-state-table glass-card">
-                <table className="zkong-table">
-                  <thead>
-                    <tr>
-                      <th>Serial Number / الرقم التسلسلي</th>
-                      <th>Descriptive Name / الاسم الوصفي</th>
-                      <th>Picture Processing Method / طريقة معالجة الصورة</th>
-                      <th>Resolution / الدقة</th>
-                      <th>Upload Time / وقت الرفع</th>
-                      <th>Preview / معاينة</th>
-                      <th>Operation / الإجراءات</th>
-                    </tr>
-                  </thead>
-                </table>
-                <div className="zkong-no-data">
-                  <FolderOpen size={48} className="text-muted mb-2 animate-pulse" />
-                  <p>No Data / لا توجد بيانات</p>
-                </div>
+              <div className="zkong-table-container glass-card">
+                {loading ? (
+                  <div className="zkong-no-data">
+                    <Loader2 size={48} className="text-muted mb-2 animate-spin" />
+                    <p>Loading Icons... / جاري تحميل الأيقونات...</p>
+                  </div>
+                ) : activeMenuTab === 'store_icon' && storeIcons && storeIcons.length > 0 ? (
+                  <>
+                    <table className="zkong-table">
+                      <thead>
+                        <tr>
+                          <th>Serial Number / الرقم التسلسلي</th>
+                          <th>Descriptive Name / الاسم الوصفي</th>
+                          <th>Picture Processing Method / طريقة معالجة الصورة</th>
+                          <th>Resolution / الدقة</th>
+                          <th>Upload Time / وقت الرفع</th>
+                          <th>Preview / معاينة</th>
+                          <th>Operation / الإجراءات</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {storeIcons.map((icon, idx) => (
+                          <tr key={icon.id || idx}>
+                            <td>{page * pageSize + idx + 1}</td>
+                            <td>{icon.describeName || icon.fileName || icon.iconName || icon.name || '-'}</td>
+                            <td>
+                              {icon.parseAlgorithm === 0 ? 'Original / الأصلي' : icon.parseAlgorithm === 1 ? 'Black & White / أبيض وأسود' : 'Adaptive / متكيف'}
+                            </td>
+                            <td>{icon.width && icon.height ? `${icon.width} * ${icon.height}` : icon.resolution || '-'}</td>
+                            <td>{icon.createdTime || icon.uploadTime || icon.createTime || '-'}</td>
+                            <td>
+                              {icon.iconUrl ? (
+                                <img 
+                                  src={`http://www.dragonesl.com/${icon.iconUrl}`} 
+                                  alt={icon.iconName || 'Store Icon'} 
+                                  style={{ maxWidth: '60px', maxHeight: '40px', objectFit: 'contain', background: '#f1f5f9', padding: '2px', borderRadius: '4px' }} 
+                                />
+                              ) : '-'}
+                            </td>
+                            <td>
+                              <div className="op-buttons">
+                                <button className="op-btn danger-text">Delete / حذف</button>
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+
+                    {/* Zkong/DragonESL Pagination for Icons */}
+                    {totalElements > 0 && (
+                      <div className="dragonesl-pagination-bar glass-card" style={{ marginTop: '16px' }}>
+                        <div className="pagination-left">
+                          <span className="pagination-total">Total {totalElements} items / الإجمالي {totalElements} عناصر</span>
+                          <select
+                            value={pageSize}
+                            onChange={(e) => {
+                              setPageSize(Number(e.target.value));
+                              setPage(0);
+                            }}
+                            className="pagination-size-select"
+                          >
+                            <option value={5}>5 / page</option>
+                            <option value={10}>10 / page</option>
+                            <option value={20}>20 / page</option>
+                            <option value={50}>50 / page</option>
+                            <option value={100}>100 / page</option>
+                          </select>
+                        </div>
+
+                        <div className="pagination-right">
+                          <button
+                            type="button"
+                            disabled={page === 0}
+                            onClick={() => setPage(prev => Math.max(prev - 1, 0))}
+                            className="pagination-arrow-btn"
+                          >
+                            &lt;
+                          </button>
+
+                          {getPaginationRange(page + 1, Math.ceil(totalElements / pageSize), 1).map((pageNum, idx) => (
+                            pageNum === '...' ? (
+                              <span key={`dots-${idx}`} className="pagination-dots">...</span>
+                            ) : (
+                              <button
+                                key={pageNum}
+                                type="button"
+                                onClick={() => setPage(Number(pageNum) - 1)}
+                                className={`pagination-num-btn ${page === Number(pageNum) - 1 ? 'active' : ''}`}
+                              >
+                                {pageNum}
+                              </button>
+                            )
+                          ))}
+
+                          <button
+                            type="button"
+                            disabled={page === Math.ceil(totalElements / pageSize) - 1 || Math.ceil(totalElements / pageSize) === 0}
+                            onClick={() => setPage(prev => Math.min(prev + 1, Math.ceil(totalElements / pageSize) - 1))}
+                            className="pagination-arrow-btn"
+                          >
+                            &gt;
+                          </button>
+
+                          <div className="pagination-jump">
+                            <span>Go to / الانتقال إلى</span>
+                            <input
+                              type="number"
+                              min={1}
+                              max={Math.ceil(totalElements / pageSize) || 1}
+                              onChange={(e) => {
+                                const val = Number(e.target.value);
+                                const totalP = Math.ceil(totalElements / pageSize);
+                                if (val >= 1 && val <= totalP) {
+                                  setPage(val - 1);
+                                }
+                              }}
+                              className="pagination-jump-input"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  <>
+                    <table className="zkong-table">
+                      <thead>
+                        <tr>
+                          <th>Serial Number / الرقم التسلسلي</th>
+                          <th>Descriptive Name / الاسم الوصفي</th>
+                          <th>Picture Processing Method / طريقة معالجة الصورة</th>
+                          <th>Resolution / الدقة</th>
+                          <th>Upload Time / وقت الرفع</th>
+                          <th>Preview / معاينة</th>
+                          <th>Operation / الإجراءات</th>
+                        </tr>
+                      </thead>
+                    </table>
+                    <div className="zkong-no-data">
+                      <FolderOpen size={48} className="text-muted mb-2 animate-pulse" />
+                      <p>No Data / لا توجد بيانات</p>
+                    </div>
+                  </>
+                )}
               </div>
             </div>
           )}

@@ -121,3 +121,10 @@ export const deleteTemplate = async (id: string, storeId = '0', isCompel = false
   );
   unwrapResponse(response);
 };
+
+export const getStoreIcons = async (page = 0, size = 10, searchParams?: Record<string, any>) => {
+  const response = await api.post('/templates/icons/list', searchParams || {}, {
+    params: { page, size }
+  });
+  return unwrapResponse<any>(response);
+};

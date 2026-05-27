@@ -164,6 +164,27 @@ public class TemplateService {
         return performPut("/zk/template/delete/" + id + "/" + compelFlag, body);
     }
 
+    public Object getStoreIcons(int page, int size, Map<String, Object> params) {
+        try {
+            Map<String, Object> requestBody = (params != null) ? params : new HashMap<>();
+            if (requestBody.containsKey("storeId")) {
+                Object storeIdObj = requestBody.get("storeId");
+                if (storeIdObj instanceof String && !((String) storeIdObj).isBlank()) {
+                    try {
+                        long storeIdLong = Long.parseLong(storeIdObj.toString().trim());
+                        requestBody.put("storeId", storeIdLong);
+                    } catch (NumberFormatException e) {
+                        log.warn("Could not parse storeId to Long for icons: {}", storeIdObj);
+                    }
+                }
+            }
+            return performPost("/zk/icon/list/" + page + "/" + size, requestBody);
+        } catch (Exception e) {
+            log.error("Error fetching store icons: {}", e.getMessage());
+            throw new DragonEslException("Failed to fetch store icons: " + e.getMessage(), HttpStatus.BAD_GATEWAY);
+        }
+    }
+
     private Object performGet(String url) {
         try {
             DragonTemplateGenericResponse response = dragonEslApiClient.get(

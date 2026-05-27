@@ -48,6 +48,14 @@ public class TemplateController {
         return ResponseEntity.ok(ApiResponse.success("Templates fetched successfully", templateService.getTemplates(page, size, searchParams)));
     }
 
+    @PostMapping("/icons/list")
+    public ResponseEntity<ApiResponse<Object>> getStoreIcons(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestBody(required = false) Map<String, Object> params) {
+        return ResponseEntity.ok(ApiResponse.success("Store icons fetched successfully", templateService.getStoreIcons(page, size, params)));
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<Object>> getTemplateById(@PathVariable String id) {
         return ResponseEntity.ok(ApiResponse.success("Template fetched successfully", templateService.getTemplateBaseById(id)));
