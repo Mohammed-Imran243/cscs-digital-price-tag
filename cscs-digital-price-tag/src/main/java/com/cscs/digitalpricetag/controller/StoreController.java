@@ -76,5 +76,27 @@ public class StoreController {
         storeService.deleteStore(id);
         return ResponseEntity.ok(ApiResponse.success("Store deleted successfully", null));
     }
+
+    /**
+     * GET /api/stores/merchant-info
+     * Returns real merchant info from Dragon ESL /zk/merchant/getMerchantInfo
+     */
+    @PreAuthorize("isAuthenticated()")
+    @GetMapping("/merchant-info")
+    public ResponseEntity<ApiResponse<java.util.Map<String, Object>>> getMerchantInfo() {
+        java.util.Map<String, Object> info = storeService.getMerchantInfo();
+        return ResponseEntity.ok(ApiResponse.success("Merchant info fetched successfully", info));
+    }
+
+    /**
+     * GET /api/stores/active-count
+     * Returns count of active stores from Dragon ESL
+     */
+    @PreAuthorize("isAuthenticated()")
+    @GetMapping("/active-count")
+    public ResponseEntity<ApiResponse<Long>> getActiveStoreCount() {
+        long count = storeService.getActiveStoreCount();
+        return ResponseEntity.ok(ApiResponse.success("Active store count fetched successfully", count));
+    }
 }
 

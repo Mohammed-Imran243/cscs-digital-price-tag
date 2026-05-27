@@ -15,6 +15,10 @@ interface DashboardStats {
   templateCount: number | null;
   categoryCount: number | null;
   eslOnline: boolean | null;
+  activeStoreCount: number | null;
+  merchantCount: number | null;
+  eslTagCount: number | null;
+  eslBoundCount: number | null;
 }
 
 interface StoreProductStat {
@@ -35,12 +39,10 @@ const StatCard: React.FC<{
   trend?: string;
   loading?: boolean;
   color?: string;
+  bgColor?: string;
   error?: boolean;
-}> = ({ icon, label, value, trend, loading, color = 'var(--primary-color)', error }) => (
+}> = ({ icon, label, value, trend, loading, color = 'var(--primary-color)', bgColor = 'rgba(99,102,241,0.15)', error }) => (
   <div className="stat-card glass-card">
-    <div className="stat-icon" style={{ color }}>
-      {icon}
-    </div>
     <div className="stat-info">
       <span className="stat-label">{label}</span>
       {loading ? (
@@ -51,6 +53,9 @@ const StatCard: React.FC<{
         <h3 className="stat-value">{value}</h3>
       )}
       {trend && !loading && !error && <span className="stat-trend">{trend}</span>}
+    </div>
+    <div className="stat-icon" style={{ color, backgroundColor: bgColor }}>
+      {icon}
     </div>
   </div>
 );
@@ -65,6 +70,10 @@ const Dashboard: React.FC = () => {
     templateCount: null,
     categoryCount: null,
     eslOnline: null,
+    activeStoreCount: null,
+    merchantCount: null,
+    eslTagCount: null,
+    eslBoundCount: null,
   });
   const [loading, setLoading] = useState(true);
   const [storeBreakdown, setStoreBreakdown] = useState<StoreProductStat[]>([]);
@@ -115,6 +124,43 @@ const Dashboard: React.FC = () => {
       }));
     } catch {
       setStats(prev => ({ ...prev, categoryCount: null }));
+    }
+
+    // ── Fetch Active Store Count from DragonESL ──────
+    try {
+      const activeCount = await storeService.getActiveStoreCount();
+      setStats(prev => ({ ...prev, activeStoreCount: activeCount }));
+    } catch {
+      setStats(prev => ({ ...prev, activeStoreCount: null }));
+    }
+
+    // ── Fetch Real Merchant Info from DragonESL ──────
+    try {
+      const merchantData = await storeService.getMerchantInfo();
+      const merchantCount = merchantData?.merchantCount
+        ?? (merchantData?.merchantName ? 1 : null);
+      setStats(prev => ({ ...prev, merchantCount }));
+    } catch {
+      setStats(prev => ({ ...prev, merchantCount: null }));
+    }
+
+    // ── Fetch Real ESL Tag counts from DragonESL ─────
+    try {
+      if (stores.length > 0) {
+        const eslData = await deviceService.getEslDevices(0, 1, stores[0].storeId);
+        const totalTags = eslData?.totalElements ?? 0;
+        const eslAllData = await deviceService.getEslDevices(0, 500, stores[0].storeId);
+        const boundCount = eslAllData?.content?.filter(
+          (esl: any) => esl.bindState === 1
+        ).length ?? 0;
+        setStats(prev => ({
+          ...prev,
+          eslTagCount: totalTags,
+          eslBoundCount: boundCount,
+        }));
+      }
+    } catch {
+      setStats(prev => ({ ...prev, eslTagCount: null, eslBoundCount: null }));
     }
 
     // ── 4. Fetch product counts per store ────────
@@ -219,30 +265,63 @@ const Dashboard: React.FC = () => {
       <div className="dashboard-grid">
         <StatCard
           icon={<Store size={24} />}
-          label="Total Stores / إجمالي المتاجر"
-          value={formatCount(stats.storeCount)}
-          trend={stats.storeCount !== null ? `${stats.storeCount} active store${stats.storeCount !== 1 ? 's' : ''} / ${stats.storeCount === 1 ? 'متجر نشط' : 'متاجر نشطة'}` : undefined}
+          label="Merchants / التجار"
+          value={formatCount(stats.merchantCount)}
+          trend={stats.merchantCount !== null ? `${formatCount(stats.merchantCount)} active merchants / تاجر نشط` : undefined}
           loading={loading}
           color="#6366f1"
+          bgColor="rgba(99,102,241,0.15)"
+          error={!loading && stats.merchantCount === null}
+        />
+        <StatCard
+          icon={<Store size={24} />}
+          label="Stores / المتاجر"
+          value={formatCount(stats.storeCount)}
+          trend={stats.activeStoreCount !== null ? `${formatCount(stats.activeStoreCount)} active stores / متاجر نشطة` : undefined}
+          loading={loading}
+          color="#0ea5e9"
+          bgColor="rgba(14,165,233,0.15)"
           error={!loading && stats.storeCount === null}
         />
         <StatCard
-          icon={<Package size={24} />}
-          label="Total Products / إجمالي المنتجات"
-          value={formatCount(stats.productCount)}
-          trend={stats.productCount !== null ? 'Across all stores / عبر جميع المتاجر' : undefined}
+          icon={<Wifi size={24} />}
+          label="Access Points / نقاط الوصول"
+          value={String(storeBreakdown.reduce((s, i) => s + (i.apOnlineCount ?? 0), 0))}
+          trend={`${storeBreakdown.reduce((s, i) => s + (i.apOnlineCount ?? 0), 0)} active AP / نقاط وصول نشطة`}
           loading={loading}
-          color="#10b981"
-          error={!loading && stats.productCount === null}
+          color="#8b5cf6"
+          bgColor="rgba(139,92,246,0.15)"
+          error={!loading && storeBreakdown.length === 0}
         />
         <StatCard
           icon={<FileText size={24} />}
-          label="ESL Templates / قوالب بطاقات الأسعار"
+          label="Templates / القوالب"
           value={formatCount(stats.templateCount)}
-          trend={stats.categoryCount !== null ? `${stats.categoryCount} categor${stats.categoryCount !== 1 ? 'ies' : 'y'} / ${stats.categoryCount} ${stats.categoryCount === 1 ? 'تصنيف' : 'تصنيفات'}` : undefined}
+          trend={stats.templateCount !== null ? `${formatCount(stats.templateCount)} active templates / قوالب نشطة` : undefined}
           loading={loading}
           color="#f59e0b"
+          bgColor="rgba(245,158,11,0.15)"
           error={!loading && stats.templateCount === null}
+        />
+        <StatCard
+          icon={<Package size={24} />}
+          label="Products / المنتجات"
+          value={formatCount(stats.productCount)}
+          trend={stats.productCount !== null ? `${formatCount(stats.productCount)} total products / إجمالي المنتجات` : undefined}
+          loading={loading}
+          color="#f97316"
+          bgColor="rgba(249,115,22,0.15)"
+          error={!loading && stats.productCount === null}
+        />
+        <StatCard
+          icon={<Wifi size={24} />}
+          label="ESL Tags / علامات ESL"
+          value={formatCount(stats.eslTagCount)}
+          trend={stats.eslBoundCount !== null ? `${formatCount(stats.eslBoundCount)} bound tags / بطاقات مرتبطة` : undefined}
+          loading={loading}
+          color="#10b981"
+          bgColor="rgba(16,185,129,0.15)"
+          error={!loading && stats.productCount === null}
         />
       </div>
 
@@ -420,51 +499,65 @@ const Dashboard: React.FC = () => {
         /* ── Stat Cards Grid ── */
         .dashboard-grid {
           display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+          grid-template-columns: repeat(3, 1fr);
           gap: 20px;
+        }
+        @media (max-width: 1024px) {
+          .dashboard-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+        @media (max-width: 640px) {
+          .dashboard-grid { grid-template-columns: 1fr; }
         }
 
         /* StatCard sub-styles */
         .stat-card {
-          padding: 24px;
+          padding: 24px 28px;
           display: flex;
           align-items: center;
-          gap: 20px;
-          transition: transform 0.2s;
+          justify-content: space-between;
+          gap: 16px;
+          transition: transform 0.2s, box-shadow 0.2s;
+          border-radius: 16px;
+          cursor: default;
         }
-        .stat-card:hover { transform: translateY(-2px); }
+        .stat-card:hover {
+          transform: translateY(-3px);
+          box-shadow: 0 12px 32px rgba(0,0,0,0.15);
+        }
+        .stat-info {
+          display: flex;
+          flex-direction: column;
+          gap: 6px;
+          flex: 1;
+        }
+        .stat-label {
+          font-size: 12px;
+          font-weight: 700;
+          text-transform: uppercase;
+          letter-spacing: 0.06em;
+          color: var(--text-muted);
+        }
+        .stat-value {
+          font-size: 32px;
+          font-weight: 800;
+          color: var(--text-primary);
+          margin: 0;
+          line-height: 1.1;
+        }
+        .stat-value.error-val { color: var(--text-muted); }
+        .stat-trend {
+          font-size: 13px;
+          font-weight: 600;
+          color: var(--success-color);
+        }
         .stat-icon {
-          width: 52px;
-          height: 52px;
-          border-radius: 14px;
-          background: var(--bg-accent);
+          width: 56px;
+          height: 56px;
+          border-radius: 16px;
           display: flex;
           align-items: center;
           justify-content: center;
           flex-shrink: 0;
-        }
-        .stat-info { flex: 1; min-width: 0; }
-        .stat-label {
-          display: block;
-          font-size: 11px;
-          color: var(--text-muted);
-          font-weight: 700;
-          text-transform: uppercase;
-          letter-spacing: 0.06em;
-          margin-bottom: 4px;
-        }
-        .stat-value {
-          font-size: 26px;
-          font-weight: 800;
-          color: var(--text-primary);
-          margin: 0 0 4px 0;
-          line-height: 1.2;
-        }
-        .stat-value.error-val { color: var(--text-muted); }
-        .stat-trend {
-          font-size: 12px;
-          color: var(--success-color);
-          font-weight: 600;
         }
 
         /* ── Shimmer ── */
@@ -485,9 +578,6 @@ const Dashboard: React.FC = () => {
         }
         @media (max-width: 1024px) {
           .dashboard-row { grid-template-columns: 1fr; }
-        }
-        @media (max-width: 768px) {
-          .dashboard-grid { grid-template-columns: 1fr; }
         }
 
         /* ── Store breakdown card ── */
@@ -644,6 +734,8 @@ const Dashboard: React.FC = () => {
           color: var(--text-muted);
           border: 1px solid rgba(148, 163, 184, 0.2);
         }
+
+
       `}</style>
     </div>
   );

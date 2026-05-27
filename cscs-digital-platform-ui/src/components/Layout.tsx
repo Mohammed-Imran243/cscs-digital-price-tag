@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useTheme } from '../context/ThemeContext';
 import { useAuth } from '../context/AuthContext';
-import { Sun, Moon, LogOut, LayoutDashboard, Store, Package, FileText, User, Cpu, Menu } from 'lucide-react';
+import { Sun, Moon, LogOut, LayoutDashboard, Store, Package, FileText, User, Cpu, Menu, Building2 } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 
 const SidebarItem: React.FC<{ to: string, icon: React.ReactNode, label: string, collapsed: boolean }> = ({ to, icon, label, collapsed }) => {
@@ -66,6 +66,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
         
         <nav className="sidebar-nav">
           <SidebarItem to="/" icon={<LayoutDashboard size={20} />} label="Dashboard / لوحة التحكم" collapsed={isSidebarCollapsed} />
+          <SidebarItem to="/merchants" icon={<Building2 size={20} />} label="Merchants / التجار" collapsed={isSidebarCollapsed} />
           {(user?.permissions?.includes('store') || false) && (
             <SidebarItem to="/stores" icon={<Store size={20} />} label="Stores / المتاجر" collapsed={isSidebarCollapsed} />
           )}

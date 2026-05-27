@@ -307,6 +307,71 @@ public class StoreService {
         }
     }
 
+    /**
+     * Fetch merchant info from Dragon ESL.
+     * Uses GET /zk/merchant/getMerchantInfo to get real merchant data.
+     */
+    @SuppressWarnings("unchecked")
+    public Map<String, Object> getMerchantInfo() {
+        try {
+            Map<?, ?> response = dragonEslApiClient.get(
+                    "/zk/merchant/getMerchantInfo",
+                    Map.class
+            );
+
+            if (response == null) {
+                throw new DragonEslException("No response from Dragon ESL for merchant info", HttpStatus.BAD_GATEWAY);
+            }
+
+            Object successObj = response.get("success");
+            boolean success = Boolean.TRUE.equals(successObj);
+            Object codeObj = response.get("code");
+            boolean codeOk = codeObj != null && (Integer.valueOf(10000).equals(codeObj) || Integer.valueOf(200).equals(codeObj));
+
+            if (!success && !codeOk) {
+                String msg = response.get("message") != null ? response.get("message").toString() : "Unknown error";
+                throw new DragonEslException("Failed to fetch merchant info: " + msg, HttpStatus.BAD_GATEWAY);
+            }
+
+            Object data = response.get("data");
+            if (data instanceof Map) {
+                return (Map<String, Object>) data;
+            }
+
+            // If data is a list, wrap count
+            if (data instanceof List) {
+                List<?> list = (List<?>) data;
+                Map<String, Object> result = new HashMap<>();
+                result.put("merchantCount", list.size());
+                result.put("merchants", list);
+                return result;
+            }
+
+            return Collections.emptyMap();
+
+        } catch (DragonEslException e) {
+            throw e;
+        } catch (Exception e) {
+            log.error("Error fetching merchant info: {}", e.getMessage());
+            throw new DragonEslException("Merchant fetch failed: " + e.getMessage(), HttpStatus.BAD_GATEWAY);
+        }
+    }
+
+    /**
+     * Get active store count — stores with status=ACTIVE from Dragon ESL.
+     */
+    public long getActiveStoreCount() {
+        try {
+            List<StoreResponse> stores = getAllStores();
+            return stores.stream()
+                    .filter(s -> "ACTIVE".equals(s.getStatus()))
+                    .count();
+        } catch (Exception e) {
+            log.error("Error counting active stores: {}", e.getMessage());
+            return 0;
+        }
+    }
+
     // ── Mappers ──────────────────────────────────────────────────────────────
 
     private StoreResponse mapToStoreResponse(DragonStoreListResponse.DragonStoreItem item) {

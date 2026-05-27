@@ -80,5 +80,23 @@ export const storeService = {
     const response = await api.delete(`/stores/${id}`);
     unwrapResponse(response);
   },
+
+  getMerchantInfo: async (): Promise<any> => {
+    try {
+      const response = await api.get('/stores/merchant-info');
+      return unwrapResponse(response);
+    } catch {
+      return null;
+    }
+  },
+
+  getActiveStoreCount: async (): Promise<number> => {
+    try {
+      const response = await api.get('/stores/active-count');
+      return unwrapResponse(response) ?? 0;
+    } catch {
+      return 0;
+    }
+  },
 };
 export default storeService;
