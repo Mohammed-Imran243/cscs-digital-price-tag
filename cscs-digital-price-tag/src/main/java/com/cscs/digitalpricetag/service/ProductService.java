@@ -12,6 +12,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 @Service
@@ -42,40 +43,96 @@ public class ProductService {
                     body.put("storeId", storeId.trim());
                 }
             }
+
+            // If a specific barcode parameter is passed
             if (barcode != null && !barcode.isBlank()) {
                 body.put("barCode", barcode.trim());
                 body.put("pcBarCode", barcode.trim());
             }
+
+            final String barcodeFilter = (barcode != null && !barcode.isBlank()) ? barcode.trim() : null;
+            final String searchLower = (search != null && !search.isBlank()) ? search.toLowerCase() : null;
+
+            List<Map<?, ?>> responses = new ArrayList<>();
+            List<CompletableFuture<Map<?, ?>>> futures = new ArrayList<>();
+
+            // If there's a search term, try matching both barcode and title casing variations in parallel
             if (search != null && !search.isBlank()) {
-                body.put("itemTitle", search.trim());
+                String searchTrimmed = search.trim();
+                boolean isSingleWordAlphanumeric = searchTrimmed.matches("^[a-zA-Z0-9_-]+$");
+
+                Set<String> barcodeQueries = new LinkedHashSet<>();
+                Set<String> titleQueries = new LinkedHashSet<>();
+
+                if (isSingleWordAlphanumeric && barcode == null) {
+                    barcodeQueries.add(searchTrimmed);
+                    barcodeQueries.add(searchTrimmed.toUpperCase());
+                    barcodeQueries.add(searchTrimmed.toLowerCase());
+                }
+
+                titleQueries.add(searchTrimmed);
+                titleQueries.add(searchTrimmed.toUpperCase());
+                titleQueries.add(searchTrimmed.toLowerCase());
+                if (searchTrimmed.length() > 1) {
+                    String capitalized = searchTrimmed.substring(0, 1).toUpperCase() + searchTrimmed.substring(1).toLowerCase();
+                    titleQueries.add(capitalized);
+                }
+
+                // Add parallel queries
+                for (String term : barcodeQueries) {
+                    futures.add(CompletableFuture.supplyAsync(() -> queryBarcode(body, term, page, size, storeId)));
+                }
+                for (String term : titleQueries) {
+                    futures.add(CompletableFuture.supplyAsync(() -> queryTitle(body, term, page, size, storeId)));
+                }
+            } else {
+                futures.add(CompletableFuture.supplyAsync(() -> 
+                    dragonEslApiClient.post(
+                            "/zk/item/list/0/" + page + "/" + size + "/" + storeId,
+                            body,
+                            Map.class
+                    )
+                ));
             }
 
-            Map<?, ?> response = dragonEslApiClient.post(
-                    "/zk/item/list/0/" + page + "/" + size + "/" + storeId,
-                    body,
-                    Map.class
-            );
+            // Wait for all parallel API requests to finish concurrently
+            CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
 
-            if (response == null) {
-                throw new DragonEslException("No response from Dragon ESL", HttpStatus.BAD_GATEWAY);
+            // Collect results
+            for (CompletableFuture<Map<?, ?>> future : futures) {
+                try {
+                    Map<?, ?> resp = future.get();
+                    if (hasItems(resp)) {
+                        responses.add(resp);
+                    }
+                } catch (Exception e) {
+                    log.error("Error fetching parallel search results", e);
+                }
             }
 
-            log.info("Zkong getProducts response: {}", response);
-
-            Object successObj = response.get("success");
-            boolean success = Boolean.TRUE.equals(successObj);
-            Object codeObj = response.get("code");
-            boolean codeOk = codeObj != null && (Integer.valueOf(10000).equals(codeObj) || Integer.valueOf(200).equals(codeObj) || Integer.valueOf(14008).equals(codeObj));
-
-            if (!success && !codeOk) {
-                String msg = response.get("message") != null ? response.get("message").toString() : "Unknown error";
-                throw new DragonEslException("Failed to fetch products: " + msg, HttpStatus.BAD_GATEWAY);
+            if (responses.isEmpty()) {
+                return new PagedResponse<>(Collections.emptyList(), page, size, 0);
             }
 
+            return mergeAndParseResponses(responses, page, size, barcodeFilter, searchLower);
+
+        } catch (DragonEslException e) {
+            throw e;
+        } catch (Exception e) {
+            log.error("Error fetching products: {}", e.getMessage());
+            throw new DragonEslException("Product fetch failed: " + e.getMessage(), HttpStatus.BAD_GATEWAY);
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private PagedResponse<ProductResponse> mergeAndParseResponses(
+            List<Map<?, ?>> responses, int page, int size, String barcodeFilter, String searchLower) {
+        
+        Map<String, ProductResponse> deduplicated = new LinkedHashMap<>();
+        long totalElements = 0;
+
+        for (Map<?, ?> response : responses) {
             Object dataObj = response.get("data");
-            List<ProductResponse> products = new ArrayList<>();
-            long totalElements = 0;
-
             if (dataObj instanceof Map) {
                 Map<String, Object> dataMap = (Map<String, Object>) dataObj;
                 Object listObj = dataMap.get("list");
@@ -84,50 +141,53 @@ public class ProductService {
                 }
                 if (listObj instanceof List) {
                     List<Map<String, Object>> list = (List<Map<String, Object>>) listObj;
-                    products = list.stream()
-                            .map(this::mapFromRawMap)
-                            .collect(Collectors.toList());
+                    for (Map<String, Object> rawItem : list) {
+                        ProductResponse p = mapFromRawMap(rawItem);
+                        if (p != null && p.getId() != null) {
+                            deduplicated.put(p.getId(), p);
+                        }
+                    }
                 }
+                
                 Object totalObj = dataMap.get("totalElements");
                 if (totalObj == null) totalObj = dataMap.get("total");
                 if (totalObj == null) totalObj = dataMap.get("totalCount");
                 if (totalObj != null) {
+                    long total = 0;
                     if (totalObj instanceof Number) {
-                        totalElements = ((Number) totalObj).longValue();
+                        total = ((Number) totalObj).longValue();
                     } else {
                         try {
-                            totalElements = Long.parseLong(totalObj.toString().trim());
+                            total = Long.parseLong(totalObj.toString().trim());
                         } catch (NumberFormatException e) {
-                            log.warn("Failed to parse product total count: {}", totalObj);
+                            // ignore
                         }
+                    }
+                    if (total > totalElements) {
+                        totalElements = total;
                     }
                 }
             }
-
-            final String barcodeFilter = (barcode != null && !barcode.isBlank()) ? barcode.trim() : null;
-            final String searchLower = (search != null && !search.isBlank()) ? search.toLowerCase() : null;
-
-            List<ProductResponse> filteredProducts = products.stream()
-                    .filter(item -> barcodeFilter == null || barcodeFilter.equals(item.getBarcode()))
-                    .filter(item -> {
-                        if (searchLower == null) return true;
-                        return (item.getItemName() != null && item.getItemName().toLowerCase().contains(searchLower))
-                                || (item.getBarcode() != null && item.getBarcode().toLowerCase().contains(searchLower));
-                    })
-                    .collect(Collectors.toList());
-
-            if (filteredProducts.isEmpty() && page > 0) {
-                totalElements = (long) page * size;
-            }
-
-            return new PagedResponse<>(filteredProducts, page, size, totalElements);
-
-        } catch (DragonEslException e) {
-            throw e;
-        } catch (Exception e) {
-            log.error("Error fetching products: {}", e.getMessage());
-            throw new DragonEslException("Product fetch failed: " + e.getMessage(), HttpStatus.BAD_GATEWAY);
         }
+
+        List<ProductResponse> filteredProducts = deduplicated.values().stream()
+                .filter(item -> barcodeFilter == null || barcodeFilter.equals(item.getBarcode()))
+                .filter(item -> {
+                    if (searchLower == null) return true;
+                    return (item.getItemName() != null && item.getItemName().toLowerCase().contains(searchLower))
+                            || (item.getBarcode() != null && item.getBarcode().toLowerCase().contains(searchLower));
+                })
+                .collect(Collectors.toList());
+
+        if (searchLower != null || barcodeFilter != null) {
+            totalElements = filteredProducts.size();
+        }
+
+        int start = Math.min(page * size, filteredProducts.size());
+        int end = Math.min(start + size, filteredProducts.size());
+        List<ProductResponse> pagedList = filteredProducts.subList(start, end);
+
+        return new PagedResponse<>(pagedList, page, size, totalElements);
     }
 
     public ProductResponse getProductById(String id, String storeId) {
@@ -416,5 +476,52 @@ public class ProductService {
         r.setOrigin(raw.get("origin") != null ? raw.get("origin").toString() : null);
 
         return r;
+    }
+
+    private Map<?, ?> queryBarcode(Map<String, Object> baseBody, String barcodeValue, int page, int size, String storeId) {
+        Map<String, Object> barcodeBody = new HashMap<>(baseBody);
+        barcodeBody.put("barCode", barcodeValue);
+        barcodeBody.put("pcBarCode", barcodeValue);
+        try {
+            return dragonEslApiClient.post(
+                    "/zk/item/list/0/" + page + "/" + size + "/" + storeId,
+                    barcodeBody,
+                    Map.class
+            );
+        } catch (Exception e) {
+            log.warn("Failed barcode query for: {}", barcodeValue, e);
+            return null;
+        }
+    }
+
+    private boolean hasItems(Map<?, ?> response) {
+        if (response == null || !Boolean.TRUE.equals(response.get("success"))) {
+            return false;
+        }
+        Object dataObj = response.get("data");
+        if (dataObj instanceof Map) {
+            Map<String, Object> dataMap = (Map<String, Object>) dataObj;
+            Object listObj = dataMap.get("list");
+            if (listObj == null) listObj = dataMap.get("rows");
+            if (listObj instanceof List && !((List<?>) listObj).isEmpty()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private Map<?, ?> queryTitle(Map<String, Object> baseBody, String titleValue, int page, int size, String storeId) {
+        Map<String, Object> titleBody = new HashMap<>(baseBody);
+        titleBody.put("itemTitle", titleValue);
+        try {
+            return dragonEslApiClient.post(
+                    "/zk/item/list/0/" + page + "/" + size + "/" + storeId,
+                    titleBody,
+                    Map.class
+            );
+        } catch (Exception e) {
+            log.warn("Failed title query for: {}", titleValue, e);
+            return null;
+        }
     }
 }

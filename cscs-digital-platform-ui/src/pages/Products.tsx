@@ -338,13 +338,12 @@ const Products: React.FC = () => {
         setCurrentPage(1);
       }
 
-      const isNumeric = /^\d+$/.test(searchTerm);
       const data = await getProducts(
         selectedStore, 
         activePage, 
         pageSize, 
-        isNumeric ? searchTerm : undefined, 
-        !isNumeric && searchTerm ? searchTerm : undefined
+        undefined, 
+        searchTerm || undefined
       );
       const contentList = data.content || [];
       setProducts(contentList);

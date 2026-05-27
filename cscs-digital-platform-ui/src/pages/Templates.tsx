@@ -39,6 +39,14 @@ import { getEslModelSpecs, renderEinkLayout } from '../utils/eslModelUtils';
 import { getPaginationRange } from '../utils/paginationUtils';
 
 
+const COLOR_MAPPINGS: Record<number, { key: string; label: string }> = {
+  1: { key: 'bw', label: 'Black/White / أسود/أبيض' },
+  2: { key: 'bwr', label: 'Black/White/Red / أسود/أبيض/أحمر' },
+  3: { key: 'bwy', label: 'Black/White/Yellow / أسود/أبيض/أصفر' },
+  4: { key: 'bwry', label: 'Black/White/Red/Yellow / أسود/أبيض/أحمر/أصفر' },
+  5: { key: 'multi', label: 'Multi-color / متعدد الألوان' }
+};
+
 const Templates: React.FC = () => {
   // Navigation State (5 Main Zkong Menu Tabs)
   const [activeMenuTab, setActiveMenuTab] = useState<'merchant' | 'store' | 'business_icon' | 'store_icon' | 'properties'>('merchant');
@@ -291,6 +299,16 @@ const Templates: React.FC = () => {
       if (filterCategory !== 'All') {
         searchParams.attrCategory = filterCategory;
       }
+      if (filterColor !== 'All') {
+        const colorMap: Record<string, number> = {
+          'bw': 1,
+          'bwr': 2,
+          'bwy': 3,
+          'bwry': 4,
+          'multi': 5
+        };
+        searchParams.color = colorMap[filterColor] || filterColor;
+      }
       if (filterType !== 'All') {
         searchParams.attrName = filterType;
       }
@@ -472,6 +490,7 @@ const Templates: React.FC = () => {
   };
 
   const uniqueSizes = Array.from(new Set(models.map(m => m.size))).filter(Boolean);
+  const uniqueColors = Array.from(new Set(models.map(m => m.color))).filter(Boolean);
 
   return (
     <div className="templates-dashboard">
@@ -617,8 +636,15 @@ const Templates: React.FC = () => {
                   <label>Color / اللون</label>
                   <select value={filterColor} onChange={e => setFilterColor(e.target.value)}>
                     <option value="All">All / الكل</option>
-                    <option value="bw">Black/White / أسود/أبيض</option>
-                    <option value="bwr">Black/White/Red / أسود/أبيض/أحمر</option>
+                    {uniqueColors.map(colorCode => {
+                      const config = COLOR_MAPPINGS[colorCode];
+                      if (!config) return null;
+                      return (
+                        <option key={colorCode} value={config.key}>
+                          {config.label}
+                        </option>
+                      );
+                    })}
                   </select>
                 </div>
 
@@ -685,8 +711,15 @@ const Templates: React.FC = () => {
                   <label>Color / اللون</label>
                   <select value={filterColor} onChange={e => setFilterColor(e.target.value)}>
                     <option value="All">All / الكل</option>
-                    <option value="bw">Black/White / أسود/أبيض</option>
-                    <option value="bwr">Black/White/Red / أسود/أبيض/أحمر</option>
+                    {uniqueColors.map(colorCode => {
+                      const config = COLOR_MAPPINGS[colorCode];
+                      if (!config) return null;
+                      return (
+                        <option key={colorCode} value={config.key}>
+                          {config.label}
+                        </option>
+                      );
+                    })}
                   </select>
                 </div>
 
