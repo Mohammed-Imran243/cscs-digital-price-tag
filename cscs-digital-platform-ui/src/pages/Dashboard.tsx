@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Store, Package, FileText, RefreshCw, Wifi, WifiOff, AlertTriangle, CheckCircle } from 'lucide-react';
+import { Store, Package, FileText, RefreshCw, Wifi, WifiOff, AlertTriangle, CheckCircle, ChevronLeft, ChevronRight } from 'lucide-react';
 import { storeService } from '../services/storeService';
 import type { Store as StoreType } from '../services/storeService';
 import { getProducts } from '../services/productService';
@@ -79,6 +79,12 @@ const Dashboard: React.FC = () => {
   const [storeBreakdown, setStoreBreakdown] = useState<StoreProductStat[]>([]);
   const [lastRefreshed, setLastRefreshed] = useState<Date>(new Date());
 
+  const [allStores, setAllStores] = useState<StoreType[]>([]);
+  const [productPage, setProductPage] = useState(0);
+  const [apPage, setApPage] = useState(0);
+  const PRODUCT_STORES_PER_PAGE = 8;
+  const AP_STORES_PER_PAGE = 3;
+
   const fetchDashboardData = async () => {
     setLoading(true);
 
@@ -101,8 +107,10 @@ const Dashboard: React.FC = () => {
       eslOnline,
     }));
 
-    // Seed store breakdown skeleton
-    setStoreBreakdown(stores.map(s => ({ store: s, productCount: null, loading: true })));
+    setAllStores(stores);
+    setStoreBreakdown(stores.map(s => ({ store: s, productCount: null, loading: false })));
+    setProductPage(0);
+    setApPage(0);
 
     // ── 2. Fetch Templates count ─────────────────
     try {
@@ -163,72 +171,63 @@ const Dashboard: React.FC = () => {
       setStats(prev => ({ ...prev, eslTagCount: null, eslBoundCount: null }));
     }
 
-    // ── 4. Fetch product counts per store ────────
-    if (stores.length === 0) {
-      setStats(prev => ({ ...prev, productCount: 0 }));
-      setLoading(false);
-      setLastRefreshed(new Date());
-      return;
-    }
-
-    // Cap to first 8 stores to avoid excessive parallel API calls
-    const targetStores = stores.slice(0, 8);
-
-    // Each fetch returns its count (or 0 on error) — avoids race condition
-    // from mutating a shared variable inside parallel async callbacks.
-    const productFetches = targetStores.map(async (store, idx): Promise<number> => {
-      try {
-        const data = await getProducts(store.storeId, 0, 1);
-        const count = data?.totalElements ?? (data?.content?.length ?? 0);
-        setStoreBreakdown(prev =>
-          prev.map((item, i) =>
-            i === idx ? { ...item, productCount: count, loading: false } : item
-          )
-        );
-        return count;
-      } catch {
-        setStoreBreakdown(prev =>
-          prev.map((item, i) =>
-            i === idx ? { ...item, productCount: null, loading: false } : item
-          )
-        );
-        return 0;
-      }
-    });
-
-    // Sum after all fetches settle — no shared mutable variable in parallel callbacks
-    const results = await Promise.allSettled(productFetches);
-    const totalProducts = results.reduce((sum, r) =>
-      sum + (r.status === 'fulfilled' ? r.value : 0), 0
-    );
-
-    // ── 5. Fetch AP counts for the first 3 stores (System Status display limit) ──
-    const apFetches = targetStores.slice(0, 3).map(async (store, idx) => {
-      try {
-        const apData = await deviceService.getApDevices(0, 100, store.storeId);
-        const total = apData?.totalElements || 0;
-        const onlineCount = apData?.content?.filter(ap => ap.online === 'ONLINE')?.length || 0;
-        
-        setStoreBreakdown(prev =>
-          prev.map((item, i) =>
-            i === idx ? { ...item, apTotalCount: total, apOnlineCount: onlineCount } : item
-          )
-        );
-      } catch {
-        setStoreBreakdown(prev =>
-          prev.map((item, i) =>
-            i === idx ? { ...item, apTotalCount: 0, apOnlineCount: 0 } : item
-          )
-        );
-      }
-    });
-
-    await Promise.allSettled(apFetches);
-
-    setStats(prev => ({ ...prev, productCount: totalProducts }));
     setLoading(false);
     setLastRefreshed(new Date());
   };
+
+  // Load products for the current page of stores
+  useEffect(() => {
+    if (allStores.length === 0) return;
+    const startIndex = productPage * PRODUCT_STORES_PER_PAGE;
+    const targetStores = allStores.slice(startIndex, startIndex + PRODUCT_STORES_PER_PAGE);
+
+    targetStores.forEach(async (store, localIdx) => {
+      const idx = startIndex + localIdx;
+      // Use a functional state update to check if we need to load this item to avoid infinite loops
+      setStoreBreakdown(prev => {
+        if (prev[idx] && prev[idx].productCount !== null) return prev; // Already loaded
+        
+        // Otherwise, mark as loading and trigger async fetch
+        const newState = [...prev];
+        newState[idx] = { ...newState[idx], loading: true };
+        
+        // Fetch asynchronously without blocking state update
+        getProducts(store.storeId, 0, 1).then(data => {
+          const count = data?.totalElements ?? (data?.content?.length ?? 0);
+          setStoreBreakdown(current => current.map((item, i) => i === idx ? { ...item, productCount: count, loading: false } : item));
+        }).catch(() => {
+          setStoreBreakdown(current => current.map((item, i) => i === idx ? { ...item, productCount: null, loading: false } : item));
+        });
+        
+        return newState;
+      });
+    });
+  }, [productPage, allStores]);
+
+  // Load APs for the current page of stores
+  useEffect(() => {
+    if (allStores.length === 0) return;
+    const startIndex = apPage * AP_STORES_PER_PAGE;
+    const targetStores = allStores.slice(startIndex, startIndex + AP_STORES_PER_PAGE);
+
+    targetStores.forEach(async (store, localIdx) => {
+      const idx = startIndex + localIdx;
+      setStoreBreakdown(prev => {
+        if (prev[idx] && prev[idx].apTotalCount !== undefined) return prev; // Already loaded
+        
+        deviceService.getApDevices(0, 100, store.storeId).then(apData => {
+          const total = apData?.totalElements || 0;
+          const onlineCount = apData?.content?.filter(ap => ap.online === 'ONLINE')?.length || 0;
+          setStoreBreakdown(current => current.map((item, i) => i === idx ? { ...item, apTotalCount: total, apOnlineCount: onlineCount } : item));
+        }).catch(() => {
+          setStoreBreakdown(current => current.map((item, i) => i === idx ? { ...item, apTotalCount: 0, apOnlineCount: 0 } : item));
+        });
+        
+        // Dummy update to trigger re-render if we wanted, but not needed if we don't have a loading state for APs
+        return prev;
+      });
+    });
+  }, [apPage, allStores]);
 
   useEffect(() => {
     fetchDashboardData();
@@ -237,6 +236,8 @@ const Dashboard: React.FC = () => {
   const formatCount = (n: number | null) =>
     n === null ? '—' : n.toLocaleString();
 
+  const totalCalculatedProducts = storeBreakdown.reduce((sum, item) => sum + (item.productCount || 0), 0);
+  const displayProductCount = stats.productCount !== null ? stats.productCount : totalCalculatedProducts;
 
 
   return (
@@ -306,12 +307,12 @@ const Dashboard: React.FC = () => {
         <StatCard
           icon={<Package size={24} />}
           label="Products / المنتجات"
-          value={formatCount(stats.productCount)}
-          trend={stats.productCount !== null ? `${formatCount(stats.productCount)} total products / إجمالي المنتجات` : undefined}
+          value={formatCount(displayProductCount)}
+          trend={displayProductCount > 0 ? `${formatCount(displayProductCount)} total loaded / إجمالي المنتجات المحملة` : undefined}
           loading={loading}
           color="#f97316"
           bgColor="rgba(249,115,22,0.15)"
-          error={!loading && stats.productCount === null}
+          error={!loading && displayProductCount === 0 && storeBreakdown.length === 0}
         />
         <StatCard
           icon={<Wifi size={24} />}
@@ -331,8 +332,29 @@ const Dashboard: React.FC = () => {
         {/* Per-store product breakdown */}
         <div className="store-breakdown glass-card">
           <div className="card-header">
-            <h3>Products per Store / المنتجات لكل متجر</h3>
-            <span className="card-meta">Live product counts per store / إحصائيات المنتجات المباشرة لكل فرع</span>
+            <div>
+              <h3>Products per Store / المنتجات لكل متجر</h3>
+              <span className="card-meta">Live product counts per store / إحصائيات المنتجات المباشرة لكل فرع</span>
+            </div>
+            {allStores.length > PRODUCT_STORES_PER_PAGE && (
+              <div className="pagination-controls">
+                <button 
+                  className="btn-icon" 
+                  onClick={() => setProductPage(p => Math.max(0, p - 1))}
+                  disabled={productPage === 0 || loading}
+                >
+                  <ChevronLeft size={16} />
+                </button>
+                <span className="page-text">{productPage + 1} / {Math.ceil(allStores.length / PRODUCT_STORES_PER_PAGE)}</span>
+                <button 
+                  className="btn-icon" 
+                  onClick={() => setProductPage(p => Math.min(Math.ceil(allStores.length / PRODUCT_STORES_PER_PAGE) - 1, p + 1))}
+                  disabled={productPage >= Math.ceil(allStores.length / PRODUCT_STORES_PER_PAGE) - 1 || loading}
+                >
+                  <ChevronRight size={16} />
+                </button>
+              </div>
+            )}
           </div>
           <div className="breakdown-list">
             {storeBreakdown.length === 0 && !loading && (
@@ -351,7 +373,9 @@ const Dashboard: React.FC = () => {
                 ))}
               </>
             )}
-            {storeBreakdown.map((item, idx) => (
+            {storeBreakdown.slice(productPage * PRODUCT_STORES_PER_PAGE, (productPage + 1) * PRODUCT_STORES_PER_PAGE).map((item, localIdx) => {
+              const idx = productPage * PRODUCT_STORES_PER_PAGE + localIdx;
+              return (
               <div key={item.store.storeId} className="breakdown-row">
                 <div className="breakdown-store-info">
                   <span className="breakdown-index">{idx + 1}</span>
@@ -380,7 +404,7 @@ const Dashboard: React.FC = () => {
                   />
                 </div>
               </div>
-            ))}
+            )})}
           </div>
         </div>
 
@@ -426,13 +450,34 @@ const Dashboard: React.FC = () => {
             </div>
 
             <div className="status-item" style={{ flexDirection: 'column', alignItems: 'flex-start', gap: '12px' }}>
-              <span style={{ fontSize: '13px', color: 'var(--text-primary)', fontWeight: 600 }}>AP Status per Store / حالة محطات البث لكل متجر</span>
+              <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'center' }}>
+                <span style={{ fontSize: '13px', color: 'var(--text-primary)', fontWeight: 600 }}>AP Status per Store / حالة محطات البث لكل متجر</span>
+                {allStores.length > AP_STORES_PER_PAGE && (
+                  <div className="pagination-controls" style={{ gap: '4px' }}>
+                    <button 
+                      className="btn-icon small" 
+                      onClick={() => setApPage(p => Math.max(0, p - 1))}
+                      disabled={apPage === 0 || loading}
+                    >
+                      <ChevronLeft size={14} />
+                    </button>
+                    <span className="page-text" style={{ fontSize: '11px' }}>{apPage + 1} / {Math.ceil(allStores.length / AP_STORES_PER_PAGE)}</span>
+                    <button 
+                      className="btn-icon small" 
+                      onClick={() => setApPage(p => Math.min(Math.ceil(allStores.length / AP_STORES_PER_PAGE) - 1, p + 1))}
+                      disabled={apPage >= Math.ceil(allStores.length / AP_STORES_PER_PAGE) - 1 || loading}
+                    >
+                      <ChevronRight size={14} />
+                    </button>
+                  </div>
+                )}
+              </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', width: '100%' }}>
                 {loading ? (
                    <div className="shimmer-line" style={{ width: '100%', height: '32px' }} />
                 ) : storeBreakdown.length > 0 ? (
-                  storeBreakdown.slice(0, 3).map((item, idx) => (
-                    <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', background: 'var(--bg-primary)', border: '1px solid var(--border-color)', padding: '8px 12px', borderRadius: '6px' }}>
+                  storeBreakdown.slice(apPage * AP_STORES_PER_PAGE, (apPage + 1) * AP_STORES_PER_PAGE).map((item, idx) => (
+                    <div key={item.store.storeId || idx} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', background: 'var(--bg-primary)', border: '1px solid var(--border-color)', padding: '8px 12px', borderRadius: '6px' }}>
                       <span style={{ color: 'var(--text-secondary)' }}>{item.store.storeName}</span>
                       <span style={{ color: item.apOnlineCount && item.apOnlineCount > 0 ? 'var(--success-color)' : 'var(--text-muted)', fontWeight: 'bold' }}>
                         {item.apTotalCount !== undefined ? `${item.apOnlineCount} AP Online` : 'Loading... / جاري التحميل...'}
@@ -735,6 +780,41 @@ const Dashboard: React.FC = () => {
           border: 1px solid rgba(148, 163, 184, 0.2);
         }
 
+        /* ── Pagination Controls ── */
+        .pagination-controls {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+        }
+        .page-text {
+          font-size: 12px;
+          font-weight: 600;
+          color: var(--text-secondary);
+        }
+        .btn-icon {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          width: 28px;
+          height: 28px;
+          border-radius: 6px;
+          background: rgba(255, 255, 255, 0.05);
+          border: 1px solid rgba(255, 255, 255, 0.1);
+          color: var(--text-primary);
+          cursor: pointer;
+          transition: all 0.2s;
+        }
+        .btn-icon:hover:not(:disabled) {
+          background: rgba(255, 255, 255, 0.1);
+        }
+        .btn-icon:disabled {
+          opacity: 0.3;
+          cursor: not-allowed;
+        }
+        .btn-icon.small {
+          width: 24px;
+          height: 24px;
+        }
 
       `}</style>
     </div>

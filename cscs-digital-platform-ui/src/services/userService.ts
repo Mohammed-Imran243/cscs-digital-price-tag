@@ -18,6 +18,7 @@ export interface Role {
   merchantId?: string;
   createTime?: string;
   menuIdList?: number[];
+  _pending?: boolean;
 }
 
 export interface PermissionMenu {
