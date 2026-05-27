@@ -14,7 +14,6 @@ import { deviceService } from '../services/deviceService';
 import type { EslDevice, ApDevice } from '../services/deviceService';
 import { storeService } from '../services/storeService';
 import type { Store } from '../services/storeService';
-import { useAuth } from '../context/AuthContext';
 import { getProducts } from '../services/productService';
 
 import { EslTab } from '../components/devices/EslTab';
@@ -64,7 +63,7 @@ const Devices: React.FC = () => {
   const [totalElements, setTotalElements] = useState(0);
 
   // Role validation
-  const { user } = useAuth();
+  // const { user } = useAuth();
   const isAuthorized = true;
 
   // Multi-select / checkboxes
@@ -356,27 +355,27 @@ const Devices: React.FC = () => {
   };
 
   // Store-wide Force Refresh / Reboot ESL
-  const handleStoreForceRefresh = async () => {
-    if (!isAuthorized) {
-      showNotification('error', 'Access Denied: Only Administrator roles can trigger store force refresh. / تم رفض الوصول: الصلاحية للمدراء فقط للتحديث الإجباري للمتجر.');
-      return;
-    }
-    if (!selectedStoreId) return;
-    
-    const confirmMessage = "Are you sure you want to force refresh all ESL devices in this store? / هل أنت متأكد أنك تريد فرض تحديث جميع شاشات الأسعار في هذا المتجر؟";
-    if (window.confirm(confirmMessage)) {
-      setLoading(true);
-      try {
-        await deviceService.forceRefreshStore(selectedStoreId);
-        showNotification('success', 'Store force refresh successfully initiated / تم بدء التحديث الإجباري للمتجر بنجاح');
-        fetchDevices(true);
-      } catch (err: any) {
-        showNotification('error', 'Failed to force refresh store. Please try again. / فشل فرض تحديث المتجر. يرجى المحاولة مرة أخرى.');
-      } finally {
-        setLoading(false);
-      }
-    }
-  };
+  // const handleStoreForceRefresh = async () => {
+  //   if (!isAuthorized) {
+  //     showNotification('error', 'Access Denied: Only Administrator roles can trigger store force refresh. / تم رفض الوصول: الصلاحية للمدراء فقط للتحديث الإجباري للمتجر.');
+  //     return;
+  //   }
+  //   if (!selectedStoreId) return;
+  //   
+  //   const confirmMessage = "Are you sure you want to force refresh all ESL devices in this store? / هل أنت متأكد أنك تريد فرض تحديث جميع شاشات الأسعار في هذا المتجر؟";
+  //   if (window.confirm(confirmMessage)) {
+  //     setLoading(true);
+  //     try {
+  //       await deviceService.forceRefreshStore(selectedStoreId);
+  //       showNotification('success', 'Store force refresh successfully initiated / تم بدء التحديث الإجباري للمتجر بنجاح');
+  //       fetchDevices(true);
+  //     } catch (err: any) {
+  //       showNotification('error', 'Failed to force refresh store. Please try again. / فشل فرض تحديث المتجر. يرجى المحاولة مرة أخرى.');
+  //     } finally {
+  //       setLoading(false);
+  //     }
+  //   }
+  // };
 
   const showNotification = (type: 'success' | 'error', message: string) => {
     setNotification({ type, message });
@@ -680,10 +679,7 @@ const Devices: React.FC = () => {
 
               {/* Store Select — mandatory */}
               <div className="form-group">
-                <label>
-                  Store Select / اختيار المتجر
-                  <span className="required-asterisk"> *</span>
-                </label>
+                <label>Store Select / اختيار المتجر <span className="required-asterisk">*</span></label>
                 <select
                   required
                   className="glass-input"
@@ -711,10 +707,7 @@ const Devices: React.FC = () => {
 
               {/* MAC — mandatory */}
               <div className="form-group">
-                <label>
-                  MAC
-                  <span className="required-asterisk"> *</span>
-                </label>
+                <label>MAC <span className="required-asterisk">*</span></label>
                 <input
                   required
                   type="text"
@@ -1960,11 +1953,12 @@ const Devices: React.FC = () => {
         }
 
         .required-asterisk {
-          color: var(--danger-color);
-          margin-left: 2px;
+          color: #ef4444;
+          margin-left: 3px;
+          font-weight: 700;
         }
 
-        .bind-input, .bind-select {
+        .bind-input {
           padding: 9px 12px;
           border: 1px solid var(--glass-border);
           border-radius: 8px;
@@ -1974,9 +1968,38 @@ const Devices: React.FC = () => {
           width: 100%;
           transition: border-color 0.2s;
         }
-        .bind-input:focus, .bind-select:focus {
+        .bind-input:focus {
           outline: none;
           border-color: var(--accent-primary);
+        }
+
+        .bind-select {
+          font-family: 'Inter', 'Segoe UI', Arial, sans-serif !important;
+          font-size: 14px;
+          color: var(--text-primary);
+          background: var(--card-bg);
+          border: 1px solid var(--glass-border);
+          border-radius: 8px;
+          padding: 10px 14px;
+          width: 100%;
+          outline: none;
+          cursor: pointer;
+          appearance: auto !important;
+          -webkit-appearance: auto !important;
+          -moz-appearance: auto !important;
+          background-image: none !important;
+          transition: border-color 0.2s;
+        }
+        .bind-select:focus {
+          outline: none;
+          border-color: var(--accent-primary);
+        }
+
+        .bind-select option {
+          font-family: 'Inter', 'Segoe UI', Arial, sans-serif !important;
+          font-size: 14px;
+          color: #000000;
+          background: #ffffff;
         }
 
         .bind-textarea {
@@ -2202,6 +2225,14 @@ const Devices: React.FC = () => {
           border-radius: 8px !important;
           padding: 10px 12px !important;
           font-size: 14px !important;
+          font-family: 'Inter', 'Segoe UI', Arial, sans-serif !important;
+        }
+
+        .modal-content .bind-select option {
+          font-family: 'Inter', 'Segoe UI', Arial, sans-serif !important;
+          font-size: 14px;
+          color: #000000;
+          background: #ffffff;
         }
 
         .modal-content .bind-input:focus,

@@ -419,7 +419,7 @@ const Stores: React.FC = () => {
                   className="glass-input" placeholder="e.g. Al Naseem Store / مثل متجر النسيم" />
               </div>
               <div className="form-group">
-                <label>External Store ID / معرف المتجر الخارجي</label>
+                <label>External Store ID / معرف المتجر الخارجي <span className="required-asterisk">*</span></label>
                 <input type="text" value={formData.externalStoreId}
                   onChange={e => setFormData({ ...formData, externalStoreId: e.target.value })}
                   className="glass-input" placeholder="ERP Store Code / رمز المتجر في نظام ERP" />
@@ -470,7 +470,8 @@ const Stores: React.FC = () => {
       <style>{`
         .required-asterisk {
           color: #ef4444;
-          margin-left: 2px;
+          margin-left: 3px;
+          font-weight: 700;
         }
 
         .stores-container {

@@ -756,7 +756,8 @@ const Users: React.FC = () => {
       <style>{`
         .required-asterisk {
           color: #ef4444;
-          margin-left: 2px;
+          margin-left: 3px;
+          font-weight: 700;
         }
 
         .users-page-container {
