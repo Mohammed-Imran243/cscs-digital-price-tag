@@ -329,8 +329,20 @@ const Products: React.FC = () => {
         isNumeric ? searchTerm : undefined, 
         !isNumeric && searchTerm ? searchTerm : undefined
       );
-      setProducts(data.content || []);
-      setTotalElements(data.totalElements || 0);
+      const contentList = data.content || [];
+      setProducts(contentList);
+      
+      let total = data.totalElements || 0;
+      // Correct pagination if the page is completely empty
+      if (contentList.length === 0 && currentPage > 1) {
+        total = (currentPage - 1) * pageSize;
+      }
+      setTotalElements(total);
+      
+      const computedTotalPages = Math.ceil(total / pageSize) || 1;
+      if (currentPage > computedTotalPages) {
+        setCurrentPage(computedTotalPages);
+      }
     } catch (err) {
       console.error('Failed to fetch products', err);
       showNotification('Failed to query products. / فشل الاستعلام عن المنتجات.', 'error');

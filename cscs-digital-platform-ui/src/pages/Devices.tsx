@@ -474,7 +474,7 @@ const Devices: React.FC = () => {
             onClick={() => setActiveTab('esl')}
           >
             <Smartphone size={18} />
-            <span>ESL Labels / شاشات الأسعار</span>
+            <span>ESL Tags / شاشات الأسعار</span>
           </button>
           <button 
             className={`tab-btn ${activeTab === 'ap' ? 'active' : ''}`}

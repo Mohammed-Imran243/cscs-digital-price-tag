@@ -33,8 +33,6 @@ public class ProductService {
             throw new DragonEslException("storeId is required", HttpStatus.BAD_REQUEST);
         }
 
-        int dragonPage = page + 1;
-
         try {
             Map<String, Object> body = new HashMap<>();
             if (storeId != null && !storeId.isBlank()) {
@@ -53,7 +51,7 @@ public class ProductService {
             }
 
             Map<?, ?> response = dragonEslApiClient.post(
-                    "/zk/item/list/" + dragonPage + "/0/" + size + "/" + storeId,
+                    "/zk/item/list/0/" + page + "/" + size + "/" + storeId,
                     body,
                     Map.class
             );
@@ -117,6 +115,10 @@ public class ProductService {
                                 || (item.getBarcode() != null && item.getBarcode().toLowerCase().contains(searchLower));
                     })
                     .collect(Collectors.toList());
+
+            if (filteredProducts.isEmpty() && page > 0) {
+                totalElements = (long) page * size;
+            }
 
             return new PagedResponse<>(filteredProducts, page, size, totalElements);
 
