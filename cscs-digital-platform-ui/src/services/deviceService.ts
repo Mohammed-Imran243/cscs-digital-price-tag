@@ -99,5 +99,11 @@ export const deviceService = {
     const response = await api.post(`/devices/esl/unbind`, { storeId, eslBarcodes });
     unwrapResponse(response);
   },
+
+  /** Force refresh all ESL tags inside a store */
+  forceRefreshStore: async (storeId: string): Promise<void> => {
+    const response = await api.post(`/devices/store/force-refresh?storeId=${storeId}`);
+    unwrapResponse(response);
+  },
 };
 export default deviceService;
