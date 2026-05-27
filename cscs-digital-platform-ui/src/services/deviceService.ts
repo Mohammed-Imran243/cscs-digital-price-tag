@@ -105,5 +105,22 @@ export const deviceService = {
     const response = await api.post(`/devices/store/force-refresh?storeId=${storeId}`);
     unwrapResponse(response);
   },
+  addAp: async (payload: {
+    storeId: string;
+    apName?: string;
+    mac: string;
+    comment?: string;
+  }): Promise<void> => {
+    const response = await api.post('/devices/ap/add', payload);
+    unwrapResponse(response);
+  },
 };
+
+export interface ApCreatePayload {
+  storeId: string;
+  apName?: string;
+  mac: string;
+  comment?: string;
+}
+
 export default deviceService;

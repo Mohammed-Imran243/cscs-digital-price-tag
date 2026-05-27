@@ -1,5 +1,5 @@
 import React from 'react';
-import { Cpu, Copy, Check } from 'lucide-react';
+import { Cpu, Copy, Check, Plus } from 'lucide-react';
 import type { ApDevice } from '../../services/deviceService';
 import { getPaginationRange } from '../../utils/paginationUtils';
 
@@ -12,6 +12,7 @@ interface ApTabProps {
   setPageSize: (pageSize: number) => void;
   copyToClipboard: (text: string) => void;
   copiedId: string | null;
+  onAddAp: () => void; // NEW — triggers add AP modal from parent
 }
 
 export const ApTab: React.FC<ApTabProps> = ({
@@ -23,11 +24,19 @@ export const ApTab: React.FC<ApTabProps> = ({
   setPageSize,
   copyToClipboard,
   copiedId,
+  onAddAp,
 }) => {
   const totalPages = Math.ceil(totalElements / pageSize) || 1;
 
   return (
     <div className="table-card glass-card animate-fade-in">
+      {/* AP Actions Bar */}
+      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '16px', padding: '16px 24px 0 24px' }}>
+        <button className="btn-primary sm-btn" onClick={onAddAp}>
+          <Plus size={16} /> Add AP / إضافة نقطة وصول
+        </button>
+      </div>
+
       <div className="table-wrapper">
         <table>
           <thead>

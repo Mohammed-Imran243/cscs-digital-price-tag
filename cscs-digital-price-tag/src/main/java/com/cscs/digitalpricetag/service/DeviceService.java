@@ -1,6 +1,7 @@
 package com.cscs.digitalpricetag.service;
 
 import com.cscs.digitalpricetag.dto.ApResponse;
+import com.cscs.digitalpricetag.dto.api.ApCreateRequest;
 import com.cscs.digitalpricetag.dto.api.EslResponse;
 import com.cscs.digitalpricetag.dto.api.PagedResponse;
 import com.cscs.digitalpricetag.exception.DragonEslException;
@@ -219,6 +220,62 @@ public class DeviceService {
         } catch (Exception e) {
             log.error("Error fetching AP list: {}", e.getMessage(), e);
             throw new DragonEslException("AP fetch failed: " + e.getMessage(), HttpStatus.BAD_GATEWAY);
+        }
+    }
+
+    /**
+     * Add a new AP device to DragonESL.
+     * Uses POST /zk/ap/add matching DragonESL AP Management → Add popup.
+     */
+    public void addAp(ApCreateRequest request) {
+        try {
+            java.util.Map<String, Object> body = new java.util.HashMap<>();
+            body.put("storeId", request.getStoreId());
+            if (request.getApName() != null && !request.getApName().isBlank()) {
+                body.put("apName", request.getApName());
+            }
+            body.put("mac", request.getMac());
+            if (request.getComment() != null && !request.getComment().isBlank()) {
+                body.put("comment", request.getComment());
+            }
+
+            java.util.Map<?, ?> response = dragonEslApiClient.post(
+                    "/zk/ap/add",
+                    body,
+                    java.util.Map.class
+            );
+
+            if (response == null) {
+                throw new com.cscs.digitalpricetag.exception.DragonEslException(
+                    "No response from Dragon ESL for AP add",
+                    org.springframework.http.HttpStatus.BAD_GATEWAY
+                );
+            }
+
+            Object successObj = response.get("success");
+            boolean success = Boolean.TRUE.equals(successObj);
+            Object codeObj = response.get("code");
+            boolean codeOk = codeObj != null && (
+                Integer.valueOf(10000).equals(codeObj) || Integer.valueOf(200).equals(codeObj)
+            );
+
+            if (!success && !codeOk) {
+                String msg = response.get("message") != null
+                    ? response.get("message").toString()
+                    : "Unknown error";
+                throw new com.cscs.digitalpricetag.exception.DragonEslException(
+                    "Failed to add AP: " + msg,
+                    org.springframework.http.HttpStatus.BAD_GATEWAY
+                );
+            }
+        } catch (com.cscs.digitalpricetag.exception.DragonEslException e) {
+            throw e;
+        } catch (Exception e) {
+            log.error("Error adding AP: {}", e.getMessage());
+            throw new com.cscs.digitalpricetag.exception.DragonEslException(
+                "AP add failed: " + e.getMessage(),
+                org.springframework.http.HttpStatus.BAD_GATEWAY
+            );
         }
     }
 

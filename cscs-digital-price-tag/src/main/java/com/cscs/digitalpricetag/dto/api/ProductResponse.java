@@ -62,10 +62,26 @@ public class ProductResponse {
 
     private String attrCategory;
     private String attrName;
+    private Double vipPrice;
+    private String spec;
+    private String productLabel;
+    private String origin;
 
     public String getAttrCategory() { return attrCategory; }
     public void setAttrCategory(String attrCategory) { this.attrCategory = attrCategory; }
 
     public String getAttrName() { return attrName; }
     public void setAttrName(String attrName) { this.attrName = attrName; }
+
+    public Double getVipPrice() { return vipPrice; }
+    public void setVipPrice(Double vipPrice) { this.vipPrice = vipPrice; }
+
+    public String getSpec() { return spec; }
+    public void setSpec(String spec) { this.spec = spec; }
+
+    public String getProductLabel() { return productLabel; }
+    public void setProductLabel(String productLabel) { this.productLabel = productLabel; }
+
+    public String getOrigin() { return origin; }
+    public void setOrigin(String origin) { this.origin = origin; }
 }

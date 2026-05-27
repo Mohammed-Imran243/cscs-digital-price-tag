@@ -176,23 +176,31 @@ const Products: React.FC = () => {
     itemTitle: '',
     price: 0,
     originalPrice: 0,
+    vipPrice: '',
     attrCategory: '',
     attrName: '',
-    unit: '1PCS'
+    unit: '1PCS',
+    spec: '',
+    productLabel: '',
+    origin: ''
   });
   const [isUpdating, setIsUpdating] = useState(false);
   
   // New Product State
-  const [newProduct, setNewProduct] = useState<ProductCreateRequest>({
-    itemTitle: '',
+  const [newProduct, setNewProduct] = useState({
     productCode: '',
     barCode: '',
-    price: 0,
-    originalPrice: 0,
-    storeId: '',
+    itemTitle: '',
+    price: '',
+    originalPrice: '',
+    vipPrice: '',
     unit: '1PCS',
+    spec: '',
+    productLabel: '',
+    origin: '',
     attrCategory: '',
-    attrName: ''
+    attrName: '',
+    storeId: '',
   });
 
   // Fetch available templates for store
@@ -384,7 +392,7 @@ const Products: React.FC = () => {
       showNotification('Product name is required / اسم المنتج مطلوب', 'error');
       return;
     }
-    if (newProduct.price === undefined || newProduct.price === null || isNaN(newProduct.price)) {
+    if (newProduct.price === '' || isNaN(parseFloat(newProduct.price))) {
       showNotification('Selling price is required / سعر البيع مطلوب', 'error');
       return;
     }
@@ -399,17 +407,37 @@ const Products: React.FC = () => {
 
     setIsCreating(true);
     try {
-      await createProduct(newProduct);
+      const payload: ProductCreateRequest = {
+        itemTitle: newProduct.itemTitle,
+        productCode: newProduct.productCode || undefined,
+        barCode: newProduct.barCode,
+        price: parseFloat(newProduct.price) || 0,
+        originalPrice: newProduct.originalPrice ? parseFloat(newProduct.originalPrice) : undefined,
+        vipPrice: newProduct.vipPrice || undefined,
+        unit: newProduct.unit || undefined,
+        spec: newProduct.spec || undefined,
+        productLabel: newProduct.productLabel || undefined,
+        origin: newProduct.origin || undefined,
+        storeId: selectedStore,
+        attrCategory: newProduct.attrCategory,
+        attrName: newProduct.attrName,
+      };
+      await createProduct(payload);
       setIsModalOpen(false);
       setNewProduct({
-        ...newProduct,
-        itemTitle: '',
         productCode: '',
         barCode: '',
-        price: 0,
-        originalPrice: 0,
+        itemTitle: '',
+        price: '',
+        originalPrice: '',
+        vipPrice: '',
+        unit: '1PCS',
+        spec: '',
+        productLabel: '',
+        origin: '',
         attrCategory: '',
-        attrName: ''
+        attrName: '',
+        storeId: selectedStore,
       });
       fetchProducts();
       showNotification('Product added successfully / تمت إضافة المنتج بنجاح', 'success');
@@ -471,9 +499,13 @@ const Products: React.FC = () => {
       itemTitle: product.itemName,
       price: parseFloat(product.price) || 0,
       originalPrice: product.originalPrice ? parseFloat(product.originalPrice) : 0,
+      vipPrice: product.vipPrice || '',
       attrCategory: product.attrCategory || product.category || '',
       attrName: product.attrName || '', 
-      unit: product.unit || '1PCS'
+      unit: product.unit || '1PCS',
+      spec: product.spec || '',
+      productLabel: product.productLabel || '',
+      origin: product.origin || ''
     });
     setIsEditModalOpen(true);
   };
@@ -741,7 +773,7 @@ const Products: React.FC = () => {
 
       {isModalOpen && (
         <div className="modal-overlay">
-          <div className="modal-content glass-card">
+          <div className="modal-content glass-card" style={{ maxHeight: '90vh', overflowY: 'auto' }}>
             <div className="modal-header">
               <h3>Create New Product / إنشاء منتج جديد</h3>
               <button className="close-btn" onClick={() => setIsModalOpen(false)}>&times;</button>
@@ -750,25 +782,79 @@ const Products: React.FC = () => {
               <div className="form-row">
                 <div className="form-group">
                   <label>Commodity Code / كود السلعة</label>
-                  <input type="text" value={newProduct.productCode} onChange={e => setNewProduct({...newProduct, productCode: e.target.value})} className="glass-input" />
+                  <input
+                    type="text"
+                    className="glass-input"
+                    value={newProduct.productCode}
+                    onChange={e => setNewProduct(prev => ({ ...prev, productCode: e.target.value }))}
+                  />
                 </div>
                 <div className="form-group">
                   <label>Commodity Barcode <span className="required-asterisk">*</span> / باركود السلعة <span className="required-asterisk">*</span></label>
-                  <input required type="text" value={newProduct.barCode} onChange={e => setNewProduct({...newProduct, barCode: e.target.value})} className="glass-input" />
+                  <input
+                    required
+                    type="text"
+                    className="glass-input"
+                    value={newProduct.barCode}
+                    onChange={e => setNewProduct(prev => ({ ...prev, barCode: e.target.value }))}
+                  />
                 </div>
               </div>
               <div className="form-group">
                 <label>Commodity Name <span className="required-asterisk">*</span> / اسم السلعة <span className="required-asterisk">*</span></label>
-                <input required type="text" value={newProduct.itemTitle} onChange={e => setNewProduct({...newProduct, itemTitle: e.target.value})} className="glass-input" />
+                <input
+                  required
+                  type="text"
+                  className="glass-input"
+                  value={newProduct.itemTitle}
+                  onChange={e => setNewProduct(prev => ({ ...prev, itemTitle: e.target.value }))}
+                />
               </div>
               <div className="form-row">
                 <div className="form-group">
                   <label>Selling Price (SAR) <span className="required-asterisk">*</span> / سعر البيع (ر.س) <span className="required-asterisk">*</span></label>
-                  <input required type="number" step="0.01" value={newProduct.price === 0 && !newProduct.price ? '' : newProduct.price} onChange={e => setNewProduct({...newProduct, price: parseFloat(e.target.value)})} className="glass-input" />
+                  <input
+                    required
+                    type="number"
+                    step="0.01"
+                    placeholder="0.00"
+                    className="glass-input"
+                    value={newProduct.price}
+                    onChange={e => setNewProduct(prev => ({ ...prev, price: e.target.value }))}
+                  />
                 </div>
                 <div className="form-group">
                   <label>Original Price / السعر الأصلي</label>
-                  <input type="number" step="0.01" value={newProduct.originalPrice === 0 && !newProduct.originalPrice ? '' : newProduct.originalPrice} onChange={e => setNewProduct({...newProduct, originalPrice: parseFloat(e.target.value)})} className="glass-input" />
+                  <input
+                    type="number"
+                    step="0.01"
+                    placeholder="0.00"
+                    className="glass-input"
+                    value={newProduct.originalPrice}
+                    onChange={e => setNewProduct(prev => ({ ...prev, originalPrice: e.target.value }))}
+                  />
+                </div>
+              </div>
+              <div className="form-row">
+                <div className="form-group">
+                  <label>VIP Price / سعر VIP</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    className="glass-input"
+                    placeholder="0.00"
+                    value={newProduct.vipPrice || ''}
+                    onChange={e => setNewProduct(prev => ({ ...prev, vipPrice: e.target.value }))}
+                  />
+                </div>
+                <div className="form-group">
+                  <label>Unit / الوحدة</label>
+                  <input
+                    type="text"
+                    className="glass-input"
+                    value={newProduct.unit}
+                    onChange={e => setNewProduct(prev => ({ ...prev, unit: e.target.value }))}
+                  />
                 </div>
               </div>
               <div className="form-row">
@@ -799,10 +885,35 @@ const Products: React.FC = () => {
               </div>
               <div className="form-row">
                 <div className="form-group">
-                  <label>Unit / الوحدة</label>
-                  <input type="text" value={newProduct.unit} onChange={e => setNewProduct({...newProduct, unit: e.target.value})} className="glass-input" />
+                  <label>Spec / المواصفات</label>
+                  <input
+                    type="text"
+                    className="glass-input"
+                    placeholder="e.g. 500ml, 1kg / مثل: 500 مل، 1 كجم"
+                    value={newProduct.spec || ''}
+                    onChange={e => setNewProduct(prev => ({ ...prev, spec: e.target.value }))}
+                  />
                 </div>
-                <div className="form-group" />
+                <div className="form-group">
+                  <label>Product Label / تصنيف المنتج</label>
+                  <input
+                    type="text"
+                    className="glass-input"
+                    placeholder="e.g. New, Sale, Hot / مثل: جديد، تخفيض"
+                    value={newProduct.productLabel || ''}
+                    onChange={e => setNewProduct(prev => ({ ...prev, productLabel: e.target.value }))}
+                  />
+                </div>
+              </div>
+              <div className="form-group">
+                <label>Origin / المنشأ</label>
+                <input
+                  type="text"
+                  className="glass-input"
+                  placeholder="e.g. Saudi Arabia / المملكة العربية السعودية"
+                  value={newProduct.origin || ''}
+                  onChange={e => setNewProduct(prev => ({ ...prev, origin: e.target.value }))}
+                />
               </div>
               <div className="modal-actions">
                 <button type="button" className="btn-secondary" onClick={() => setIsModalOpen(false)}>Cancel / إلغاء</button>
@@ -817,7 +928,7 @@ const Products: React.FC = () => {
 
       {isEditModalOpen && (
         <div className="modal-overlay">
-          <div className="modal-content glass-card">
+          <div className="modal-content glass-card" style={{ maxHeight: '90vh', overflowY: 'auto' }}>
             <div className="modal-header">
               <h3>Edit Product / تعديل المنتج</h3>
               <button className="close-btn" onClick={() => setIsEditModalOpen(false)}>&times;</button>
@@ -828,9 +939,9 @@ const Products: React.FC = () => {
                   <label>Commodity Code / كود السلعة</label>
                   <input 
                     type="text" 
-                    value={editingProduct.productCode} 
-                    onChange={e => setEditingProduct({...editingProduct, productCode: e.target.value})} 
                     className="glass-input" 
+                    value={editingProduct.productCode} 
+                    onChange={e => setEditingProduct((prev: any) => ({ ...prev, productCode: e.target.value }))} 
                   />
                 </div>
                 <div className="form-group">
@@ -839,9 +950,9 @@ const Products: React.FC = () => {
                     required 
                     readOnly 
                     type="text" 
-                    value={editingProduct.barCode} 
                     className="glass-input readonly-input" 
                     style={{ background: 'rgba(255,255,255,0.05)', color: 'var(--text-muted)', cursor: 'not-allowed' }}
+                    value={editingProduct.barCode} 
                   />
                 </div>
               </div>
@@ -850,9 +961,9 @@ const Products: React.FC = () => {
                 <input 
                   required 
                   type="text" 
-                  value={editingProduct.itemTitle} 
-                  onChange={e => setEditingProduct({...editingProduct, itemTitle: e.target.value})} 
                   className="glass-input" 
+                  value={editingProduct.itemTitle} 
+                  onChange={e => setEditingProduct((prev: any) => ({ ...prev, itemTitle: e.target.value }))} 
                 />
               </div>
               <div className="form-row">
@@ -862,9 +973,10 @@ const Products: React.FC = () => {
                     required 
                     type="number" 
                     step="0.01" 
-                    value={editingProduct.price === 0 && !editingProduct.price ? '' : editingProduct.price} 
-                    onChange={e => setEditingProduct({...editingProduct, price: parseFloat(e.target.value)})} 
+                    placeholder="0.00"
                     className="glass-input" 
+                    value={editingProduct.price === 0 && !editingProduct.price ? '' : editingProduct.price} 
+                    onChange={e => setEditingProduct((prev: any) => ({ ...prev, price: parseFloat(e.target.value) || 0 }))} 
                   />
                 </div>
                 <div className="form-group">
@@ -872,9 +984,32 @@ const Products: React.FC = () => {
                   <input 
                     type="number" 
                     step="0.01" 
-                    value={editingProduct.originalPrice === 0 && !editingProduct.originalPrice ? '' : editingProduct.originalPrice} 
-                    onChange={e => setEditingProduct({...editingProduct, originalPrice: parseFloat(e.target.value)})} 
+                    placeholder="0.00"
                     className="glass-input" 
+                    value={editingProduct.originalPrice === 0 && !editingProduct.originalPrice ? '' : editingProduct.originalPrice} 
+                    onChange={e => setEditingProduct((prev: any) => ({ ...prev, originalPrice: parseFloat(e.target.value) || 0 }))} 
+                  />
+                </div>
+              </div>
+              <div className="form-row">
+                <div className="form-group">
+                  <label>VIP Price / سعر VIP</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    className="glass-input"
+                    placeholder="0.00"
+                    value={editingProduct.vipPrice || ''}
+                    onChange={e => setEditingProduct((prev: any) => ({ ...prev, vipPrice: e.target.value }))}
+                  />
+                </div>
+                <div className="form-group">
+                  <label>Unit / الوحدة</label>
+                  <input 
+                    type="text" 
+                    className="glass-input" 
+                    value={editingProduct.unit} 
+                    onChange={e => setEditingProduct((prev: any) => ({ ...prev, unit: e.target.value }))} 
                   />
                 </div>
               </div>
@@ -906,15 +1041,35 @@ const Products: React.FC = () => {
               </div>
               <div className="form-row">
                 <div className="form-group">
-                  <label>Unit / الوحدة</label>
-                  <input 
-                    type="text" 
-                    value={editingProduct.unit} 
-                    onChange={e => setEditingProduct({...editingProduct, unit: e.target.value})} 
-                    className="glass-input" 
+                  <label>Spec / المواصفات</label>
+                  <input
+                    type="text"
+                    className="glass-input"
+                    placeholder="e.g. 500ml, 1kg / مثل: 500 مل، 1 كجم"
+                    value={editingProduct.spec || ''}
+                    onChange={e => setEditingProduct((prev: any) => ({ ...prev, spec: e.target.value }))}
                   />
                 </div>
-                <div className="form-group" />
+                <div className="form-group">
+                  <label>Product Label / تصنيف المنتج</label>
+                  <input
+                    type="text"
+                    className="glass-input"
+                    placeholder="e.g. New, Sale, Hot / مثل: جديد، تخفيض"
+                    value={editingProduct.productLabel || ''}
+                    onChange={e => setEditingProduct((prev: any) => ({ ...prev, productLabel: e.target.value }))}
+                  />
+                </div>
+              </div>
+              <div className="form-group">
+                <label>Origin / المنشأ</label>
+                <input
+                  type="text"
+                  className="glass-input"
+                  placeholder="e.g. Saudi Arabia / المملكة العربية السعودية"
+                  value={editingProduct.origin || ''}
+                  onChange={e => setEditingProduct((prev: any) => ({ ...prev, origin: e.target.value }))}
+                />
               </div>
               <div className="modal-actions">
                 <button type="button" className="btn-secondary" onClick={() => setIsEditModalOpen(false)}>Cancel / إلغاء</button>
