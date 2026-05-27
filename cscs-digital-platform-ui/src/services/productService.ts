@@ -6,12 +6,16 @@ export interface Product {
   itemName: string;
   price: string;
   originalPrice?: string;
+  vipPrice?: string;
   storeId: string;
   status: string;
   category?: string;
   unit?: string;
   attrCategory?: string;
   attrName?: string;
+  spec?: string;
+  productLabel?: string;
+  origin?: string;
 }
 
 export interface PagedResponse<T> {
@@ -27,7 +31,11 @@ export interface ProductCreateRequest {
   barCode: string;
   price: number;
   originalPrice?: number;
+  vipPrice?: string;
   unit?: string;
+  spec?: string;
+  productLabel?: string;
+  origin?: string;
   storeId: string;
   attrCategory?: string;
   attrName?: string;

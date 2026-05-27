@@ -111,8 +111,11 @@ const Templates: React.FC = () => {
     storeId: '0',
     model: '',
     size: '',
-    resolution: '',
-    sceneNumber: 1
+    resolution: '152*152',
+    sceneNumber: 1,
+    screenType: 'single',
+    attrCategory: '',
+    attrName: ''
   });
   const [newCategoryName, setNewCategoryName] = useState('');
 
@@ -373,9 +376,12 @@ const Templates: React.FC = () => {
       const payload = {
         ...newTemplate,
         storeId: activeMenuTab === 'store' ? selectedStore : '0',
-        size: modelObj?.size || '',
-        resolution: modelObj?.resolution || '',
-        sceneNumber: activeMenuTab === 'merchant' ? merchantScenario : 1
+        size: newTemplate.size || modelObj?.size || '',
+        resolution: newTemplate.resolution || modelObj?.resolution || '',
+        sceneNumber: activeMenuTab === 'merchant' ? merchantScenario : 1,
+        screenType: newTemplate.screenType || 'single',
+        attrCategory: newTemplate.attrCategory || '',
+        attrName: newTemplate.attrName || ''
       };
 
       await addTemplate(payload);
@@ -386,8 +392,11 @@ const Templates: React.FC = () => {
         storeId: activeMenuTab === 'store' ? selectedStore : '0',
         model: '',
         size: '',
-        resolution: '',
-        sceneNumber: 1
+        resolution: '152*152',
+        sceneNumber: 1,
+        screenType: 'single',
+        attrCategory: '',
+        attrName: ''
       });
       fetchTemplatesList();
     } catch (err: any) {
@@ -857,26 +866,189 @@ const Templates: React.FC = () => {
       {isTemplateModalOpen && (
         <div className="modal-overlay">
           <div className="modal-content glass-card scale-up">
+            <button 
+              className="close-btn" 
+              onClick={() => { 
+                setIsTemplateModalOpen(false); 
+                setNewTemplate({
+                  templateName: '',
+                  storeId: activeMenuTab === 'store' ? selectedStore : '0',
+                  model: '',
+                  size: '',
+                  resolution: '152*152',
+                  sceneNumber: 1,
+                  screenType: 'single',
+                  attrCategory: '',
+                  attrName: ''
+                }); 
+              }}
+            >
+              &times;
+            </button>
             <div className="modal-header">
               <h3>Create {activeMenuTab === 'store' ? 'Store / متجر' : 'Merchant / تاجر'} ESL Template / إنشاء قالب شاشة الأسعار</h3>
-              <button className="close-btn" onClick={() => setIsTemplateModalOpen(false)}>&times;</button>
             </div>
             <form onSubmit={handleCreateTemplate} className="modal-form">
+
+              {/* Row 1: Template Name — mandatory */}
               <div className="form-group">
-                <label>Template Type / نوع القالب</label>
+                <label>Template Name / اسم القالب <span className="required-asterisk">*</span></label>
                 <input
                   required
                   type="text"
-                  placeholder="e.g. 1776767876250(2) / مثال: 1776767876250(2)"
+                  placeholder="e.g. 1779862316907"
                   value={newTemplate.templateName}
                   onChange={e => setNewTemplate({ ...newTemplate, templateName: e.target.value })}
                   className="glass-input"
                 />
               </div>
 
+              {/* Row 2: Screen Type — radio buttons */}
+              <div className="form-group">
+                <label>Screen Type / نوع الشاشة <span className="required-asterisk">*</span></label>
+                <div className="radio-group">
+                  <label className="radio-option">
+                    <input
+                      type="radio"
+                      name="screenType"
+                      value="single"
+                      checked={newTemplate.screenType !== 'double'}
+                      onChange={() => setNewTemplate({ ...newTemplate, screenType: 'single' })}
+                    />
+                    <span>Single screen / شاشة واحدة</span>
+                  </label>
+                  <label className="radio-option">
+                    <input
+                      type="radio"
+                      name="screenType"
+                      value="double"
+                      checked={newTemplate.screenType === 'double'}
+                      onChange={() => setNewTemplate({ ...newTemplate, screenType: 'double' })}
+                    />
+                    <span>Double-sided screen / شاشة مزدوجة</span>
+                  </label>
+                </div>
+              </div>
+
+              {/* Row 3: Size — dropdown from models */}
+              <div className="form-group">
+                <label>Size / الحجم <span className="required-asterisk">*</span></label>
+                {modelsLoading ? (
+                  <div style={{ color: 'var(--text-muted)', fontSize: '14px', padding: '8px 0', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <Loader2 className="animate-spin" size={16} /> Loading sizes... / جاري التحميل...
+                  </div>
+                ) : modelsError ? (
+                  <div style={{ color: 'var(--danger-color)', fontSize: '14px', padding: '8px 0' }}>
+                    {modelsError}
+                  </div>
+                ) : (
+                  <select
+                    required
+                    className="glass-input"
+                    value={newTemplate.size}
+                    onChange={e => {
+                      const selectedSize = e.target.value;
+                      const matchedModel = models.find(m => m.size === selectedSize);
+                      setNewTemplate({
+                        ...newTemplate,
+                        size: selectedSize,
+                        resolution: matchedModel?.resolution || '',
+                        model: matchedModel?.model || newTemplate.model
+                      });
+                    }}
+                  >
+                    <option value="">Select Size... / اختر الحجم...</option>
+                    {uniqueSizes.map(s => (
+                      <option key={s} value={s}>{s} Inch</option>
+                    ))}
+                  </select>
+                )}
+              </div>
+
+              {/* Row 4: DPI — radio buttons */}
+              <div className="form-group">
+                <label>Dpi / الدقة <span className="required-asterisk">*</span></label>
+                <div className="radio-group">
+                  <label className="radio-option">
+                    <input
+                      type="radio"
+                      name="dpi"
+                      value="152*152"
+                      checked={newTemplate.resolution !== '200*200'}
+                      onChange={() => setNewTemplate({ ...newTemplate, resolution: '152*152' })}
+                    />
+                    <span>152*152</span>
+                  </label>
+                  <label className="radio-option">
+                    <input
+                      type="radio"
+                      name="dpi"
+                      value="200*200"
+                      checked={newTemplate.resolution === '200*200'}
+                      onChange={() => setNewTemplate({ ...newTemplate, resolution: '200*200' })}
+                    />
+                    <span>200*200</span>
+                  </label>
+                </div>
+              </div>
+
+              {/* Row 5: Color — radio (read-only display from model) */}
+              <div className="form-group">
+                <label>Color / اللون</label>
+                <div className="radio-group">
+                  <label className="radio-option">
+                    <input type="radio" name="color" checked readOnly />
+                    <span>Blackwhitered / أسود أبيض أحمر</span>
+                  </label>
+                </div>
+              </div>
+
+              {/* Row 6: Model — auto filled based on size (read-only display) */}
+              <div className="form-group">
+                <label>Model / الطراز</label>
+                <div className="glass-input" style={{ padding: '10px 14px', color: 'var(--text-muted)', fontSize: '14px', background: 'rgba(255,255,255,0.02)' }}>
+                  {newTemplate.size
+                    ? models.filter(m => m.size === newTemplate.size).map(m => m.model).join('  ') || 'No model available'
+                    : 'Select size first / اختر الحجم أولاً'}
+                </div>
+              </div>
+
+              {/* Row 7: Template Category — mandatory dropdown */}
+              <div className="form-group">
+                <label>Template Category / تصنيف القالب <span className="required-asterisk">*</span></label>
+                <select
+                  required
+                  className="glass-input"
+                  value={newTemplate.attrCategory || ''}
+                  onChange={e => setNewTemplate({ ...newTemplate, attrCategory: e.target.value })}
+                >
+                  <option value="">Select Category... / اختر التصنيف...</option>
+                  {categories.map(c => (
+                    <option key={c.id} value={c.categoryName}>{c.categoryName}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Row 8: Template Type — mandatory dropdown */}
+              <div className="form-group">
+                <label>Template Type / نوع القالب <span className="required-asterisk">*</span></label>
+                <select
+                  required
+                  className="glass-input"
+                  value={newTemplate.attrName || ''}
+                  onChange={e => setNewTemplate({ ...newTemplate, attrName: e.target.value })}
+                >
+                  <option value="">Select Type... / اختر النوع...</option>
+                  {templateTypes.map(t => (
+                    <option key={t} value={t}>{t}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Row 9: Bound Store — only for store tab */}
               {activeMenuTab === 'store' && (
                 <div className="form-group">
-                  <label>Bound Store / المتجر المرتبط</label>
+                  <label>Bound Store / المتجر المرتبط <span className="required-asterisk">*</span></label>
                   {storesLoading ? (
                     <div style={{ color: 'var(--text-muted)', fontSize: '14px', padding: '8px 0', display: 'flex', alignItems: 'center', gap: '8px' }}>
                       <Loader2 className="animate-spin" size={16} /> Loading stores... / جاري تحميل المتاجر...
@@ -897,37 +1069,29 @@ const Templates: React.FC = () => {
                 </div>
               )}
 
-              <div className="form-group">
-                <label>ESL Hardware Model / طراز جهاز شاشة الأسعار</label>
-                {modelsLoading ? (
-                  <div style={{ color: 'var(--text-muted)', fontSize: '14px', padding: '8px 0', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <Loader2 className="animate-spin" size={16} /> Loading models... / جاري التحميل...
-                  </div>
-                ) : modelsError ? (
-                  <div style={{ color: 'var(--danger-color)', fontSize: '14px', padding: '8px 0' }}>
-                    {modelsError}
-                  </div>
-                ) : (
-                  <select
-                    required
-                    className="glass-input"
-                    value={newTemplate.model}
-                    onChange={e => setNewTemplate({ ...newTemplate, model: e.target.value })}
-                  >
-                    <option value="">Select Price Tag Model... / اختر طراز شاشة الأسعار...</option>
-                    {models.map(m => (
-                      <option key={m.id} value={m.model}>
-                        {m.model} ({m.size}" - {m.resolution})
-                      </option>
-                    ))}
-                  </select>
-                )}
-              </div>
-
               <div className="modal-actions">
-                <button type="button" className="btn-secondary" onClick={() => setIsTemplateModalOpen(false)}>Cancel / إلغاء</button>
+                <button 
+                  type="button" 
+                  className="btn-secondary" 
+                  onClick={() => { 
+                    setIsTemplateModalOpen(false); 
+                    setNewTemplate({
+                      templateName: '',
+                      storeId: activeMenuTab === 'store' ? selectedStore : '0',
+                      model: '',
+                      size: '',
+                      resolution: '152*152',
+                      sceneNumber: 1,
+                      screenType: 'single',
+                      attrCategory: '',
+                      attrName: ''
+                    }); 
+                  }}
+                >
+                  Cancel / إلغاء
+                </button>
                 <button type="submit" className="btn-primary" disabled={submitting}>
-                  {submitting ? <Loader2 className="animate-spin" size={16} /> : 'Add / إضافة'}
+                  {submitting ? <Loader2 className="animate-spin" size={16} /> : 'Add to details / إضافة للتفاصيل'}
                 </button>
               </div>
             </form>
@@ -939,9 +1103,9 @@ const Templates: React.FC = () => {
       {isCategoryModalOpen && (
         <div className="modal-overlay">
           <div className="modal-content glass-card scale-up">
+            <button className="close-btn" onClick={() => setIsCategoryModalOpen(false)}>&times;</button>
             <div className="modal-header">
               <h3>Create Template Classification / إنشاء تصنيف قالب</h3>
-              <button className="close-btn" onClick={() => setIsCategoryModalOpen(false)}>&times;</button>
             </div>
             <form onSubmit={handleCreateCategory} className="modal-form">
               <div className="form-group">
@@ -971,9 +1135,9 @@ const Templates: React.FC = () => {
       {editTemplateModal && (
         <div className="modal-overlay">
           <div className="modal-content glass-card scale-up">
+            <button className="close-btn" onClick={() => setEditTemplateModal(null)}>&times;</button>
             <div className="modal-header">
               <h3>Edit Template / تعديل القالب</h3>
-              <button className="close-btn" onClick={() => setEditTemplateModal(null)}>&times;</button>
             </div>
             <form onSubmit={handleUpdateTemplate} className="modal-form">
               <div className="form-group">
@@ -1016,9 +1180,9 @@ const Templates: React.FC = () => {
         return (
           <div className="modal-overlay" onClick={() => setPreviewTemplate(null)}>
             <div className="modal-content glass-card preview-modal-simple scale-up" onClick={e => e.stopPropagation()} style={{ maxWidth: `${specs.width + 80}px` }}>
+              <button className="close-btn" onClick={() => setPreviewTemplate(null)}>&times;</button>
               <div className="modal-header">
                 <h3>Template Preview / معاينة القالب ({previewTemplate.templateName})</h3>
-                <button className="close-btn" onClick={() => setPreviewTemplate(null)}>&times;</button>
               </div>
 
               {/* Dragon ESL: template display, centered */}
@@ -1928,6 +2092,110 @@ const Templates: React.FC = () => {
           .zkong-table-container {
             overflow-x: auto;
           }
+        }
+
+        .modal-content {
+          position: relative;
+          padding: 28px 32px 24px 32px;
+          max-height: 90vh;
+          overflow-y: auto;
+          width: 100%;
+          max-width: 560px;
+        }
+
+        .modal-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: flex-start;
+          margin-bottom: 24px;
+          padding-right: 32px;
+        }
+
+        .modal-header h3 {
+          font-size: 16px;
+          font-weight: 700;
+          color: var(--text-primary);
+          line-height: 1.4;
+          margin: 0;
+        }
+
+        .modal-form {
+          display: flex;
+          flex-direction: column;
+          gap: 18px;
+        }
+
+        .form-group {
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
+        }
+
+        .form-group label {
+          font-size: 13px;
+          font-weight: 600;
+          color: var(--text-muted);
+        }
+
+        /* Radio group styling */
+        .radio-group {
+          display: flex;
+          gap: 32px;
+          align-items: center;
+          flex-wrap: wrap;
+          padding: 4px 0;
+        }
+
+        .radio-option {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          cursor: pointer;
+          font-size: 14px;
+          color: var(--text-primary);
+          font-weight: 500;
+        }
+
+        .radio-option input[type="radio"] {
+          accent-color: var(--primary-color);
+          width: 16px;
+          height: 16px;
+          cursor: pointer;
+        }
+
+        .modal-actions {
+          display: flex;
+          justify-content: flex-end;
+          gap: 12px;
+          margin-top: 8px;
+          padding-top: 16px;
+          border-top: 1px solid var(--glass-border);
+        }
+
+        .close-btn {
+          position: absolute;
+          top: 16px;
+          right: 16px;
+          width: 32px;
+          height: 32px;
+          border-radius: 50%;
+          background: rgba(255,255,255,0.08);
+          border: 1px solid var(--glass-border);
+          color: var(--text-muted);
+          font-size: 18px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          cursor: pointer;
+          transition: all 0.2s;
+          line-height: 1;
+          z-index: 10;
+        }
+
+        .close-btn:hover {
+          background: rgba(239,68,68,0.15);
+          color: var(--danger-color);
+          border-color: var(--danger-color);
         }
       `}</style>
     </div>

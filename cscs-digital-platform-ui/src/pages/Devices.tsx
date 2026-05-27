@@ -30,6 +30,26 @@ const Devices: React.FC = () => {
   const [selectedStoreId, setSelectedStoreId] = useState<string>('');
   const [storesLoading, setStoresLoading] = useState(true);
 
+  // AP Add Modal State
+  const [isAddApModalOpen, setIsAddApModalOpen] = useState(false);
+  const [newAp, setNewAp] = useState<{ apName: string; mac: string; comment: string }>({
+    apName: '',
+    mac: '',
+    comment: ''
+  });
+  const [apSubmitting, setApSubmitting] = useState(false);
+  const [selectedStore, setSelectedStore] = useState<string>('');
+
+  useEffect(() => {
+    setSelectedStore(selectedStoreId);
+  }, [selectedStoreId]);
+
+  useEffect(() => {
+    if (selectedStore && selectedStore !== selectedStoreId) {
+      setSelectedStoreId(selectedStore);
+    }
+  }, [selectedStore]);
+
   // Device states
   const [eslDevices, setEslDevices] = useState<EslDevice[]>([]);
   const [apDevices, setApDevices] = useState<ApDevice[]>([]);
@@ -342,6 +362,32 @@ const Devices: React.FC = () => {
     setTimeout(() => setCopiedId(null), 2000);
   };
 
+  const fetchApDevices = () => {
+    fetchDevices();
+  };
+
+  const handleAddAp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newAp.mac.trim() || !selectedStore) return;
+    setApSubmitting(true);
+    try {
+      await deviceService.addAp({
+        storeId: selectedStore,
+        apName: newAp.apName || undefined,
+        mac: newAp.mac.trim(),
+        comment: newAp.comment || undefined,
+      });
+      showNotification('success', 'AP added successfully / تمت إضافة نقطة الوصول بنجاح');
+      setIsAddApModalOpen(false);
+      setNewAp({ apName: '', mac: '', comment: '' });
+      fetchApDevices(); // refresh AP list
+    } catch (err: any) {
+      showNotification('error', 'Failed to add AP. Please try again. / فشل إضافة نقطة الوصول. يرجى المحاولة مرة أخرى.');
+    } finally {
+      setApSubmitting(false);
+    }
+  };
+
   // ── ESL Bind / Unbind Handlers ────────────────────────────────────────────
 
   /** Open the Bind modal and pre-load AP list and available ESLs for the selected store */
@@ -527,6 +573,7 @@ const Devices: React.FC = () => {
           setPageSize={setPageSize}
           copyToClipboard={copyToClipboard}
           copiedId={copiedId}
+          onAddAp={() => setIsAddApModalOpen(true)}
         />
       )}
 
@@ -591,6 +638,98 @@ const Devices: React.FC = () => {
         stores={stores}
         selectedStoreId={selectedStoreId}
       />
+
+      {/* ── ADD AP MODAL ── */}
+      {isAddApModalOpen && (
+        <div className="modal-overlay">
+          <div className="modal-content glass-card scale-up">
+            <button className="close-btn" onClick={() => setIsAddApModalOpen(false)}>&times;</button>
+            <div className="modal-header">
+              <h3>Add AP / إضافة نقطة وصول</h3>
+            </div>
+            <form onSubmit={handleAddAp} className="modal-form">
+
+              {/* Store Select — mandatory */}
+              <div className="form-group">
+                <label>
+                  Store Select / اختيار المتجر
+                  <span className="required-asterisk"> *</span>
+                </label>
+                <select
+                  required
+                  className="glass-input"
+                  value={selectedStore}
+                  onChange={e => setSelectedStore(e.target.value)}
+                >
+                  <option value="">Select a Store... / اختر متجراً...</option>
+                  {stores.map(s => (
+                    <option key={s.storeId} value={s.storeId}>{s.storeName}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Base Station Name — optional */}
+              <div className="form-group">
+                <label>Base Station Name / اسم المحطة الأساسية</label>
+                <input
+                  type="text"
+                  className="glass-input"
+                  placeholder="e.g. AlNaseemIOT / مثال: AlNaseemIOT"
+                  value={newAp.apName}
+                  onChange={e => setNewAp(prev => ({ ...prev, apName: e.target.value }))}
+                />
+              </div>
+
+              {/* MAC — mandatory */}
+              <div className="form-group">
+                <label>
+                  MAC
+                  <span className="required-asterisk"> *</span>
+                </label>
+                <input
+                  required
+                  type="text"
+                  className="glass-input"
+                  placeholder="e.g. A0A3B855950F / مثال: A0A3B855950F"
+                  value={newAp.mac}
+                  onChange={e => setNewAp(prev => ({ ...prev, mac: e.target.value }))}
+                />
+              </div>
+
+              {/* Comment — optional */}
+              <div className="form-group">
+                <label>Comment / تعليق</label>
+                <input
+                  type="text"
+                  className="glass-input"
+                  placeholder="Optional comment / تعليق اختياري"
+                  value={newAp.comment}
+                  onChange={e => setNewAp(prev => ({ ...prev, comment: e.target.value }))}
+                />
+              </div>
+
+              <div className="modal-actions">
+                <button
+                  type="button"
+                  className="btn-secondary"
+                  onClick={() => setIsAddApModalOpen(false)}
+                >
+                  Cancel / إلغاء
+                </button>
+                <button
+                  type="submit"
+                  className="btn-primary"
+                  disabled={apSubmitting}
+                >
+                  {apSubmitting
+                    ? <Loader2 className="animate-spin" size={16} />
+                    : 'Confirm / تأكيد'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       {/* Styled styles exactly embedded with maximum Premium Aesthetics */}
       <style>{`

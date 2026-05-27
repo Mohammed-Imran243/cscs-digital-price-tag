@@ -57,6 +57,9 @@ export interface TemplateCreateRequest {
   size?: string;
   resolution?: string;
   sceneNumber?: number;
+  screenType?: string;
+  attrCategory?: string;
+  attrName?: string;
 }
 
 export const getTemplates = async (page = 0, size = 10, searchParams?: Record<string, any>) => {

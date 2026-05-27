@@ -245,6 +245,10 @@ public class ProductService {
         body.put("type", request.getType());
         body.put("itemSpecsSkuVoList", Collections.emptyList());
         body.put("itemVideoList", Collections.emptyList());
+        if (request.getVipPrice() != null) body.put("vipPrice", request.getVipPrice());
+        if (request.getSpec() != null && !request.getSpec().isBlank()) body.put("spec", request.getSpec());
+        if (request.getProductLabel() != null && !request.getProductLabel().isBlank()) body.put("productLabel", request.getProductLabel());
+        if (request.getOrigin() != null && !request.getOrigin().isBlank()) body.put("origin", request.getOrigin());
 
         try {
             Map<?, ?> response = dragonEslApiClient.post(
@@ -405,6 +409,11 @@ public class ProductService {
         if (raw.get("attrName") != null) r.setAttrName(raw.get("attrName").toString());
         if (raw.get("attrCategory") != null) r.setAttrCategory(raw.get("attrCategory").toString());
         if (raw.get("unit") != null) r.setUnit(raw.get("unit").toString());
+
+        r.setVipPrice(raw.get("vipPrice") != null ? Double.parseDouble(raw.get("vipPrice").toString()) : null);
+        r.setSpec(raw.get("spec") != null ? raw.get("spec").toString() : null);
+        r.setProductLabel(raw.get("productLabel") != null ? raw.get("productLabel").toString() : null);
+        r.setOrigin(raw.get("origin") != null ? raw.get("origin").toString() : null);
 
         return r;
     }

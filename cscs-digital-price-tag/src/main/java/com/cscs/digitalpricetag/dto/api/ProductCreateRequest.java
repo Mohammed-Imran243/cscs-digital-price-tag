@@ -18,7 +18,15 @@ public class ProductCreateRequest {
 
     private Double originalPrice;
 
+    private Double vipPrice;
+
     private String unit;
+
+    private String spec;
+
+    private String productLabel;
+
+    private String origin;
 
     @NotBlank(message = "Store ID is required")
     private String storeId;
@@ -46,8 +54,20 @@ public class ProductCreateRequest {
     public Double getOriginalPrice() { return originalPrice; }
     public void setOriginalPrice(Double originalPrice) { this.originalPrice = originalPrice; }
 
+    public Double getVipPrice() { return vipPrice; }
+    public void setVipPrice(Double vipPrice) { this.vipPrice = vipPrice; }
+
     public String getUnit() { return unit; }
     public void setUnit(String unit) { this.unit = unit; }
+
+    public String getSpec() { return spec; }
+    public void setSpec(String spec) { this.spec = spec; }
+
+    public String getProductLabel() { return productLabel; }
+    public void setProductLabel(String productLabel) { this.productLabel = productLabel; }
+
+    public String getOrigin() { return origin; }
+    public void setOrigin(String origin) { this.origin = origin; }
 
     public String getStoreId() { return storeId; }
     public void setStoreId(String storeId) { this.storeId = storeId; }

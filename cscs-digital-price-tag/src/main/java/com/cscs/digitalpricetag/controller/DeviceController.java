@@ -5,6 +5,7 @@ import com.cscs.digitalpricetag.dto.ApResponse;
 import com.cscs.digitalpricetag.dto.api.EslResponse;
 import com.cscs.digitalpricetag.dto.api.PagedResponse;
 import com.cscs.digitalpricetag.service.DeviceService;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -51,6 +52,20 @@ public class DeviceController {
 
         PagedResponse<ApResponse> apDevices = deviceService.getApDevices(page, size, storeId, search);
         return ResponseEntity.ok(ApiResponse.success("AP base stations fetched successfully", apDevices));
+    }
+
+    /**
+     * POST /api/devices/ap/add
+     * Adds a new AP device to DragonESL.
+     * Matches DragonESL AP Management → Add popup fields:
+     * Store Select (mandatory), Base Station Name, MAC (mandatory), Comment.
+     */
+    @PreAuthorize("isAuthenticated()")
+    @PostMapping("/ap/add")
+    public ResponseEntity<ApiResponse<Void>> addAp(
+            @RequestBody @Valid com.cscs.digitalpricetag.dto.api.ApCreateRequest request) {
+        deviceService.addAp(request);
+        return ResponseEntity.ok(ApiResponse.success("AP added successfully", null));
     }
 
     /**
