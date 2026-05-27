@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   getTemplates,
   getCategories,
   addCategory,
   getModels,
-  addTemplate,
   updateTemplateBase,
   deleteTemplate,
   enableTemplate,
@@ -48,6 +48,7 @@ const COLOR_MAPPINGS: Record<number, { key: string; label: string }> = {
 };
 
 const Templates: React.FC = () => {
+  const navigate = useNavigate();
   // Navigation State (5 Main Zkong Menu Tabs)
   const [activeMenuTab, setActiveMenuTab] = useState<'merchant' | 'store' | 'business_icon' | 'store_icon' | 'properties'>('merchant');
 
@@ -410,41 +411,21 @@ const Templates: React.FC = () => {
   const handleCreateTemplate = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newTemplate.templateName.trim() || !newTemplate.model) return;
-    setSubmitting(true);
-    try {
-      const modelObj = models.find(m => m.model === newTemplate.model);
-      const payload = {
-        ...newTemplate,
-        storeId: activeMenuTab === 'store' ? selectedStore : '0',
-        size: newTemplate.size || modelObj?.size || '',
-        resolution: newTemplate.resolution || modelObj?.resolution || '',
-        sceneNumber: activeMenuTab === 'merchant' ? merchantScenario : 1,
-        screenType: newTemplate.screenType || 'single',
-        attrCategory: newTemplate.attrCategory || '',
-        attrName: newTemplate.attrName || ''
-      };
+    
+    const modelObj = models.find(m => m.model === newTemplate.model);
+    const payload = {
+      ...newTemplate,
+      storeId: activeMenuTab === 'store' ? selectedStore : '0',
+      size: newTemplate.size || modelObj?.size || '',
+      resolution: newTemplate.resolution || modelObj?.resolution || '152*152',
+      sceneNumber: activeMenuTab === 'merchant' ? merchantScenario : 1,
+      screenType: newTemplate.screenType || 'single',
+      attrCategory: newTemplate.attrCategory || '',
+      attrName: newTemplate.attrName || ''
+    };
 
-      await addTemplate(payload);
-      showNotification('Template added successfully / تمت إضافة القالب بنجاح', 'success');
-      setIsTemplateModalOpen(false);
-      setNewTemplate({
-        templateName: '',
-        storeId: activeMenuTab === 'store' ? selectedStore : '0',
-        model: '',
-        size: '',
-        resolution: '152*152',
-        sceneNumber: 1,
-        screenType: 'single',
-        attrCategory: '',
-        attrName: ''
-      });
-      fetchTemplatesList();
-    } catch (err: any) {
-      console.error('Failed to add template', err);
-      showNotification('Failed to add template. Please try again. / فشل إضافة القالب. يرجى المحاولة مرة أخرى.', 'error');
-    } finally {
-      setSubmitting(false);
-    }
+    // Redirect to the canvas editor with the template configuration
+    navigate('/template/editor/new', { state: { config: payload } });
   };
 
   // Add attribute property under category (Tab 5 properties)

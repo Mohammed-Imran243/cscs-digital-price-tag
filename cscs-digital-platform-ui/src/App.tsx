@@ -12,6 +12,7 @@ import Devices from './pages/Devices';
 import Users from './pages/Users';
 import AuditLogs from './pages/AuditLogs';
 import Merchants from './pages/Merchants';
+import TemplateEditor from './pages/TemplateEditor';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { Loader2 } from 'lucide-react';
 import './styles/theme.css';
@@ -65,6 +66,8 @@ const App: React.FC = () => {
               <Route path="/stores" element={<ProtectedRoute requiredPermission="store"><Stores /></ProtectedRoute>} />
               <Route path="/products" element={<ProtectedRoute requiredPermission="product"><Products /></ProtectedRoute>} />
               <Route path="/templates" element={<ProtectedRoute requiredPermission="template"><Templates /></ProtectedRoute>} />
+              <Route path="/template/editor/:id" element={<ProtectedRoute requiredPermission="template"><TemplateEditor /></ProtectedRoute>} />
+              <Route path="/template/editor" element={<ProtectedRoute requiredPermission="template"><TemplateEditor /></ProtectedRoute>} />
               <Route path="/devices" element={<ProtectedRoute requiredPermission="equipment"><Devices /></ProtectedRoute>} />
               <Route path="/audit-logs" element={<ProtectedRoute requiredPermission="log"><AuditLogs /></ProtectedRoute>} />
               <Route path="/users" element={<ProtectedRoute requiredPermission="staffManager"><Users /></ProtectedRoute>} />
