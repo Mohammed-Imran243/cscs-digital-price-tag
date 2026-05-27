@@ -68,7 +68,6 @@ export const BindModal: React.FC<BindModalProps> = ({
   const eslDropdownRef = useRef<HTMLDivElement>(null);
   const [hasTypedEsl, setHasTypedEsl] = useState(false);
 
-  // Fetch products of the selected store when store changes or modal opens
   useEffect(() => {
     if (bindModalOpen && bindFormStoreId) {
       const fetchProducts = async () => {
@@ -93,7 +92,6 @@ export const BindModal: React.FC<BindModalProps> = ({
     }
   }, [bindModalOpen, bindFormStoreId]);
 
-  // Keep search query in sync with the selected item barcode
   useEffect(() => {
     if (!bindFormItemBarCode) {
       setSearchQuery('');
@@ -108,7 +106,6 @@ export const BindModal: React.FC<BindModalProps> = ({
     }
   }, [bindFormItemBarCode, storeProducts]);
 
-  // Keep ESL search query in sync with the selected ESL barcode
   useEffect(() => {
     if (!bindFormEslBarcode) {
       setEslSearchQuery('');
@@ -123,7 +120,6 @@ export const BindModal: React.FC<BindModalProps> = ({
     }
   }, [bindFormEslBarcode, availableEsls]);
 
-  // Click outside to close dropdowns
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
@@ -159,6 +155,20 @@ export const BindModal: React.FC<BindModalProps> = ({
 
   return (
     <div className="modal-overlay" onClick={() => setBindModalOpen(false)}>
+      {/* Scoped style to forcefully remove SVG arrow from bind-select dropdowns */}
+      <style>{`
+        select.bind-select,
+        .modal-content select.bind-select,
+        .bind-field-group select.bind-select,
+        .bind-form-body select.bind-select {
+          background-image: none !important;
+          -webkit-appearance: auto !important;
+          -moz-appearance: auto !important;
+          appearance: auto !important;
+          padding-right: 12px !important;
+        }
+      `}</style>
+
       <div className="modal-content glass-card bind-workflow-modal scale-up" onClick={e => e.stopPropagation()}>
 
         {/* Header */}
@@ -202,7 +212,6 @@ export const BindModal: React.FC<BindModalProps> = ({
                   setAvailableAps([]);
                   setBindFormEslBarcode('');
                   setBindFormApMac('');
-                  // Reload lists for new store
                   deviceService.getAvailableEslDevices(newStoreId)
                     .then(r => setAvailableEsls(r || []))
                     .catch(() => {});
@@ -410,7 +419,6 @@ export const BindModal: React.FC<BindModalProps> = ({
               <span className="bind-hint">You can also select from the table first — selected barcodes appear here. / يمكنك أيضاً التحديد من الجدول أولاً — الباركود المحددة ستظهر هنا.</span>
             </div>
 
-            {/* Pre-fill from table selection */}
             {selectedBarcodes.length > 0 && (
               <button
                 className="bind-prefill-btn"

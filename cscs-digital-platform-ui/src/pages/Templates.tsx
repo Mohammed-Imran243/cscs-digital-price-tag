@@ -274,20 +274,14 @@ const Templates: React.FC = () => {
 
   const fetchTemplatesList = async () => {
     setLoading(true);
-    if (activeMenuTab === 'merchant') {
-      setTemplates([]);
-      setTotalElements(0);
-      setLoading(false);
-      return;
-    }
     try {
       const searchParams: Record<string, any> = {};
 
       // In store template tab, filter by selected storeId. In merchant tab, storeId is empty.
       if (activeMenuTab === 'store') {
         searchParams.storeId = selectedStore;
-      } else {
-        // Merchant Tab - scene number maps to sub-tabs
+      } else if (activeMenuTab === 'merchant') {
+        // Merchant Tab - no storeId, scene number maps to sub-tabs
         searchParams.sceneNumber = merchantScenario.toString();
       }
 
@@ -1229,7 +1223,7 @@ const Templates: React.FC = () => {
             </div>
             <form onSubmit={handleUpdateTemplate} className="modal-form">
               <div className="form-group">
-                <label>Template Type / نوع القالب</label>
+                <label>Template Type / نوع القالب <span className="required-asterisk">*</span></label>
                 <input
                   required
                   type="text"
@@ -1239,7 +1233,7 @@ const Templates: React.FC = () => {
                 />
               </div>
               <div className="form-group">
-                <label>Template Category / تصنيف القالب</label>
+                <label>Template Category / تصنيف القالب <span className="required-asterisk">*</span></label>
                 <select
                   className="glass-input"
                   value={editTemplateModal.attrCategory}
@@ -1317,7 +1311,8 @@ const Templates: React.FC = () => {
       <style>{`
         .required-asterisk {
           color: #ef4444;
-          margin-left: 2px;
+          margin-left: 3px;
+          font-weight: 700;
         }
 
         .templates-dashboard {

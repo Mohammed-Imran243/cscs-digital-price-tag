@@ -8,7 +8,7 @@ import { getPaginationRange } from '../utils/paginationUtils';
 import { getTemplates, getCategories, getTemplateTypes } from '../services/templateService';
 
 interface SearchableDropdownProps {
-  label: string;
+  label: React.ReactNode;
   value: string;
   onChange: (val: string) => void;
   options: string[];
@@ -861,7 +861,7 @@ const Products: React.FC = () => {
                 <div className="form-group">
                   <SearchableDropdown
                     required={true}
-                    label="Template Category * / تصنيف القالب *"
+                    label={<span>Template Category / تصنيف القالب <span className="required-asterisk">*</span></span>}
                     value={newProduct.attrCategory || ''}
                     options={apiCategories}
                     loading={categoriesLoading}
@@ -873,7 +873,7 @@ const Products: React.FC = () => {
                 <div className="form-group">
                   <SearchableDropdown
                     required={true}
-                    label="Template Type * / نوع القالب *"
+                    label={<span>Template Type / نوع القالب <span className="required-asterisk">*</span></span>}
                     value={newProduct.attrName || ''}
                     options={apiTemplateTypes}
                     loading={typesLoading}
@@ -1017,7 +1017,7 @@ const Products: React.FC = () => {
                 <div className="form-group">
                   <SearchableDropdown
                     required={true}
-                    label="Template Category * / تصنيف القالب *"
+                    label={<span>Template Category / تصنيف القالب <span className="required-asterisk">*</span></span>}
                     value={editingProduct.attrCategory || ''}
                     options={apiCategories}
                     loading={categoriesLoading}
@@ -1029,7 +1029,7 @@ const Products: React.FC = () => {
                 <div className="form-group">
                   <SearchableDropdown
                     required={true}
-                    label="Template Type * / نوع القالب *"
+                    label={<span>Template Type / نوع القالب <span className="required-asterisk">*</span></span>}
                     value={editingProduct.attrName || ''}
                     options={apiTemplateTypes}
                     loading={typesLoading}
@@ -1085,7 +1085,8 @@ const Products: React.FC = () => {
       <style>{`
         .required-asterisk {
           color: #ef4444;
-          margin-left: 2px;
+          margin-left: 3px;
+          font-weight: 700;
         }
 
         .products-page {

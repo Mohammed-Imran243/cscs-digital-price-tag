@@ -74,8 +74,24 @@ select, select.glass-input, .modal-content select, .dropdown-input {
   padding-right: 36px !important;
 }
 
+/* Override: bind-select uses native browser arrow — no custom SVG */
+.bind-select {
+  appearance: auto !important;
+  -webkit-appearance: auto !important;
+  -moz-appearance: auto !important;
+  background-image: none !important;
+  padding-right: 12px !important;
+}
+
 [data-theme='dark'] select, [data-theme='dark'] select.glass-input, [data-theme='dark'] .modal-content select, [data-theme='dark'] .dropdown-input {
   background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E") !important;
+}
+
+/* Dark theme override for bind-select */
+[data-theme='dark'] .bind-select {
+  background-image: none !important;
+  appearance: auto !important;
+  -webkit-appearance: auto !important;
 }
 
 /* Force solid background on dropdown items to override transparent/glass bugs in native OS rendering */

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useTheme } from '../context/ThemeContext';
 import { useAuth } from '../context/AuthContext';
-import { Sun, Moon, LogOut, LayoutDashboard, Store, Package, FileText, User, Cpu, Menu, Building2, LayoutTemplate, History } from 'lucide-react';
+import { Sun, Moon, LogOut, LayoutDashboard, Store, Package, User, Cpu, Menu, Building2, LayoutTemplate, History } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 
 const SidebarItem: React.FC<{ to: string, icon: React.ReactNode, label: string, collapsed: boolean }> = ({ to, icon, label, collapsed }) => {
