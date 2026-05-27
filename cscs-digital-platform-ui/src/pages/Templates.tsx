@@ -545,7 +545,7 @@ const Templates: React.FC = () => {
             <Search size={16} className="text-muted" />
             <input
               type="text"
-              placeholder="Search templates... / ابحث عن القوالب..."
+              placeholder="<strong>Search templates...</strong> / ابحث عن القوالب..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />

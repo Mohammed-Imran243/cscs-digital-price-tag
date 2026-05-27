@@ -633,6 +633,12 @@ const Products: React.FC = () => {
             <Loader2 className="animate-spin text-primary" size={40} />
             <p>Loading products... / جاري تحميل المنتجات...</p>
           </div>
+        ) : !selectedStore ? (
+          <div className="empty-state glass-card">
+            <AlertTriangle size={48} className="text-warning mb-4" />
+            <h3>Please Select a Store / يرجى اختيار متجر</h3>
+            <p>Please select a store from the dropdown list to view its products. / يرجى اختيار متجر من القائمة المنسدلة لعرض منتجاته.</p>
+          </div>
         ) : products.length === 0 ? (
           <div className="empty-state glass-card">
             <AlertTriangle size={48} className="text-warning mb-4" />
