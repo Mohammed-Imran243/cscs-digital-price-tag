@@ -812,103 +812,36 @@ const Templates: React.FC = () => {
                             <td>{page * pageSize + idx + 1}</td>
                             <td>{icon.describeName || icon.fileName || icon.iconName || icon.name || '-'}</td>
                             <td>
-                              {icon.parseAlgorithm === 0 ? 'Original / الأصلي' : icon.parseAlgorithm === 1 ? 'Black & White / أبيض وأسود' : 'Adaptive / متكيف'}
+                              {icon.parseAlgorithm === 0
+                                ? 'Original / الأصلي'
+                                : icon.parseAlgorithm === 1
+                                ? 'Black & White / أبيض وأسود'
+                                : 'Adaptive / متكيف'}
                             </td>
                             <td>{icon.width && icon.height ? `${icon.width} * ${icon.height}` : icon.resolution || '-'}</td>
                             <td>{icon.createdTime || icon.uploadTime || icon.createTime || '-'}</td>
                             <td>
-                              {icon.iconUrl ? (
-                                <img 
-                                  src={`http://www.dragonesl.com/${icon.iconUrl}`} 
-                                  alt={icon.iconName || 'Store Icon'} 
-                                  style={{ maxWidth: '60px', maxHeight: '40px', objectFit: 'contain', background: '#f1f5f9', padding: '2px', borderRadius: '4px' }} 
+                              {icon.iconUrl || icon.url ? (
+                                <img
+                                  src={icon.iconUrl || icon.url}
+                                  alt="Store Icon"
+                                  style={{ width: '40px', height: '40px', objectFit: 'contain', borderRadius: '4px', border: '1px solid var(--glass-border)' }}
                                 />
-                              ) : '-'}
+                              ) : (
+                                <span style={{ color: 'var(--text-muted)', fontSize: '12px' }}>No preview / لا معاينة</span>
+                              )}
                             </td>
                             <td>
                               <div className="op-buttons">
-                                <button className="op-btn danger-text">Delete / حذف</button>
+                                <button className="op-btn danger-text" title="Delete / حذف">
+                                  <Trash2 size={16} />
+                                </button>
                               </div>
                             </td>
                           </tr>
                         ))}
                       </tbody>
                     </table>
-
-                    {/* Zkong/DragonESL Pagination for Icons */}
-                    {totalElements > 0 && (
-                      <div className="dragonesl-pagination-bar glass-card" style={{ marginTop: '16px' }}>
-                        <div className="pagination-left">
-                          <span className="pagination-total">Total {totalElements} items / الإجمالي {totalElements} عناصر</span>
-                          <select
-                            value={pageSize}
-                            onChange={(e) => {
-                              setPageSize(Number(e.target.value));
-                              setPage(0);
-                            }}
-                            className="pagination-size-select"
-                          >
-                            <option value={5}>5 / page</option>
-                            <option value={10}>10 / page</option>
-                            <option value={20}>20 / page</option>
-                            <option value={50}>50 / page</option>
-                            <option value={100}>100 / page</option>
-                          </select>
-                        </div>
-
-                        <div className="pagination-right">
-                          <button
-                            type="button"
-                            disabled={page === 0}
-                            onClick={() => setPage(prev => Math.max(prev - 1, 0))}
-                            className="pagination-arrow-btn"
-                          >
-                            &lt;
-                          </button>
-
-                          {getPaginationRange(page + 1, Math.ceil(totalElements / pageSize), 1).map((pageNum, idx) => (
-                            pageNum === '...' ? (
-                              <span key={`dots-${idx}`} className="pagination-dots">...</span>
-                            ) : (
-                              <button
-                                key={pageNum}
-                                type="button"
-                                onClick={() => setPage(Number(pageNum) - 1)}
-                                className={`pagination-num-btn ${page === Number(pageNum) - 1 ? 'active' : ''}`}
-                              >
-                                {pageNum}
-                              </button>
-                            )
-                          ))}
-
-                          <button
-                            type="button"
-                            disabled={page === Math.ceil(totalElements / pageSize) - 1 || Math.ceil(totalElements / pageSize) === 0}
-                            onClick={() => setPage(prev => Math.min(prev + 1, Math.ceil(totalElements / pageSize) - 1))}
-                            className="pagination-arrow-btn"
-                          >
-                            &gt;
-                          </button>
-
-                          <div className="pagination-jump">
-                            <span>Go to / الانتقال إلى</span>
-                            <input
-                              type="number"
-                              min={1}
-                              max={Math.ceil(totalElements / pageSize) || 1}
-                              onChange={(e) => {
-                                const val = Number(e.target.value);
-                                const totalP = Math.ceil(totalElements / pageSize);
-                                if (val >= 1 && val <= totalP) {
-                                  setPage(val - 1);
-                                }
-                              }}
-                              className="pagination-jump-input"
-                            />
-                          </div>
-                        </div>
-                      </div>
-                    )}
                   </>
                 ) : (
                   <>
