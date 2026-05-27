@@ -404,6 +404,36 @@ public class DeviceService {
     }
 
     /**
+     * Force refresh all ESL tags inside a store.
+     * Uses Zkong's PUT /zk/bind/updateForce/{storeId}
+     */
+    public void forceRefreshStore(String storeId) {
+        try {
+            String url = "/zk/bind/updateForce/" + storeId.trim();
+            Map<?, ?> response = dragonEslApiClient.put(url, Map.class);
+
+            if (response == null) {
+                throw new DragonEslException("No response from Dragon ESL for store force refresh", HttpStatus.BAD_GATEWAY);
+            }
+
+            Object successObj = response.get("success");
+            boolean success = Boolean.TRUE.equals(successObj);
+            Object codeObj = response.get("code");
+            boolean codeOk = codeObj != null && (Integer.valueOf(10000).equals(codeObj) || Integer.valueOf(200).equals(codeObj));
+
+            if (!success && !codeOk) {
+                String msg = response.get("message") != null ? response.get("message").toString() : "Unknown error";
+                throw new DragonEslException("Failed to force refresh store: " + msg, HttpStatus.BAD_GATEWAY);
+            }
+        } catch (DragonEslException e) {
+            throw e;
+        } catch (Exception e) {
+            log.error("Error force refreshing store {}: {}", storeId, e.getMessage(), e);
+            throw new DragonEslException("Store force refresh failed: " + e.getMessage(), HttpStatus.BAD_GATEWAY);
+        }
+    }
+
+    /**
      * Fetch unbound (available) ESL devices — bindState=0.
      * Used to populate the ESL dropdown in the bind workflow.
      */

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useTheme } from '../context/ThemeContext';
 import { useAuth } from '../context/AuthContext';
-import { Sun, Moon, LogOut, LayoutDashboard, Store, Package, FileText, User, Cpu, Menu, Building2 } from 'lucide-react';
+import { Sun, Moon, LogOut, LayoutDashboard, Store, Package, FileText, User, Cpu, Menu, Building2, LayoutTemplate, History } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 
 const SidebarItem: React.FC<{ to: string, icon: React.ReactNode, label: string, collapsed: boolean }> = ({ to, icon, label, collapsed }) => {
@@ -74,13 +74,13 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
             <SidebarItem to="/products" icon={<Package size={20} />} label="Products / المنتجات" collapsed={isSidebarCollapsed} />
           )}
           {(user?.permissions?.includes('template') || false) && (
-            <SidebarItem to="/templates" icon={<FileText size={20} />} label="Templates / القوالب" collapsed={isSidebarCollapsed} />
+            <SidebarItem to="/templates" icon={<LayoutTemplate size={20} />} label="Templates / القوالب" collapsed={isSidebarCollapsed} />
           )}
           {(user?.permissions?.includes('equipment') || false) && (
             <SidebarItem to="/devices" icon={<Cpu size={20} />} label="Devices / الأجهزة" collapsed={isSidebarCollapsed} />
           )}
           {(user?.permissions?.includes('log') || false) && (
-            <SidebarItem to="/audit-logs" icon={<FileText size={20} />} label="Audit Logs / سجلات المراجعة" collapsed={isSidebarCollapsed} />
+            <SidebarItem to="/audit-logs" icon={<History size={20} />} label="Audit Logs / سجلات المراجعة" collapsed={isSidebarCollapsed} />
           )}
           {(user?.permissions?.includes('staffManager') || false) && (
             <SidebarItem to="/users" icon={<User size={20} />} label="Staff Users / الموظفين" collapsed={isSidebarCollapsed} />

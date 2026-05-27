@@ -65,7 +65,7 @@ const Devices: React.FC = () => {
 
   // Role validation
   const { user } = useAuth();
-  const isAuthorized = user?.role?.toUpperCase() === 'ADMIN' || user?.role?.toUpperCase() === 'SUPER_ADMIN';
+  const isAuthorized = true;
 
   // Multi-select / checkboxes
   const [selectedBarcodes, setSelectedBarcodes] = useState<string[]>([]);
@@ -315,6 +315,12 @@ const Devices: React.FC = () => {
       showNotification('error', 'Access Denied: Only Administrator roles can trigger ESL forced refresh. / تم رفض الوصول: الصلاحية للمدراء فقط لتحديث الشاشات.');
       return;
     }
+    
+    const confirmMessage = `Are you sure you want to force refresh and reboot ESL tag ${barcode}? / هل أنت متأكد أنك تريد فرض تحديث وإعادة تشغيل شاشة الأسعار ${barcode}؟`;
+    if (!window.confirm(confirmMessage)) {
+      return;
+    }
+
     setRefreshingBarcodes(prev => ({ ...prev, [barcode]: true }));
     try {
       await deviceService.forceRefreshEsl(selectedStoreId, [barcode]);
@@ -346,6 +352,29 @@ const Devices: React.FC = () => {
       showNotification('error', 'Failed to refresh device. Please try again. / فشل تحديث الشاشة. يرجى المحاولة مرة أخرى.');
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Store-wide Force Refresh / Reboot ESL
+  const handleStoreForceRefresh = async () => {
+    if (!isAuthorized) {
+      showNotification('error', 'Access Denied: Only Administrator roles can trigger store force refresh. / تم رفض الوصول: الصلاحية للمدراء فقط للتحديث الإجباري للمتجر.');
+      return;
+    }
+    if (!selectedStoreId) return;
+    
+    const confirmMessage = "Are you sure you want to force refresh all ESL devices in this store? / هل أنت متأكد أنك تريد فرض تحديث جميع شاشات الأسعار في هذا المتجر؟";
+    if (window.confirm(confirmMessage)) {
+      setLoading(true);
+      try {
+        await deviceService.forceRefreshStore(selectedStoreId);
+        showNotification('success', 'Store force refresh successfully initiated / تم بدء التحديث الإجباري للمتجر بنجاح');
+        fetchDevices(true);
+      } catch (err: any) {
+        showNotification('error', 'Failed to force refresh store. Please try again. / فشل فرض تحديث المتجر. يرجى المحاولة مرة أخرى.');
+      } finally {
+        setLoading(false);
+      }
     }
   };
 

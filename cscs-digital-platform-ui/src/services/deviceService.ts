@@ -100,6 +100,11 @@ export const deviceService = {
     unwrapResponse(response);
   },
 
+  /** Force refresh all ESL tags inside a store */
+  forceRefreshStore: async (storeId: string): Promise<void> => {
+    const response = await api.post(`/devices/store/force-refresh?storeId=${storeId}`);
+    unwrapResponse(response);
+  },
   addAp: async (payload: {
     storeId: string;
     apName?: string;

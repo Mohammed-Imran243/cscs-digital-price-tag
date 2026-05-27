@@ -126,6 +126,7 @@ const Products: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
+  const prevSearchRef = useRef('');
 
   // Pagination states
   const [currentPage, setCurrentPage] = useState(1);
@@ -329,10 +330,18 @@ const Products: React.FC = () => {
     setLoading(true);
     try {
       const searchTerm = debouncedSearch.trim();
+      const isSearchingNewTerm = prevSearchRef.current !== debouncedSearch;
+      prevSearchRef.current = debouncedSearch;
+
+      const activePage = isSearchingNewTerm ? 0 : (currentPage - 1);
+      if (isSearchingNewTerm) {
+        setCurrentPage(1);
+      }
+
       const isNumeric = /^\d+$/.test(searchTerm);
       const data = await getProducts(
         selectedStore, 
-        currentPage - 1, 
+        activePage, 
         pageSize, 
         isNumeric ? searchTerm : undefined, 
         !isNumeric && searchTerm ? searchTerm : undefined
@@ -342,13 +351,13 @@ const Products: React.FC = () => {
       
       let total = data.totalElements || 0;
       // Correct pagination if the page is completely empty
-      if (contentList.length === 0 && currentPage > 1) {
+      if (contentList.length === 0 && currentPage > 1 && !isSearchingNewTerm) {
         total = (currentPage - 1) * pageSize;
       }
       setTotalElements(total);
       
       const computedTotalPages = Math.ceil(total / pageSize) || 1;
-      if (currentPage > computedTotalPages) {
+      if (currentPage > computedTotalPages && !isSearchingNewTerm) {
         setCurrentPage(computedTotalPages);
       }
     } catch (err) {

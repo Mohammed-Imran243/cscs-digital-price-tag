@@ -101,6 +101,16 @@ public class DeviceController {
     }
 
     /**
+     * POST /api/devices/store/force-refresh
+     * Triggers a forced refresh on all ESL devices in a store.
+     */
+    @PostMapping("/store/force-refresh")
+    public ResponseEntity<ApiResponse<Void>> forceRefreshStore(@RequestParam String storeId) {
+        deviceService.forceRefreshStore(storeId);
+        return ResponseEntity.ok(ApiResponse.success("Store force refresh signal sent successfully", null));
+    }
+
+    /**
      * GET /api/devices/esl/available
      * Returns unbound ESL devices (bindState=0) for a given store — used to populate Bind dialog.
      */
