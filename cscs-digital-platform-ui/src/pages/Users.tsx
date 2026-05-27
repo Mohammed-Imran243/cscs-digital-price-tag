@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Search, Shield, User as UserIcon, Edit2, Trash2, Key, Calendar, RefreshCw, Loader2, X, CheckSquare, Square, Info, ChevronDown, ChevronRight, MinusSquare } from 'lucide-react';
+import { Plus, Search, Shield, User as UserIcon, Edit2, Trash2, Key, Calendar, RefreshCw, Loader2, X, CheckSquare, Square, Info, ChevronDown, ChevronRight, ChevronLeft, MinusSquare } from 'lucide-react';
 import { userService } from '../services/userService';
 import type { User, Role, PermissionMenu } from '../services/userService';
+import { storeService } from '../services/storeService';
+import type { Store as StoreType } from '../services/storeService';
 import { getPaginationRange } from '../utils/paginationUtils';
 
 const AVAILABLE_PERMISSIONS = [
@@ -100,6 +102,25 @@ const Users: React.FC = () => {
     password: '',
     roleId: '',
   });
+
+  // Store Data Access Form
+  const [userStoreFormData, setUserStoreFormData] = useState<{
+    isAllStore: boolean;
+    selectedStores: StoreType[];
+  }>({
+    isAllStore: true,
+    selectedStores: []
+  });
+
+  // Store Selection Modal
+  const [isStoreModalOpen, setIsStoreModalOpen] = useState(false);
+  const [allStores, setAllStores] = useState<StoreType[]>([]);
+  
+  // Shuttle modal states
+  const [searchUnselected, setSearchUnselected] = useState('');
+  const [searchSelected, setSearchSelected] = useState('');
+  const [modalUnselectedStores, setModalUnselectedStores] = useState<StoreType[]>([]);
+  const [modalSelectedStores, setModalSelectedStores] = useState<StoreType[]>([]);
 
   // Role Form
   const [isEditingRole, setIsEditingRole] = useState(false);
@@ -228,6 +249,8 @@ const Users: React.FC = () => {
             roleName: item.roleName || u.roleName || 'No Role Assigned / لم يتم تعيين دور',
             createTime: u.createTime,
             status: u.enable === 1 ? 'Normal / طبيعي' : 'Disabled / معطل',
+            allStorePermission: u.allStorePermission,
+            storeIdList: u.storeIdList,
           };
         });
         setUsers(mappedUsers);
@@ -278,15 +301,28 @@ const Users: React.FC = () => {
   };
 
   // User Actions
-  const handleOpenCreateUser = () => {
+  const loadStores = async () => {
+    try {
+      const res = await storeService.getAllStores();
+      setAllStores(res || []);
+      return res || [];
+    } catch (err) {
+      console.error('Failed to load stores', err);
+      return [];
+    }
+  };
+
+  const handleOpenCreateUser = async () => {
     setIsEditingUser(false);
     setEditingUserId(null);
     setUserFormData({ account: 'DG0358', staffName: '', password: '', roleId: '' });
+    setUserStoreFormData({ isAllStore: true, selectedStores: [] });
     loadRolesDropdown();
+    await loadStores();
     setIsUserModalOpen(true);
   };
 
-  const handleOpenEditUser = (user: User) => {
+  const handleOpenEditUser = async (user: any) => {
     setIsEditingUser(true);
     setEditingUserId(user.id || null);
     setUserFormData({
@@ -295,7 +331,20 @@ const Users: React.FC = () => {
       password: '', // Password empty by default for edit
       roleId: user.roleId?.toString() || '',
     });
+    
+    setUserStoreFormData({
+      isAllStore: user.allStorePermission === 1,
+      selectedStores: []
+    });
+
     loadRolesDropdown();
+    const stores = await loadStores();
+    
+    if (user.allStorePermission === 0 && user.storeIdList && Array.isArray(user.storeIdList)) {
+      const selected = stores.filter(s => user.storeIdList.includes(s.storeId));
+      setUserStoreFormData(prev => ({ ...prev, selectedStores: selected }));
+    }
+    
     setIsUserModalOpen(true);
   };
 
@@ -307,6 +356,8 @@ const Users: React.FC = () => {
         account: userFormData.account,
         staffName: userFormData.staffName,
         roleId: Number(userFormData.roleId),
+        allStorePermission: userStoreFormData.isAllStore ? 1 : 0,
+        storeIdList: userStoreFormData.isAllStore ? [] : userStoreFormData.selectedStores.map(s => s.storeId)
       };
       
       if (userFormData.password) {
@@ -838,6 +889,60 @@ const Users: React.FC = () => {
                 </select>
               </div>
 
+              {/* ── Data Access Section ── */}
+              <div className="form-group data-access-section" style={{ gridColumn: '1 / -1', marginTop: '8px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '12px' }}>
+                  <label style={{ margin: 0, fontSize: '15px', fontWeight: 'bold' }}>oganazation.DataAccess</label>
+                  <button 
+                    type="button"
+                    className="btn-link"
+                    onClick={() => {
+                      setSearchUnselected('');
+                      setSearchSelected('');
+                      const selectedIds = new Set(userStoreFormData.selectedStores.map(s => s.storeId));
+                      setModalSelectedStores([...userStoreFormData.selectedStores]);
+                      setModalUnselectedStores(allStores.filter(s => !selectedIds.has(s.storeId)));
+                      setIsStoreModalOpen(true);
+                    }}
+                    disabled={userStoreFormData.isAllStore}
+                    style={{ fontSize: '13px', color: 'var(--primary-color)', background: 'none', border: 'none', cursor: userStoreFormData.isAllStore ? 'not-allowed' : 'pointer', opacity: userStoreFormData.isAllStore ? 0.5 : 1 }}
+                  >
+                    oganazation.addDataAccess
+                  </button>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', margin: 0, fontSize: '13px', color: 'var(--text-secondary)' }}>
+                    oganazation.allowshowdata
+                    <input 
+                      type="checkbox" 
+                      checked={userStoreFormData.isAllStore}
+                      onChange={(e) => setUserStoreFormData(prev => ({ ...prev, isAllStore: e.target.checked }))}
+                      style={{ marginLeft: '8px', cursor: 'pointer' }}
+                    />
+                    oganazation.allStore
+                  </label>
+                </div>
+                
+                <div className="selected-stores-container" style={{ background: 'var(--bg-primary)', border: '1px solid var(--border-color)', borderRadius: '6px', minHeight: '60px', padding: '12px', display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                  {!userStoreFormData.isAllStore && userStoreFormData.selectedStores.map(store => (
+                    <div key={store.storeId} style={{ display: 'flex', alignItems: 'center', gap: '6px', background: 'rgba(99, 102, 241, 0.1)', color: 'var(--primary-color)', padding: '4px 10px', borderRadius: '4px', fontSize: '12px' }}>
+                      {store.storeName || store.storeId}
+                      <button 
+                        type="button"
+                        onClick={() => setUserStoreFormData(prev => ({ ...prev, selectedStores: prev.selectedStores.filter(s => s.storeId !== store.storeId) }))}
+                        style={{ background: 'none', border: 'none', color: 'var(--primary-color)', cursor: 'pointer', padding: 0, display: 'flex' }}
+                      >
+                        <X size={14} />
+                      </button>
+                    </div>
+                  ))}
+                  {!userStoreFormData.isAllStore && userStoreFormData.selectedStores.length === 0 && (
+                    <span style={{ color: 'var(--text-muted)', fontSize: '13px', fontStyle: 'italic', display: 'flex', alignItems: 'center' }}>No specific stores selected.</span>
+                  )}
+                  {userStoreFormData.isAllStore && (
+                    <span style={{ color: 'var(--success-color)', fontSize: '13px', fontWeight: 600, display: 'flex', alignItems: 'center' }}>All stores access granted.</span>
+                  )}
+                </div>
+              </div>
+
               <div className="modal-actions">
                 <button type="button" className="btn-secondary" onClick={() => setIsUserModalOpen(false)}>Cancel / إلغاء</button>
                 <button type="submit" className="btn-primary" disabled={formLoading}>
@@ -845,6 +950,99 @@ const Users: React.FC = () => {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Store Selection Modal */}
+      {isStoreModalOpen && (
+        <div className="modal-overlay" style={{ zIndex: 1100 }}>
+          <div className="modal-content glass-card" style={{ width: '700px', maxWidth: '95vw', padding: '24px' }}>
+            <div className="modal-header" style={{ marginBottom: '20px' }}>
+              <h3 style={{ fontSize: '16px' }}>Store selection</h3>
+              <button className="close-btn" onClick={() => setIsStoreModalOpen(false)}><X size={20} /></button>
+            </div>
+            
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', gap: '24px', alignItems: 'center' }}>
+              
+              {/* Unselected Stores */}
+              <div className="shuttle-box" style={{ border: '1px solid var(--border-color)', borderRadius: '8px', overflow: 'hidden' }}>
+                <div style={{ padding: '12px 16px', background: 'var(--bg-primary)', borderBottom: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ fontSize: '13px', fontWeight: 600 }}>Unselected stores ({modalUnselectedStores.length})</span>
+                  <button type="button" className="btn-link" style={{ fontSize: '12px' }} onClick={() => {
+                    setModalSelectedStores(prev => [...prev, ...modalUnselectedStores]);
+                    setModalUnselectedStores([]);
+                  }}>Select All</button>
+                </div>
+                <div style={{ padding: '8px' }}>
+                  <div className="search-bar" style={{ marginBottom: '8px' }}>
+                    <Search size={16} />
+                    <input type="text" placeholder="Search store name or ID" value={searchUnselected} onChange={e => setSearchUnselected(e.target.value)} style={{ padding: '6px 8px' }} />
+                  </div>
+                  <div style={{ height: '240px', overflowY: 'auto' }}>
+                    {modalUnselectedStores.filter(s => s.storeName.toLowerCase().includes(searchUnselected.toLowerCase()) || s.storeId.includes(searchUnselected)).map(store => (
+                      <div key={store.storeId} style={{ padding: '8px 12px', fontSize: '13px', display: 'flex', alignItems: 'center', cursor: 'pointer' }} onClick={() => {
+                        setModalUnselectedStores(prev => prev.filter(s => s.storeId !== store.storeId));
+                        setModalSelectedStores(prev => [...prev, store]);
+                      }}>
+                        <div style={{ flex: 1 }}>{store.storeName}</div>
+                        <div style={{ color: 'var(--text-muted)' }}>{store.storeId}</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Shuttle Buttons */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                <button type="button" className="btn-icon" style={{ borderRadius: '50%', background: 'var(--bg-primary)' }} disabled>
+                  <ChevronRight size={16} />
+                </button>
+                <button type="button" className="btn-icon" style={{ borderRadius: '50%', background: 'var(--bg-primary)' }} disabled>
+                  <ChevronLeft size={16} />
+                </button>
+              </div>
+
+              {/* Selected Stores */}
+              <div className="shuttle-box" style={{ border: '1px solid var(--border-color)', borderRadius: '8px', overflow: 'hidden' }}>
+                <div style={{ padding: '12px 16px', background: 'var(--bg-primary)', borderBottom: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ fontSize: '13px', fontWeight: 600 }}>Selected stores ({modalSelectedStores.length})</span>
+                  <button type="button" className="btn-link" style={{ fontSize: '12px' }} onClick={() => {
+                    setModalUnselectedStores(prev => [...prev, ...modalSelectedStores]);
+                    setModalSelectedStores([]);
+                  }}>Remove All</button>
+                </div>
+                <div style={{ padding: '8px' }}>
+                  <div className="search-bar" style={{ marginBottom: '8px' }}>
+                    <Search size={16} />
+                    <input type="text" placeholder="Search store name or ID" value={searchSelected} onChange={e => setSearchSelected(e.target.value)} style={{ padding: '6px 8px' }} />
+                  </div>
+                  <div style={{ height: '240px', overflowY: 'auto' }}>
+                    {modalSelectedStores.filter(s => s.storeName.toLowerCase().includes(searchSelected.toLowerCase()) || s.storeId.includes(searchSelected)).map(store => (
+                      <div key={store.storeId} style={{ padding: '8px 12px', fontSize: '13px', display: 'flex', alignItems: 'center', cursor: 'pointer' }} onClick={() => {
+                        setModalSelectedStores(prev => prev.filter(s => s.storeId !== store.storeId));
+                        setModalUnselectedStores(prev => [...prev, store]);
+                      }}>
+                        <div style={{ flex: 1 }}>{store.storeName}</div>
+                        <div style={{ color: 'var(--text-muted)' }}>{store.storeId}</div>
+                      </div>
+                    ))}
+                    {modalSelectedStores.length === 0 && (
+                      <div style={{ textAlign: 'center', padding: '40px 0', color: 'var(--text-muted)', fontSize: '13px' }}>No Data</div>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+            </div>
+
+            <div className="modal-actions" style={{ marginTop: '24px', justifyContent: 'center', gap: '16px' }}>
+              <button type="button" className="btn-primary" onClick={() => {
+                setUserStoreFormData(prev => ({ ...prev, selectedStores: modalSelectedStores }));
+                setIsStoreModalOpen(false);
+              }}>Confirm</button>
+              <button type="button" className="btn-secondary" onClick={() => setIsStoreModalOpen(false)}>Cancel</button>
+            </div>
           </div>
         </div>
       )}
