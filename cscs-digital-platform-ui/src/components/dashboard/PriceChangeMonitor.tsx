@@ -21,11 +21,12 @@ export interface PriceChangeRecord {
   productName: string;
   storeId: string;
   storeName: string;
-  oldPrice: number;
+  oldPrice: number | null;
   newPrice: number;
-  percentageChange: number;
+  percentageChange: number | null;
   timestamp: string;
-  isIncrease: boolean;
+  isIncrease: boolean | null;
+  operator?: string;
 }
 
 const getRelativeTime = (dateStr: string) => {
@@ -92,13 +93,14 @@ const PriceChangeMonitor: React.FC = () => {
           const storeIdStr = store.storeId || store.id || '';
           if (!storeIdStr) return;
           
-          // Fetch up to 3 pages of 100 logs to ensure we capture older prices safely without causing 502 errors
+          // Fetch up to 3 pages of 50 logs to ensure we capture older prices safely without causing 502 errors
           let logs: AuditLog[] = [];
           for (let p = 0; p < 3; p++) {
             try {
-              const response = await getAuditLogs(storeIdStr, startDate, endDate, p, 100, undefined);
+              // Fetch up to 50 logs at a time to prevent Zkong API 400 Bad Request errors
+              const response = await getAuditLogs(storeIdStr, startDate, endDate, p, 50, undefined);
               if (response.content) logs = logs.concat(response.content);
-              if (!response.content || response.content.length < 100) break; // Reached end of logs
+              if (!response.content || response.content.length < 50) break; // Reached end of logs
             } catch (err) {
               console.warn(`Page ${p} failed for store ${storeIdStr}`, err);
               break;
@@ -116,29 +118,38 @@ const PriceChangeMonitor: React.FC = () => {
           });
           
           Object.values(groupedLogs).forEach(productLogs => {
-            if (productLogs.length < 2) return; // Need at least 2 logs to see a change
+            if (productLogs.length === 0) return;
             
             // Sort descending by createdTime
             productLogs.sort((a, b) => new Date(b.createdTime).getTime() - new Date(a.createdTime).getTime());
             
             // Find a price change
             let latestPriceStr = productLogs[0].price;
-            let previousPriceStr = null;
+            let previousPriceStr: string | null = null;
             let changeTimestamp = productLogs[0].createdTime;
             
-            for (let i = 1; i < productLogs.length; i++) {
-              if (productLogs[i].price !== latestPriceStr && productLogs[i].price != null) {
-                previousPriceStr = productLogs[i].price;
-                break;
+            if (productLogs.length === 1) {
+              // Only 1 log found in the window. If it's a price change, we show it, but old price is unknown.
+              if (productLogs[0].operation === 4 || (productLogs[0].operationText && productLogs[0].operationText.toLowerCase().includes('change'))) {
+                previousPriceStr = 'Unknown';
+              } else {
+                return; // Not a price change log
+              }
+            } else {
+              for (let i = 1; i < productLogs.length; i++) {
+                if (productLogs[i].price !== latestPriceStr && productLogs[i].price != null) {
+                  previousPriceStr = productLogs[i].price;
+                  break;
+                }
               }
             }
             
-            if (latestPriceStr && previousPriceStr && latestPriceStr !== previousPriceStr) {
+            if (previousPriceStr !== null && previousPriceStr !== latestPriceStr) {
               const newPrice = parseFloat(latestPriceStr);
-              const oldPrice = parseFloat(previousPriceStr);
+              const oldPrice = previousPriceStr === 'Unknown' ? null : parseFloat(previousPriceStr);
               
-              if (!isNaN(newPrice) && !isNaN(oldPrice) && oldPrice > 0) {
-                const percentageChange = ((newPrice - oldPrice) / oldPrice) * 100;
+              const isIncrease = (oldPrice !== null) ? (newPrice > oldPrice) : null;
+              const percentageChange = (oldPrice !== null && oldPrice > 0) ? ((newPrice - oldPrice) / oldPrice) * 100 : null;
                 
                 allChanges.push({
                   id: productLogs[0].id.toString(),
@@ -150,9 +161,8 @@ const PriceChangeMonitor: React.FC = () => {
                   newPrice,
                   percentageChange,
                   timestamp: changeTimestamp,
-                  isIncrease: newPrice > oldPrice
+                  isIncrease
                 });
-              }
             }
           });
           
@@ -187,7 +197,7 @@ const PriceChangeMonitor: React.FC = () => {
   const filteredChanges = useMemo(() => {
     return changes.filter(c => {
       if (filterType === 'increased' && !c.isIncrease) return false;
-      if (filterType === 'decreased' && c.isIncrease) return false;
+      if (filterType === 'decreased' && c.isIncrease !== false) return false;
       
       if (timeFilter === 'today' && !isToday(c.timestamp)) return false;
       if (timeFilter === 'week' && !isThisWeek(c.timestamp)) return false;
@@ -201,18 +211,18 @@ const PriceChangeMonitor: React.FC = () => {
   // Summary Metrics (derived from filtered data)
   const todayChanges = changes.filter(c => isToday(c.timestamp));
   const metrics = useMemo(() => {
-    const increases = todayChanges.filter(c => c.isIncrease);
-    const decreases = todayChanges.filter(c => !c.isIncrease);
+    const increases = todayChanges.filter(c => c.isIncrease === true);
+    const decreases = todayChanges.filter(c => c.isIncrease === false);
     
     let maxIncrease = 0;
     let maxDecrease = 0;
     
     increases.forEach(c => {
-      if (c.percentageChange > maxIncrease) maxIncrease = c.percentageChange;
+      if (c.percentageChange && c.percentageChange > maxIncrease) maxIncrease = c.percentageChange;
     });
     
     decreases.forEach(c => {
-      if (c.percentageChange < maxDecrease) maxDecrease = c.percentageChange;
+      if (c.percentageChange && c.percentageChange < maxDecrease) maxDecrease = c.percentageChange;
     });
 
     return {
@@ -329,9 +339,11 @@ const PriceChangeMonitor: React.FC = () => {
                   {record.productName}
                 </h4>
                 <div className="price-flow" style={{ display: 'flex', alignItems: 'center', gap: '12px', fontSize: '18px', fontWeight: '700', marginBottom: '12px' }}>
-                  <span style={{ color: 'var(--text-secondary)', textDecoration: 'line-through' }}>{record.oldPrice} AED</span>
+                  <span style={{ color: 'var(--text-secondary)', textDecoration: record.oldPrice !== null ? 'line-through' : 'none' }}>
+                    {record.oldPrice !== null ? `${record.oldPrice} AED` : 'Unknown'}
+                  </span>
                   <ArrowRight size={18} style={{ color: 'var(--text-muted)' }} />
-                  <span style={{ color: record.isIncrease ? '#ef4444' : '#10b981' }}>{record.newPrice} AED</span>
+                  <span style={{ color: record.isIncrease === false ? '#10b981' : '#ef4444' }}>{record.newPrice} AED</span>
                 </div>
                 <div className="store-info" style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--text-secondary)', fontSize: '13px' }}>
                   <Store size={14} />
@@ -340,18 +352,20 @@ const PriceChangeMonitor: React.FC = () => {
               </div>
 
               <div className="record-meta" style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '12px' }}>
-                <div className="trend-badge" style={{ 
-                  display: 'flex', alignItems: 'center', gap: '6px', 
-                  padding: '6px 12px', borderRadius: '20px',
-                  fontWeight: '600', fontSize: '14px',
-                  backgroundColor: record.isIncrease ? 'rgba(239, 68, 68, 0.1)' : 'rgba(16, 185, 129, 0.1)',
-                  color: record.isIncrease ? '#ef4444' : '#10b981'
-                }}>
-                  {record.isIncrease ? <TrendingUp size={16} /> : <TrendingDown size={16} />}
-                  {record.percentageChange > 0 ? '+' : ''}{record.percentageChange.toFixed(1)}%
-                </div>
+                {record.percentageChange !== null && (
+                  <div className="trend-badge" style={{ 
+                    display: 'flex', alignItems: 'center', gap: '6px', 
+                    padding: '6px 12px', borderRadius: '20px',
+                    fontWeight: '600', fontSize: '14px',
+                    backgroundColor: record.isIncrease ? 'rgba(239, 68, 68, 0.1)' : 'rgba(16, 185, 129, 0.1)',
+                    color: record.isIncrease ? '#ef4444' : '#10b981'
+                  }}>
+                    {record.isIncrease ? <TrendingUp size={16} /> : <TrendingDown size={16} />}
+                    {record.percentageChange > 0 ? '+' : ''}{record.percentageChange.toFixed(1)}%
+                  </div>
+                )}
                 <div className="time-info" style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--text-secondary)', fontSize: '13px' }}>
-                  <div style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: record.isIncrease ? '#ef4444' : '#10b981' }} />
+                  <div style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: record.isIncrease === false ? '#10b981' : '#ef4444' }} />
                   {getRelativeTime(record.timestamp)}
                 </div>
               </div>

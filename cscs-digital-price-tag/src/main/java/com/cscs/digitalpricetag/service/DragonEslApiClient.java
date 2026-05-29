@@ -224,7 +224,7 @@ public class DragonEslApiClient {
             }
             if (current instanceof WebClientResponseException webEx) {
                 int status = webEx.getStatusCode().value();
-                if (status == 502 || status == 503) {
+                if (status == 401 || status == 502 || status == 503) {
                     return true;
                 }
             }

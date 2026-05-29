@@ -63,7 +63,7 @@ const AuditLogs: React.FC = () => {
     return () => clearTimeout(handler);
   }, [searchQuery]);
 
-  // Fetch stores on mount
+  // Fetch stores on mount, then immediately load logs for the first store
   useEffect(() => {
     const fetchStores = async () => {
       setStoresLoading(true);
@@ -72,8 +72,24 @@ const AuditLogs: React.FC = () => {
         const response = await storeService.getAllStores();
         setStores(response || []);
         if (response && response.length > 0) {
-          // Pre-select first store if available
-          setSelectedStoreId(response[0].storeId || response[0].id || '');
+          const firstStoreId = response[0].storeId || response[0].id || '';
+          setSelectedStoreId(firstStoreId);
+          // Directly fetch logs for the first store immediately after login
+          // (useEffect may not re-fire if selectedStoreId was already the same value)
+          if (firstStoreId) {
+            setLogsLoading(true);
+            try {
+              const logsResponse = await getAuditLogs(firstStoreId, startDate, endDate, 0, pageSize, undefined);
+              setLogs(logsResponse.content || []);
+              setTotalCount(logsResponse.totalElements || 0);
+            } catch (logErr: any) {
+              setError(logErr.message || 'Failed to retrieve audit logs.');
+              setLogs([]);
+              setTotalCount(0);
+            } finally {
+              setLogsLoading(false);
+            }
+          }
         }
       } catch (err: any) {
         setError(err.message || 'Failed to fetch stores list.');
