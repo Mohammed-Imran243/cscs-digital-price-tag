@@ -120,7 +120,8 @@ public class ProductService {
                 }
             } else {
                 if (size <= 50) {
-                    String normalUri = "/zk/item/list/0/" + (page + 1) + "/" + size + "/" + storeId;
+                    // Zkong uses 0-based indexing for page
+                    String normalUri = "/zk/item/list/0/" + page + "/" + size + "/" + storeId;
                     log.info("Normal pagination active. Querying Zkong with: URI={}, Body={}", normalUri, body);
                     Map<?, ?> normalResp = dragonEslApiClient.post(normalUri, body, Map.class);
                     if (hasItems(normalResp)) {
@@ -132,8 +133,9 @@ public class ProductService {
                     int startItemIndex = page * size;
                     int endItemIndex = startItemIndex + size;
                     
-                    int startZkongPage = (startItemIndex / zkongPageSize) + 1;
-                    int endZkongPage = ((endItemIndex - 1) / zkongPageSize) + 1;
+                    // Zkong uses 0-based indexing for page
+                    int startZkongPage = (startItemIndex / zkongPageSize);
+                    int endZkongPage = ((endItemIndex - 1) / zkongPageSize);
                     
                     List<CompletableFuture<Map<?, ?>>> futures = new ArrayList<>();
                     // To prevent overloading Zkong API with huge 'All' requests, limit concurrent fetching to max 40 pages (2000 items)
