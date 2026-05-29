@@ -6,6 +6,7 @@ import type { Store as StoreType } from '../services/storeService';
 import { getProducts } from '../services/productService';
 import { getTemplates, getCategories } from '../services/templateService';
 import { deviceService } from '../services/deviceService';
+import PriceChangeMonitor from '../components/dashboard/PriceChangeMonitor';
 
 // ──────────────────────────────────────────────────
 // Types
@@ -811,6 +812,12 @@ const Dashboard: React.FC = () => {
         }
 
       `}</style>
+
+      {/* 📈 Price Change Monitor 📈 */}
+      <div style={{ marginTop: '24px' }}>
+        <PriceChangeMonitor />
+      </div>
+
     </div>
   );
 };
