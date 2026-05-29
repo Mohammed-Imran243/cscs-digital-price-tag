@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import {
   getTemplates,
   getCategories,
   addCategory,
   getModels,
-  addTemplate,
   updateTemplateBase,
   deleteTemplate,
   enableTemplate,
@@ -48,8 +48,13 @@ const COLOR_MAPPINGS: Record<number, { key: string; label: string }> = {
 };
 
 const Templates: React.FC = () => {
-  // Navigation State (5 Main Zkong Menu Tabs)
-  const [activeMenuTab, setActiveMenuTab] = useState<'merchant' | 'store' | 'business_icon' | 'store_icon' | 'properties'>('merchant');
+  const navigate = useNavigate();
+  const location = useLocation();
+  const searchParams = new URLSearchParams(location.search);
+  const tabParam = searchParams.get('tab') || 'merchant';
+  const activeMenuTab = tabParam === 'icon' ? 'store_icon' : 
+                        tabParam === 'properties' ? 'properties' : 
+                        tabParam === 'store' ? 'store' : 'merchant';
 
   // Sub-navigation State for Merchant Template Tab (Zkong Scenario tabs)
   const [merchantScenario, setMerchantScenario] = useState<number>(1); // 1: Single, 4: Multi, 3: Segment, 2: Unbind
@@ -410,41 +415,21 @@ const Templates: React.FC = () => {
   const handleCreateTemplate = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newTemplate.templateName.trim() || !newTemplate.model) return;
-    setSubmitting(true);
-    try {
-      const modelObj = models.find(m => m.model === newTemplate.model);
-      const payload = {
-        ...newTemplate,
-        storeId: activeMenuTab === 'store' ? selectedStore : '0',
-        size: newTemplate.size || modelObj?.size || '',
-        resolution: newTemplate.resolution || modelObj?.resolution || '',
-        sceneNumber: activeMenuTab === 'merchant' ? merchantScenario : 1,
-        screenType: newTemplate.screenType || 'single',
-        attrCategory: newTemplate.attrCategory || '',
-        attrName: newTemplate.attrName || ''
-      };
+    
+    const modelObj = models.find(m => m.model === newTemplate.model);
+    const payload = {
+      ...newTemplate,
+      storeId: activeMenuTab === 'store' ? selectedStore : '0',
+      size: newTemplate.size || modelObj?.size || '',
+      resolution: newTemplate.resolution || modelObj?.resolution || '152*152',
+      sceneNumber: activeMenuTab === 'merchant' ? merchantScenario : 1,
+      screenType: newTemplate.screenType || 'single',
+      attrCategory: newTemplate.attrCategory || '',
+      attrName: newTemplate.attrName || ''
+    };
 
-      await addTemplate(payload);
-      showNotification('Template added successfully / تمت إضافة القالب بنجاح', 'success');
-      setIsTemplateModalOpen(false);
-      setNewTemplate({
-        templateName: '',
-        storeId: activeMenuTab === 'store' ? selectedStore : '0',
-        model: '',
-        size: '',
-        resolution: '152*152',
-        sceneNumber: 1,
-        screenType: 'single',
-        attrCategory: '',
-        attrName: ''
-      });
-      fetchTemplatesList();
-    } catch (err: any) {
-      console.error('Failed to add template', err);
-      showNotification('Failed to add template. Please try again. / فشل إضافة القالب. يرجى المحاولة مرة أخرى.', 'error');
-    } finally {
-      setSubmitting(false);
-    }
+    // Redirect to the canvas editor with the template configuration
+    navigate('/template/editor/new', { state: { config: payload } });
   };
 
   // Add attribute property under category (Tab 5 properties)
@@ -551,52 +536,7 @@ const Templates: React.FC = () => {
       </div>
 
       <div className="layout-split">
-        {/* Left Side Sub-Navigation Menu (Zkong Menu List) */}
-        <aside className="left-menu-bar glass-card">
-          <button
-            className={`menu-item-btn ${activeMenuTab === 'merchant' ? 'active' : ''}`}
-            onClick={() => {
-              setActiveMenuTab('merchant');
-              setPage(0);
-            }}
-          >
-            <Smartphone size={16} />
-            <span>Merchant Template / قوالب التاجر</span>
-          </button>
-          <button
-            className={`menu-item-btn ${activeMenuTab === 'store' ? 'active' : ''}`}
-            onClick={() => {
-              setActiveMenuTab('store');
-              setPage(0);
-            }}
-          >
-            <Settings size={16} />
-            <span>Store Template / قوالب المتجر</span>
-          </button>
-          {/* 
-          <button
-            className={`menu-item-btn ${activeMenuTab === 'business_icon' ? 'active' : ''}`}
-            onClick={() => setActiveMenuTab('business_icon')}
-          >
-            <ImageIcon size={16} />
-            <span>Business Icon / أيقونة العمل</span>
-          </button>
-          */}
-          <button
-            className={`menu-item-btn ${activeMenuTab === 'store_icon' ? 'active' : ''}`}
-            onClick={() => setActiveMenuTab('store_icon')}
-          >
-            <ImageIcon size={16} />
-            <span>Store Icon / أيقونة المتجر</span>
-          </button>
-          <button
-            className={`menu-item-btn ${activeMenuTab === 'properties' ? 'active' : ''}`}
-            onClick={() => setActiveMenuTab('properties')}
-          >
-            <Tag size={16} />
-            <span>Template Properties / خصائص القوالب</span>
-          </button>
-        </aside>
+
 
         {/* Right Content Workspace */}
         <main className="content-workspace">
@@ -1369,10 +1309,9 @@ const Templates: React.FC = () => {
         }
 
         .layout-split {
-          display: grid;
-          grid-template-columns: 240px 1fr;
+          display: flex;
+          flex-direction: column;
           gap: 24px;
-          align-items: start;
         }
 
         .left-menu-bar {

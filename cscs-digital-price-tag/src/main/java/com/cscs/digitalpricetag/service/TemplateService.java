@@ -143,7 +143,38 @@ public class TemplateService {
     }
 
     public Object addTemplate(Map<String, Object> request) {
-        return performPost("/zk/template/addTemplateAllRefactor", request);
+        if (request != null) {
+            if (request.containsKey("storeId")) {
+                Object storeIdObj = request.get("storeId");
+                if (storeIdObj instanceof String && !((String) storeIdObj).isBlank()) {
+                    try {
+                        request.put("storeId", Long.parseLong(storeIdObj.toString().trim()));
+                    } catch (NumberFormatException e) {
+                        log.warn("Could not parse storeId string to long: {}", storeIdObj);
+                    }
+                }
+            }
+        }
+
+        // Dragon ESL expects { templateBase: {}, templateElements: [], templateElementAdvancedAttributes: [] }
+        Map<String, Object> payload = new HashMap<>();
+        
+        // Extract elements if present
+        Object items = request.get("items");
+        if (items == null) {
+            items = new java.util.ArrayList<>();
+        }
+        
+        // Clean up the base request to only contain base fields
+        request.remove("items");
+        request.remove("type");
+
+        payload.put("templateBase", request);
+        // We will send empty arrays for now until we fully reverse-engineer the element attributes
+        payload.put("templateElements", new java.util.ArrayList<>());
+        payload.put("templateElementAdvancedAttributes", new java.util.ArrayList<>());
+
+        return performPost("/zk/template/addTemplateAllRefactor", payload);
     }
 
     public Object updateTemplateBase(String id, Map<String, Object> request) {

@@ -4,22 +4,61 @@ import { useAuth } from '../context/AuthContext';
 import { Sun, Moon, LogOut, LayoutDashboard, Store, Package, User, Cpu, Menu, Building2, LayoutTemplate, History } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 
-const SidebarItem: React.FC<{ to: string, icon: React.ReactNode, label: string, collapsed: boolean }> = ({ to, icon, label, collapsed }) => {
+const SidebarItem: React.FC<{ to: string, icon: React.ReactNode, label: string, collapsed: boolean, subItems?: {label: string, to: string}[] }> = ({ to, icon, label, collapsed, subItems }) => {
   const location = useLocation();
-  const isActive = location.pathname === to;
+  const isActive = location.pathname === to || (subItems && subItems.some(item => location.pathname === item.to || location.pathname.startsWith(item.to) || (location.pathname === to && location.search === item.to.split('?')[1])));
+  const [expanded, setExpanded] = useState(isActive);
   
   // Clean up the label for the tooltip by removing the arabic part or just keep the whole thing
   const tooltipText = label.split(' /')[0];
 
+  if (!subItems) {
+    return (
+      <Link 
+        to={to} 
+        className={`sidebar-item ${isActive ? 'active' : ''}`}
+        title={collapsed ? tooltipText : undefined}
+      >
+        <span className="icon">{icon}</span>
+        <span className="label">{label}</span>
+      </Link>
+    );
+  }
+
   return (
-    <Link 
-      to={to} 
-      className={`sidebar-item ${isActive ? 'active' : ''}`}
-      title={collapsed ? tooltipText : undefined}
-    >
-      <span className="icon">{icon}</span>
-      <span className="label">{label}</span>
-    </Link>
+    <div className={`sidebar-group ${isActive ? 'active-group' : ''}`}>
+      <div 
+        className={`sidebar-item ${isActive ? 'active' : ''}`}
+        title={collapsed ? tooltipText : undefined}
+        onClick={() => {
+          setExpanded(!expanded);
+        }}
+        style={{ cursor: 'pointer' }}
+      >
+        <span className="icon">{icon}</span>
+        <span className="label" style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          {label}
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ transition: 'transform 0.2s', transform: expanded ? 'rotate(180deg)' : 'none' }}><polyline points="6 9 12 15 18 9"></polyline></svg>
+        </span>
+      </div>
+      {expanded && !collapsed && (
+        <div className="sidebar-subitems">
+          {subItems.map((sub, idx) => {
+            const isSubActive = location.pathname + location.search === sub.to || (!location.search && sub.to.includes('tab=merchant'));
+            return (
+              <Link 
+                key={idx}
+                to={sub.to}
+                className={`sidebar-subitem ${isSubActive ? 'active' : ''}`}
+              >
+                <div className="subitem-dot" />
+                <span>{sub.label}</span>
+              </Link>
+            )
+          })}
+        </div>
+      )}
+    </div>
   );
 };
 
@@ -74,7 +113,18 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
             <SidebarItem to="/products" icon={<Package size={20} />} label="Products / المنتجات" collapsed={isSidebarCollapsed} />
           )}
           {(user?.permissions?.includes('template') || false) && (
-            <SidebarItem to="/templates" icon={<LayoutTemplate size={20} />} label="Templates / القوالب" collapsed={isSidebarCollapsed} />
+            <SidebarItem 
+              to="/templates" 
+              icon={<LayoutTemplate size={20} />} 
+              label="Templates / القوالب" 
+              collapsed={isSidebarCollapsed} 
+              subItems={[
+                { label: 'Merchant Template / قوالب التاجر', to: '/templates?tab=merchant' },
+                { label: 'Store Template / قوالب المتجر', to: '/templates?tab=store' },
+                { label: 'Store Icon / أيقونة المتجر', to: '/templates?tab=icon' },
+                { label: 'Template Properties / خصائص القوالب', to: '/templates?tab=properties' }
+              ]}
+            />
           )}
           {(user?.permissions?.includes('equipment') || false) && (
             <SidebarItem to="/devices" icon={<Cpu size={20} />} label="Devices / الأجهزة" collapsed={isSidebarCollapsed} />
@@ -280,6 +330,55 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
           background: var(--primary-color);
           color: white;
           box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+        }
+
+        .sidebar-group {
+          display: flex;
+          flex-direction: column;
+        }
+
+        .sidebar-subitems {
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+          margin-top: 4px;
+          padding-left: 20px;
+        }
+
+        .sidebar-subitem {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          padding: 8px 12px;
+          border-radius: 8px;
+          text-decoration: none;
+          color: var(--text-secondary);
+          font-size: 13px;
+          font-weight: 500;
+          transition: all 0.2s;
+        }
+
+        .sidebar-subitem:hover {
+          background: rgba(255,255,255,0.05);
+          color: var(--text-primary);
+        }
+
+        .sidebar-subitem.active {
+          color: var(--primary-color);
+          font-weight: 600;
+        }
+
+        .subitem-dot {
+          width: 6px;
+          height: 6px;
+          border-radius: 50%;
+          border: 1.5px solid currentColor;
+          opacity: 0.5;
+        }
+
+        .sidebar-subitem.active .subitem-dot {
+          background: currentColor;
+          opacity: 1;
         }
 
         .sidebar-footer {

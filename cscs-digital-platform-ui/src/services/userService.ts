@@ -18,12 +18,14 @@ export interface Role {
   merchantId?: string;
   createTime?: string;
   menuIdList?: number[];
+  _pending?: boolean;
 }
 
 export interface PermissionMenu {
   id: number;
   menuName: string;
   level: number;
+  parentId?: number;
   zkUrl?: string;
 }
 

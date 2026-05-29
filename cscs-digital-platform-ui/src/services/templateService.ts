@@ -1,4 +1,5 @@
 import api, { unwrapResponse } from './api';
+import { apiCache, TTL } from './apiCache';
 
 export interface Template {
   id: string;
@@ -72,13 +73,25 @@ export const getTemplates = async (page = 0, size = 10, searchParams?: Record<st
 };
 
 export const getCategories = async (): Promise<any[]> => {
-  const response = await api.get('/templates/categories');
-  return unwrapResponse(response);
+  return apiCache.fetch(
+    'templates:categories',
+    async () => {
+      const response = await api.get('/templates/categories');
+      return unwrapResponse(response);
+    },
+    TTL.CATEGORIES
+  );
 };
 
 export const getTemplateTypes = async (): Promise<any[]> => {
-  const response = await api.get('/templates/types');
-  return unwrapResponse(response);
+  return apiCache.fetch(
+    'templates:types',
+    async () => {
+      const response = await api.get('/templates/types');
+      return unwrapResponse(response);
+    },
+    TTL.TEMPLATE_TYPES
+  );
 };
 
 export const addCategory = async (categoryName: string): Promise<void> => {
@@ -87,8 +100,14 @@ export const addCategory = async (categoryName: string): Promise<void> => {
 };
 
 export const getModels = async (): Promise<PriceTagModel[]> => {
-  const response = await api.get('/templates/models');
-  return unwrapResponse(response);
+  return apiCache.fetch(
+    'templates:models',
+    async () => {
+      const response = await api.get('/templates/models');
+      return unwrapResponse(response);
+    },
+    TTL.TEMPLATE_TYPES
+  );
 };
 
 export const getTemplateById = async (id: string): Promise<Template> => {
