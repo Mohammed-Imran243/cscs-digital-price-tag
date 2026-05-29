@@ -710,14 +710,7 @@ const Templates: React.FC = () => {
                   </div>
                 )}
                 <button className="btn-primary sm-btn">
-<<<<<<< HEAD
-                  <Plus size={16} />
-                  {activeMenuTab === 'business_icon'
-                    ? 'Add Merchant Icon / إضافة أيقونة التاجر'
-                    : 'Add Store Icon / إضافة أيقونة المتجر'}
-=======
-                  <Plus size={16} /> Add Store / متجر Icon / إضافة أيقونة
->>>>>>> ui-refinement
+                  <Plus size="16" /> Add Store Icon / ????? ?????? ??????
                 </button>
               </div>
 
