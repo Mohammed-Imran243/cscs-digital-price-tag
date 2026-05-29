@@ -65,11 +65,11 @@ export interface TemplateCreateRequest {
 
 export const getTemplates = async (page = 0, size = 10, searchParams?: Record<string, any>) => {
   const response = await api.post('/templates/list', searchParams || {}, {
-    params: { page, size }
+    params: { page, size, pageNum: page, pageSize: size }
   });
   // Verify triple-nesting response.data.data.data from the backend
   const unwrapped = unwrapResponse<any>(response); // returns DragonTemplateListResponse (success/message/code/data)
-  return unwrapped.data; // returns DragonTemplateData (content/totalPages/totalElements)
+  return unwrapped;
 };
 
 export const getCategories = async (): Promise<any[]> => {
@@ -122,9 +122,9 @@ export const checkTemplateName = async (storeId: string, templateName: string): 
   return unwrapResponse(response);
 };
 
-export const addTemplate = async (data: TemplateCreateRequest): Promise<void> => {
+export const addTemplate = async (data: TemplateCreateRequest): Promise<any> => {
   const response = await api.post('/templates', data);
-  unwrapResponse(response);
+  return unwrapResponse<any>(response);
 };
 
 export const updateTemplateBase = async (id: string, data: Partial<Template>): Promise<void> => {
@@ -149,4 +149,52 @@ export const getStoreIcons = async (page = 0, size = 10, searchParams?: Record<s
     params: { page, size }
   });
   return unwrapResponse<any>(response);
+};
+
+/**
+ * Fetch all icons/components already associated with a template.
+ * Calls GET /templates/{templateId}/findInTemp which proxies Dragon ESL's /zk/icon/findInTemp/{templateId}
+ */
+export const findIconsInTemplate = async (templateId: string): Promise<any[]> => {
+  const response = await api.get(`/templates/${templateId}/findInTemp`);
+  const data = unwrapResponse<any>(response);
+  // data may be an array directly or wrapped
+  if (Array.isArray(data)) return data;
+  if (data && Array.isArray(data.list)) return data.list;
+  if (data && Array.isArray(data.content)) return data.content;
+  if (data && Array.isArray(data.data)) return data.data;
+  return [];
+};
+
+/**
+ * Add an icon/component to an existing template
+ * Calls POST /templates/{templateId}/addIcon
+ */
+export const addIconToTemplate = async (templateId: string, iconData: any): Promise<any> => {
+  const response = await api.post(`/templates/${templateId}/addIcon`, iconData);
+  return unwrapResponse(response);
+};
+
+export const getFontTypes = async (): Promise<any[]> => {
+  return apiCache.fetch('templates:fonts', async () => {
+    const response = await api.get('/templates/fonts');
+    return unwrapResponse<any[]>(response) || [];
+  }, TTL.TEMPLATE_TYPES);
+};
+
+export const getMaxSubNum = async (storeId: string): Promise<any> => {
+  const response = await api.get(`/templates/maxSubNum/${storeId}`);
+  return unwrapResponse(response);
+};
+
+export const getPictureNames = async (storeId: string): Promise<any[]> => {
+  const response = await api.get('/templates/itemPicName', { params: { storeId } });
+  return unwrapResponse<any[]>(response) || [];
+};
+
+export const getFieldNames = async (type: string = '1'): Promise<any[]> => {
+  return apiCache.fetch(`templates:fieldNames:${type}`, async () => {
+    const response = await api.get(`/templates/fieldNames/${type}`);
+    return unwrapResponse<any[]>(response) || [];
+  }, TTL.TEMPLATE_TYPES);
 };

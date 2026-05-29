@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import {
   getTemplates,
@@ -25,13 +25,9 @@ import {
   Loader2,
   RefreshCw,
   Search,
-  Tag,
   Layers,
   Trash2,
-  Smartphone,
-  Settings,
   FolderOpen,
-  Image as ImageIcon,
   Edit
 } from 'lucide-react';
 
@@ -54,7 +50,8 @@ const Templates: React.FC = () => {
   const tabParam = searchParams.get('tab') || 'merchant';
   const activeMenuTab = tabParam === 'icon' ? 'store_icon' : 
                         tabParam === 'properties' ? 'properties' : 
-                        tabParam === 'store' ? 'store' : 'merchant';
+                        tabParam === 'store' ? 'store' :
+                        tabParam === 'business_icon' ? 'business_icon' : 'merchant';
 
   // Sub-navigation State for Merchant Template Tab (Zkong Scenario tabs)
   const [merchantScenario, setMerchantScenario] = useState<number>(1); // 1: Single, 4: Multi, 3: Segment, 2: Unbind
@@ -78,7 +75,23 @@ const Templates: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('');
   // Main Templates Data
+
   const [templates, setTemplates] = useState<Template[]>([]);
+  const fetchRequestId = useRef(0);
+
+  const filteredTemplates = useMemo(() => {
+    let result = templates;
+    if (debouncedSearchQuery) {
+      const q = debouncedSearchQuery.toLowerCase();
+      result = result.filter(t => 
+        (t.templateName && t.templateName.toLowerCase().includes(q)) ||
+        (t.attrName && t.attrName.toLowerCase().includes(q)) ||
+        (t.templateNumber && t.templateNumber.toLowerCase().includes(q)) ||
+        (t.id && String(t.id).includes(q))
+      );
+    }
+    return result;
+  }, [templates, debouncedSearchQuery]);
   const [storeIcons, setStoreIcons] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [page, setPage] = useState(0);
@@ -156,7 +169,7 @@ const Templates: React.FC = () => {
     } else if (activeMenuTab === 'store_icon') {
       fetchStoreIconsList();
     }
-  }, [activeMenuTab, merchantScenario, selectedStore, filterSize, filterColor, filterCategory, page, pageSize, debouncedSearchQuery]);
+  }, [activeMenuTab, merchantScenario, selectedStore, filterSize, filterColor, filterCategory, page, pageSize]);
 
   // Fetch sample products when opening a preview template
   useEffect(() => {
@@ -317,14 +330,15 @@ const Templates: React.FC = () => {
       if (filterType !== 'All') {
         searchParams.attrName = filterType;
       }
-      if (debouncedSearchQuery) {
-        searchParams.templateName = debouncedSearchQuery;
-      }
-
+      // removed debouncedSearchQuery from backend search to avoid clearing local array incorrectly
+      const reqId = ++fetchRequestId.current;
       const response = await getTemplates(page, pageSize, searchParams);
+      if (reqId !== fetchRequestId.current) return;
+      
       if (response) {
         let content = response.content || [];
         setTemplates(content);
+
         setTotalElements(response.totalElements || 0);
       }
     } catch (err: any) {
@@ -2268,7 +2282,7 @@ const Templates: React.FC = () => {
             <Loader2 className="animate-spin text-primary mb-2" size={40} />
             <p>Loading ESL Templates... / جاري تحميل قوالب بطاقات الأسعار...</p>
           </div>
-        ) : templates.length === 0 ? (
+        ) : filteredTemplates.length === 0 ? (
           <div className="zkong-no-data">
             <FolderOpen size={48} className="text-muted mb-2" />
             <p>No Data / لا توجد بيانات</p>
@@ -2291,7 +2305,7 @@ const Templates: React.FC = () => {
               </tr>
             </thead>
             <tbody>
-              {templates.map(t => {
+              {filteredTemplates.map(t => {
                 const isEnabled = t.status === '1';
                 const specs = getEslModelSpecs(t.size, t.modelList?.[0]);
                 return (

@@ -3,7 +3,7 @@ import { getProducts, createProduct, updateProductPrice, deleteProductFromStore,
 import type { Product, ProductCreateRequest } from '../services/productService';
 import { storeService } from '../services/storeService';
 import type { Store } from '../services/storeService';
-import { Search, Plus, Loader2, Trash2, Edit2, AlertTriangle, RefreshCw, Package, Store as StoreIcon, Settings } from 'lucide-react';
+import { Search, Plus, Loader2, AlertTriangle, RefreshCw, Package, Store as StoreIcon, Settings } from 'lucide-react';
 import { getPaginationRange } from '../utils/paginationUtils';
 import { getTemplates, getCategories, getTemplateTypes } from '../services/templateService';
 
@@ -132,8 +132,6 @@ const [storeOpSubTab, setStoreOpSubTab] = useState<StoreOpSubTab>('by_item');
 
 // Store Operation — selected item on left panel
 const [selectedOpItem, setSelectedOpItem] = useState<any>(null);
-const [storeOpData, setStoreOpData] = useState<any[]>([]);
-const [storeOpLoading, setStoreOpLoading] = useState(false);
 const [storeOpSelectedStore, setStoreOpSelectedStore] = useState<string>('');
 const [storeOpProducts, setStoreOpProducts] = useState<any[]>([]);
 const [storeOpFetching, setStoreOpFetching] = useState(false);
@@ -141,12 +139,10 @@ const [storeOpFetching, setStoreOpFetching] = useState(false);
 // Merchant tab filter state
 const [merchantFilterCategory, setMerchantFilterCategory] = useState('');
 const [merchantFilterType, setMerchantFilterType] = useState('');
-const [merchantFilterLabel, setMerchantFilterLabel] = useState('');
 
 // Store tab filter state
 const [storeFilterCategory, setStoreFilterCategory] = useState('');
 const [storeFilterType, setStoreFilterType] = useState('');
-const [storeFilterLabel, setStoreFilterLabel] = useState('');
   
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(false);
