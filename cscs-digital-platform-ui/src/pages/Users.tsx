@@ -891,8 +891,10 @@ const Users: React.FC = () => {
 
               {/* ── Data Access Section ── */}
               <div className="form-group data-access-section" style={{ gridColumn: '1 / -1', marginTop: '8px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '12px' }}>
-                  <label style={{ margin: 0, fontSize: '15px', fontWeight: 'bold' }}>oganazation.DataAccess</label>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '12px', flexWrap: 'wrap' }}>
+                  <label style={{ margin: 0, fontSize: '14px', fontWeight: '700', color: 'var(--text-primary)' }}>
+                    Store Data Access / صلاحية الوصول للمتاجر
+                  </label>
                   <button 
                     type="button"
                     className="btn-link"
@@ -905,40 +907,77 @@ const Users: React.FC = () => {
                       setIsStoreModalOpen(true);
                     }}
                     disabled={userStoreFormData.isAllStore}
-                    style={{ fontSize: '13px', color: 'var(--primary-color)', background: 'none', border: 'none', cursor: userStoreFormData.isAllStore ? 'not-allowed' : 'pointer', opacity: userStoreFormData.isAllStore ? 0.5 : 1 }}
+                    style={{
+                      fontSize: '13px',
+                      color: userStoreFormData.isAllStore ? 'var(--text-muted)' : 'var(--primary-color)',
+                      background: 'none',
+                      border: '1px solid',
+                      borderColor: userStoreFormData.isAllStore ? 'var(--glass-border)' : 'rgba(59,130,246,0.4)',
+                      borderRadius: '6px',
+                      padding: '5px 12px',
+                      cursor: userStoreFormData.isAllStore ? 'not-allowed' : 'pointer',
+                      opacity: userStoreFormData.isAllStore ? 0.5 : 1,
+                      fontWeight: 600,
+                      transition: 'all 0.2s',
+                    }}
                   >
-                    oganazation.addDataAccess
+                    + Select Stores / اختيار المتاجر
                   </button>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', margin: 0, fontSize: '13px', color: 'var(--text-secondary)' }}>
-                    oganazation.allowshowdata
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', margin: 0, fontSize: '13px', color: 'var(--text-secondary)', marginLeft: 'auto' }}>
                     <input 
                       type="checkbox" 
                       checked={userStoreFormData.isAllStore}
-                      onChange={(e) => setUserStoreFormData(prev => ({ ...prev, isAllStore: e.target.checked }))}
-                      style={{ marginLeft: '8px', cursor: 'pointer' }}
+                      onChange={(e) => setUserStoreFormData(prev => ({ ...prev, isAllStore: e.target.checked, selectedStores: e.target.checked ? [] : prev.selectedStores }))}
+                      style={{ cursor: 'pointer', accentColor: 'var(--primary-color)', width: '16px', height: '16px' }}
                     />
-                    oganazation.allStore
+                    All Stores Access / صلاحية جميع المتاجر
                   </label>
                 </div>
                 
-                <div className="selected-stores-container" style={{ background: 'var(--bg-primary)', border: '1px solid var(--border-color)', borderRadius: '6px', minHeight: '60px', padding: '12px', display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-                  {!userStoreFormData.isAllStore && userStoreFormData.selectedStores.map(store => (
-                    <div key={store.storeId} style={{ display: 'flex', alignItems: 'center', gap: '6px', background: 'rgba(99, 102, 241, 0.1)', color: 'var(--primary-color)', padding: '4px 10px', borderRadius: '4px', fontSize: '12px' }}>
-                      {store.storeName || store.storeId}
-                      <button 
-                        type="button"
-                        onClick={() => setUserStoreFormData(prev => ({ ...prev, selectedStores: prev.selectedStores.filter(s => s.storeId !== store.storeId) }))}
-                        style={{ background: 'none', border: 'none', color: 'var(--primary-color)', cursor: 'pointer', padding: 0, display: 'flex' }}
-                      >
-                        <X size={14} />
-                      </button>
-                    </div>
-                  ))}
-                  {!userStoreFormData.isAllStore && userStoreFormData.selectedStores.length === 0 && (
-                    <span style={{ color: 'var(--text-muted)', fontSize: '13px', fontStyle: 'italic', display: 'flex', alignItems: 'center' }}>No specific stores selected.</span>
-                  )}
-                  {userStoreFormData.isAllStore && (
-                    <span style={{ color: 'var(--success-color)', fontSize: '13px', fontWeight: 600, display: 'flex', alignItems: 'center' }}>All stores access granted.</span>
+                <div className="selected-stores-container" style={{
+                  background: 'rgba(255,255,255,0.02)',
+                  border: '1px solid var(--glass-border)',
+                  borderRadius: '8px',
+                  minHeight: '56px',
+                  padding: '10px 12px',
+                  display: 'flex',
+                  flexWrap: 'wrap',
+                  gap: '8px',
+                  alignItems: 'center',
+                }}>
+                  {userStoreFormData.isAllStore ? (
+                    <span style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--success-color)', fontSize: '13px', fontWeight: 600 }}>
+                      <span style={{ fontSize: '16px' }}>✓</span>
+                      Full access to all stores granted / صلاحية كاملة لجميع المتاجر
+                    </span>
+                  ) : userStoreFormData.selectedStores.length === 0 ? (
+                    <span style={{ color: 'var(--text-muted)', fontSize: '13px', fontStyle: 'italic' }}>
+                      No stores selected — click "Select Stores" above / لم يتم اختيار متاجر — انقر على "اختيار المتاجر" أعلاه
+                    </span>
+                  ) : (
+                    userStoreFormData.selectedStores.map(store => (
+                      <div key={store.storeId} style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                        background: 'rgba(59,130,246,0.12)',
+                        color: 'var(--primary-color)',
+                        border: '1px solid rgba(59,130,246,0.25)',
+                        padding: '4px 10px',
+                        borderRadius: '6px',
+                        fontSize: '12px',
+                        fontWeight: 600,
+                      }}>
+                        {store.storeName || store.storeId}
+                        <button
+                          type="button"
+                          onClick={() => setUserStoreFormData(prev => ({ ...prev, selectedStores: prev.selectedStores.filter(s => s.storeId !== store.storeId) }))}
+                          style={{ background: 'none', border: 'none', color: 'var(--primary-color)', cursor: 'pointer', padding: 0, display: 'flex', opacity: 0.7 }}
+                        >
+                          <X size={13} />
+                        </button>
+                      </div>
+                    ))
                   )}
                 </div>
               </div>
@@ -959,7 +998,7 @@ const Users: React.FC = () => {
         <div className="modal-overlay" style={{ zIndex: 1100 }}>
           <div className="modal-content glass-card" style={{ width: '700px', maxWidth: '95vw', padding: '24px' }}>
             <div className="modal-header" style={{ marginBottom: '20px' }}>
-              <h3 style={{ fontSize: '16px' }}>Store selection</h3>
+              <h3 style={{ fontSize: '16px' }}>Store Selection / اختيار المتاجر</h3>
               <button className="close-btn" onClick={() => setIsStoreModalOpen(false)}><X size={20} /></button>
             </div>
             
@@ -967,12 +1006,12 @@ const Users: React.FC = () => {
               
               {/* Unselected Stores */}
               <div className="shuttle-box" style={{ border: '1px solid var(--border-color)', borderRadius: '8px', overflow: 'hidden' }}>
-                <div style={{ padding: '12px 16px', background: 'var(--bg-primary)', borderBottom: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span style={{ fontSize: '13px', fontWeight: 600 }}>Unselected stores ({modalUnselectedStores.length})</span>
-                  <button type="button" className="btn-link" style={{ fontSize: '12px' }} onClick={() => {
+                <div style={{ padding: '12px 16px', background: 'rgba(255,255,255,0.02)', borderBottom: '1px solid var(--glass-border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ fontSize: '13px', fontWeight: 600 }}>Available Stores ({modalUnselectedStores.length}) / المتاجر المتاحة</span>
+                  <button type="button" className="btn-link" style={{ fontSize: '12px', color: 'var(--primary-color)', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600 }} onClick={() => {
                     setModalSelectedStores(prev => [...prev, ...modalUnselectedStores]);
                     setModalUnselectedStores([]);
-                  }}>Select All</button>
+                  }}>Select All / اختيار الكل</button>
                 </div>
                 <div style={{ padding: '8px' }}>
                   <div className="search-bar" style={{ marginBottom: '8px' }}>
@@ -1005,12 +1044,12 @@ const Users: React.FC = () => {
 
               {/* Selected Stores */}
               <div className="shuttle-box" style={{ border: '1px solid var(--border-color)', borderRadius: '8px', overflow: 'hidden' }}>
-                <div style={{ padding: '12px 16px', background: 'var(--bg-primary)', borderBottom: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span style={{ fontSize: '13px', fontWeight: 600 }}>Selected stores ({modalSelectedStores.length})</span>
-                  <button type="button" className="btn-link" style={{ fontSize: '12px' }} onClick={() => {
+                <div style={{ padding: '12px 16px', background: 'rgba(255,255,255,0.02)', borderBottom: '1px solid var(--glass-border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ fontSize: '13px', fontWeight: 600 }}>Selected Stores ({modalSelectedStores.length}) / المتاجر المحددة</span>
+                  <button type="button" className="btn-link" style={{ fontSize: '12px', color: '#ef4444', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600 }} onClick={() => {
                     setModalUnselectedStores(prev => [...prev, ...modalSelectedStores]);
                     setModalSelectedStores([]);
-                  }}>Remove All</button>
+                  }}>Remove All / إزالة الكل</button>
                 </div>
                 <div style={{ padding: '8px' }}>
                   <div className="search-bar" style={{ marginBottom: '8px' }}>
@@ -1028,7 +1067,9 @@ const Users: React.FC = () => {
                       </div>
                     ))}
                     {modalSelectedStores.length === 0 && (
-                      <div style={{ textAlign: 'center', padding: '40px 0', color: 'var(--text-muted)', fontSize: '13px' }}>No Data</div>
+                      <div style={{ textAlign: 'center', padding: '40px 0', color: 'var(--text-muted)', fontSize: '13px' }}>
+                        No stores selected / لم يتم اختيار أي متجر
+                      </div>
                     )}
                   </div>
                 </div>
@@ -1040,8 +1081,8 @@ const Users: React.FC = () => {
               <button type="button" className="btn-primary" onClick={() => {
                 setUserStoreFormData(prev => ({ ...prev, selectedStores: modalSelectedStores }));
                 setIsStoreModalOpen(false);
-              }}>Confirm</button>
-              <button type="button" className="btn-secondary" onClick={() => setIsStoreModalOpen(false)}>Cancel</button>
+              }}>Confirm / تأكيد</button>
+              <button type="button" className="btn-secondary" onClick={() => setIsStoreModalOpen(false)}>Cancel / إلغاء</button>
             </div>
           </div>
         </div>
@@ -1642,6 +1683,91 @@ const Users: React.FC = () => {
           .table-wrapper {
             overflow-x: auto;
           }
+        }
+
+        .btn-link {
+          background: none;
+          border: none;
+          color: var(--primary-color);
+          cursor: pointer;
+          font-size: 13px;
+          font-weight: 600;
+          padding: 0;
+          transition: opacity 0.2s;
+        }
+
+        .btn-link:hover {
+          opacity: 0.8;
+          text-decoration: underline;
+        }
+
+        .btn-text {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          background: none;
+          border: none;
+          cursor: pointer;
+          font-size: 13px;
+          font-weight: 600;
+          color: var(--primary-color);
+          padding: 6px 10px;
+          border-radius: 6px;
+          transition: all 0.2s;
+        }
+
+        .btn-text:hover {
+          background: rgba(59,130,246,0.08);
+        }
+
+        .btn-text.danger {
+          color: var(--danger-color);
+        }
+
+        .btn-text.danger:hover {
+          background: rgba(239,68,68,0.08);
+        }
+
+        .role-pending-badge {
+          margin-left: 8px;
+          font-size: 10px;
+          font-weight: 600;
+          background: rgba(245,158,11,0.15);
+          color: #f59e0b;
+          border: 1px solid rgba(245,158,11,0.3);
+          padding: 2px 8px;
+          border-radius: 10px;
+        }
+
+        .role-card-pending {
+          border-color: rgba(245,158,11,0.3) !important;
+          opacity: 0.85;
+        }
+
+        .role-syncing-note {
+          font-size: 12px;
+          color: #f59e0b;
+          font-style: italic;
+        }
+
+        .global-search-bar {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          padding: 8px 14px;
+          background: rgba(255,255,255,0.04);
+          border: 1px solid var(--glass-border);
+          border-radius: 8px;
+          min-width: 260px;
+        }
+
+        .global-search-bar input {
+          background: transparent;
+          border: none;
+          outline: none;
+          color: var(--text-primary);
+          font-size: 14px;
+          width: 100%;
         }
       `}</style>
     </div>

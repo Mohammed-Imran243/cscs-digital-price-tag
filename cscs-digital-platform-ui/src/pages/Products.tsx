@@ -152,7 +152,7 @@ const [storeFilterType, setStoreFilterType] = useState('');
 
   // Pagination states
   const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
+  const [pageSize, setPageSize] = useState(50);
   const [totalElements, setTotalElements] = useState(0);
 
   // Custom alert/confirm / notification state
@@ -398,7 +398,7 @@ const [storeFilterType, setStoreFilterType] = useState('');
     if (!storeId) return;
     setStoreOpFetching(true);
     try {
-      const data = await getProducts(storeId, 0, 100);
+      const data = await getProducts(storeId, 0, 50);
       setStoreOpProducts(data.content || []);
     } catch (err) {
       console.error('Failed to fetch store operation products', err);
@@ -407,6 +407,14 @@ const [storeFilterType, setStoreFilterType] = useState('');
       setStoreOpFetching(false);
     }
   };
+
+  // Sync storeOpSelectedStore with global selectedStore so it fetches automatically
+  useEffect(() => {
+    if (selectedStore && selectedStore !== storeOpSelectedStore) {
+      setStoreOpSelectedStore(selectedStore);
+      fetchStoreOpProducts(selectedStore);
+    }
+  }, [selectedStore]);
 
   useEffect(() => {
     fetchStores();
@@ -1109,6 +1117,8 @@ const [storeFilterType, setStoreFilterType] = useState('');
             <option value={20}>20/page</option>
             <option value={50}>50/page</option>
             <option value={100}>100/page</option>
+            <option value={500}>500/page</option>
+            <option value={1000}>1000/page</option>
           </select>
         </div>
         <div className="pagination-right">

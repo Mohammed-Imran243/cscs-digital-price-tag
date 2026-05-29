@@ -76,24 +76,6 @@ public class DragonTokenManager {
      * Used mainly for immediate recovery when the API returns an auth/expiration error.
      */
     public void forceRefresh() {
-        // If called from a reactor thread (e.g., from WebClient retry filter),
-        // we cannot call block(). Schedule async instead.
-        if (Thread.currentThread().getName().startsWith("reactor-")) {
-            log.warn("forceRefresh() called from reactor thread — scheduling async refresh.");
-            try {
-                new Thread(() -> {
-                    try {
-                        doRefresh();
-                    } catch (Exception e) {
-                        log.error("Async token refresh failed: {}", e.getMessage());
-                    }
-                }, "dragon-token-async-refresh").start();
-            } catch (Exception e) {
-                log.error("Failed to schedule async refresh: {}", e.getMessage());
-            }
-            return;
-        }
-
         doRefresh();
     }
 

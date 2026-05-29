@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { useTheme } from '../context/ThemeContext';
 import { useAuth } from '../context/AuthContext';
-import { Sun, Moon, LogOut, LayoutDashboard, Store, Package, User, Cpu, Menu, Building2, LayoutTemplate, History } from 'lucide-react';
+import { Sun, Moon, LogOut, LayoutDashboard, Store, Package, User, Cpu, Menu, Building2, LayoutTemplate, History, Smartphone, Settings, Image as ImageIcon, Tag } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 
-const SidebarItem: React.FC<{ to: string, icon: React.ReactNode, label: string, collapsed: boolean, subItems?: {label: string, to: string}[] }> = ({ to, icon, label, collapsed, subItems }) => {
+const SidebarItem: React.FC<{ to: string, icon: React.ReactNode, label: string, collapsed: boolean, subItems?: {label: string, to: string, icon?: React.ReactNode}[] }> = ({ to, icon, label, collapsed, subItems }) => {
   const location = useLocation();
   const isActive = location.pathname === to || (subItems && subItems.some(item => location.pathname === item.to || location.pathname.startsWith(item.to) || (location.pathname === to && location.search === item.to.split('?')[1])));
   const [expanded, setExpanded] = useState(isActive);
@@ -36,7 +36,7 @@ const SidebarItem: React.FC<{ to: string, icon: React.ReactNode, label: string, 
         style={{ cursor: 'pointer' }}
       >
         <span className="icon">{icon}</span>
-        <span className="label" style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <span className="label accordion-label">
           {label}
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ transition: 'transform 0.2s', transform: expanded ? 'rotate(180deg)' : 'none' }}><polyline points="6 9 12 15 18 9"></polyline></svg>
         </span>
@@ -51,7 +51,11 @@ const SidebarItem: React.FC<{ to: string, icon: React.ReactNode, label: string, 
                 to={sub.to}
                 className={`sidebar-subitem ${isSubActive ? 'active' : ''}`}
               >
-                <div className="subitem-dot" />
+                {sub.icon ? (
+                  <span className="subitem-icon" style={{ opacity: isSubActive ? 1 : 0.7 }}>{sub.icon}</span>
+                ) : (
+                  <div className="subitem-dot" />
+                )}
                 <span>{sub.label}</span>
               </Link>
             )
@@ -105,7 +109,9 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
         
         <nav className="sidebar-nav">
           <SidebarItem to="/" icon={<LayoutDashboard size={20} />} label="Dashboard / لوحة التحكم" collapsed={isSidebarCollapsed} />
-          <SidebarItem to="/merchants" icon={<Building2 size={20} />} label="Merchants / التجار" collapsed={isSidebarCollapsed} />
+          {(user?.permissions?.includes('staffManager') || false) && (
+            <SidebarItem to="/merchants" icon={<Building2 size={20} />} label="Merchants / التجار" collapsed={isSidebarCollapsed} />
+          )}
           {(user?.permissions?.includes('store') || false) && (
             <SidebarItem to="/stores" icon={<Store size={20} />} label="Stores / المتاجر" collapsed={isSidebarCollapsed} />
           )}
@@ -119,10 +125,10 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
               label="Templates / القوالب" 
               collapsed={isSidebarCollapsed} 
               subItems={[
-                { label: 'Merchant Template / قوالب التاجر', to: '/templates?tab=merchant' },
-                { label: 'Store Template / قوالب المتجر', to: '/templates?tab=store' },
-                { label: 'Store Icon / أيقونة المتجر', to: '/templates?tab=icon' },
-                { label: 'Template Properties / خصائص القوالب', to: '/templates?tab=properties' }
+                { label: 'Merchant Template / قوالب التاجر', to: '/templates?tab=merchant', icon: <Smartphone size={16} /> },
+                { label: 'Store Template / قوالب المتجر', to: '/templates?tab=store', icon: <Settings size={16} /> },
+                { label: 'Store Icon / أيقونة المتجر', to: '/templates?tab=icon', icon: <ImageIcon size={16} /> },
+                { label: 'Template Properties / خصائص القوالب', to: '/templates?tab=properties', icon: <Tag size={16} /> }
               ]}
             />
           )}
@@ -381,6 +387,19 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
           opacity: 1;
         }
 
+        .accordion-label {
+          flex: 1;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+        }
+
+        @media (min-width: 1025px) {
+          .sidebar.collapsed .accordion-label {
+            display: none !important;
+          }
+        }
+
         .sidebar-footer {
           margin-top: auto;
           padding-top: 16px;
@@ -538,6 +557,10 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
           .sidebar.collapsed .theme-toggle .label,
           .sidebar.collapsed .logo-full {
             display: block;
+          }
+
+          .sidebar.collapsed .sidebar-item .accordion-label {
+            display: flex;
           }
 
           .sidebar.collapsed .logo-small,

@@ -109,7 +109,7 @@ public class WebClientConfig {
 
     private ExchangeFilterFunction retryAuthFilter(DragonTokenManager tokenManager) {
         return (request, next) -> next.exchange(request).flatMap(response -> {
-            // Check for HTTP 401 — trigger refresh or propagate user-specific logout
+            // Check for HTTP 401
             if (response.statusCode().equals(HttpStatus.UNAUTHORIZED)) {
                 org.springframework.security.core.Authentication auth =
                         org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
@@ -118,14 +118,13 @@ public class WebClientConfig {
                     return Mono.just(response);
                 }
 
-                log.warn("Dragon ESL returned 401 Unauthorized. Triggering token manager background refresh and retrying.");
-                tokenManager.forceRefresh();
-                
-                String newToken = tokenManager.getValidToken();
-                ClientRequest retryRequest = ClientRequest.from(request)
-                        .header(HttpHeaders.AUTHORIZATION, newToken)
-                        .build();
-                return next.exchange(retryRequest);
+                // IMPORTANT: We cannot safely retry POST requests here because the reactive
+                // body publisher is already consumed. Instead, refresh the token now so the
+                // next call from DragonEslApiClient automatically uses the fresh token.
+                log.warn("Dragon ESL returned 401. Refreshing system token (next request will succeed).");
+                return Mono.fromRunnable(tokenManager::forceRefresh)
+                        .subscribeOn(reactor.core.scheduler.Schedulers.boundedElastic())
+                        .then(Mono.just(response));
             }
 
             // Check for 200 OK with business errors 10006 or 10013 in the JSON body
@@ -140,27 +139,25 @@ public class WebClientConfig {
                                         org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
                                 if (auth != null && auth.getCredentials() instanceof String && !auth.getName().equalsIgnoreCase(props.getUsername())) {
                                     log.warn("User session conflict/expired on Dragon ESL for user {} (code {}). Propagating 401 to UI.", auth.getName(), code);
-                                    // Return 401 response so UI triggers immediate logout
                                     return Mono.just(ClientResponse.create(HttpStatus.UNAUTHORIZED, response.strategies())
                                             .headers(headers -> headers.addAll(response.headers().asHttpHeaders()))
                                             .body("{\"success\":false,\"code\":10013,\"message\":\"Session conflict or expired on Dragon ESL\"}")
                                             .build());
                                 }
 
-                                log.warn("Dragon ESL returned system business error {} (Token expired/invalid). Triggering background token refresh and retrying.", code);
-                                tokenManager.forceRefresh();
-                                
-                                String newToken = tokenManager.getValidToken();
-                                ClientRequest retryRequest = ClientRequest.from(request)
-                                        .header(HttpHeaders.AUTHORIZATION, newToken)
-                                        .build();
-                                return next.exchange(retryRequest);
+                                log.warn("Dragon ESL system business error {} (token expired). Refreshing token.", code);
+                                return Mono.fromRunnable(tokenManager::forceRefresh)
+                                        .subscribeOn(reactor.core.scheduler.Schedulers.boundedElastic())
+                                        .then(Mono.just(ClientResponse.create(HttpStatus.UNAUTHORIZED, response.strategies())
+                                                .headers(headers -> headers.addAll(response.headers().asHttpHeaders()))
+                                                .body("{\"success\":false,\"code\":" + code + ",\"message\":\"Token expired, please retry\"}")
+                                                .build()));
                             }
                         }
                     } catch (Exception e) {
                         log.debug("Failed to parse JSON response body for retry filter: {}", e.getMessage());
                     }
-                    
+
                     // Re-wrap the body since we consumed it
                     return Mono.just(ClientResponse.create(response.statusCode(), response.strategies())
                             .headers(headers -> headers.addAll(response.headers().asHttpHeaders()))

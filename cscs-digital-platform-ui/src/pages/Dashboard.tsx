@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { Store, Package, FileText, RefreshCw, Wifi, WifiOff, AlertTriangle, CheckCircle, ChevronLeft, ChevronRight } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 import { apiCache } from '../services/apiCache';
 import { storeService } from '../services/storeService';
 import type { Store as StoreType } from '../services/storeService';
 import { getProducts } from '../services/productService';
 import { getTemplates, getCategories } from '../services/templateService';
 import { deviceService } from '../services/deviceService';
+import PriceChangeMonitor from '../components/dashboard/PriceChangeMonitor';
 
 // ──────────────────────────────────────────────────
 // Types
@@ -101,6 +103,7 @@ const PaginationControls: React.FC<{
 // Dashboard Page
 // ──────────────────────────────────────────────────
 const Dashboard: React.FC = () => {
+  const { user } = useAuth();
   const [stats, setStats] = useState<DashboardStats>({
     storeCount: null,
     productCount: null,
@@ -151,7 +154,7 @@ const Dashboard: React.FC = () => {
         getTemplates(0, 1),
         getCategories(),
         storeService.getActiveStoreCount(),
-        storeService.getMerchantInfo(),
+        user?.permissions?.includes('staffManager') ? storeService.getMerchantInfo() : Promise.resolve(null),
         stores.length > 0
           ? deviceService.getEslDevices(0, 500, stores[0].storeId)
           : Promise.resolve(null),
@@ -160,7 +163,7 @@ const Dashboard: React.FC = () => {
     const templateCount = tmplResult.status === 'fulfilled' ? (tmplResult.value?.totalElements ?? 0) : null;
     const categoryCount = catsResult.status === 'fulfilled' ? (catsResult.value?.length ?? 0) : null;
     const activeStoreCount = activeCountResult.status === 'fulfilled' ? activeCountResult.value : null;
-    const merchantCount = merchantResult.status === 'fulfilled' ? (merchantResult.value?.merchantCount ?? (merchantResult.value?.merchantName ? 1 : null)) : null;
+    const merchantCount = (merchantResult.status === 'fulfilled' && merchantResult.value != null) ? (merchantResult.value?.merchantCount ?? (merchantResult.value?.merchantName ? 1 : null)) : null;
     const eslAll = eslResult.status === 'fulfilled' ? eslResult.value : null;
     const eslTagCount = eslAll?.totalElements ?? null;
     const eslBoundCount = eslAll?.content?.filter((esl: any) => esl.bindState === 1).length ?? null;
@@ -490,12 +493,12 @@ const Dashboard: React.FC = () => {
       </div>
 
       <style>{`
-        /* ── Layout ── */
+        /* Layout */
         .dashboard-page {
           display: flex;
           flex-direction: column;
-          gap: 28px;
-          padding: 4px;
+          gap: var(--space-lg, 24px);
+          padding: var(--space-xs, 4px);
         }
 
         /* ── Header ── */
@@ -532,11 +535,12 @@ const Dashboard: React.FC = () => {
         .spin { animation: spin 1s linear infinite; }
         @keyframes spin { to { transform: rotate(360deg); } }
 
-        /* ── Stat Cards Grid ── */
+        /* Stat Cards Grid */
         .dashboard-grid {
           display: grid;
           grid-template-columns: repeat(3, 1fr);
-          gap: 20px;
+          gap: var(--space-lg, 24px);
+          align-items: stretch;
         }
         @media (max-width: 1024px) {
           .dashboard-grid { grid-template-columns: repeat(2, 1fr); }
@@ -547,14 +551,15 @@ const Dashboard: React.FC = () => {
 
         /* StatCard sub-styles */
         .stat-card {
-          padding: 24px 28px;
+          padding: var(--space-lg, 24px) 28px;
           display: flex;
           align-items: center;
           justify-content: space-between;
-          gap: 16px;
+          gap: var(--space-md, 16px);
           transition: transform 0.2s, box-shadow 0.2s;
-          border-radius: 16px;
+          border-radius: 12px;
           cursor: default;
+          height: 100%;
         }
         .stat-card:hover {
           transform: translateY(-3px);
@@ -809,6 +814,12 @@ const Dashboard: React.FC = () => {
         }
 
       `}</style>
+
+      {/* 📈 Price Change Monitor 📈 */}
+      <div style={{ marginTop: '24px' }}>
+        <PriceChangeMonitor />
+      </div>
+
     </div>
   );
 };
