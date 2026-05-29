@@ -67,9 +67,17 @@ export const getTemplates = async (page = 0, size = 10, searchParams?: Record<st
   const response = await api.post('/templates/list', searchParams || {}, {
     params: { page, size, pageNum: page, pageSize: size }
   });
-  // Verify triple-nesting response.data.data.data from the backend
-  const unwrapped = unwrapResponse<any>(response); // returns DragonTemplateListResponse (success/message/code/data)
-  return unwrapped;
+  const unwrapped = unwrapResponse<any>(response); 
+  
+  // Robust extraction just in case the backend response wrapping changes
+  if (unwrapped && Array.isArray(unwrapped.content)) {
+    return unwrapped;
+  }
+  if (unwrapped && unwrapped.data && Array.isArray(unwrapped.data.content)) {
+    return unwrapped.data;
+  }
+  
+  return unwrapped.data || unwrapped;
 };
 
 export const getCategories = async (): Promise<any[]> => {

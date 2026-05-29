@@ -308,7 +308,7 @@ const Templates: React.FC = () => {
         searchParams.storeId = selectedStore;
       } else if (activeMenuTab === 'merchant') {
         // Merchant Tab - no storeId, scene number maps to sub-tabs
-        searchParams.sceneNumber = merchantScenario.toString();
+        searchParams.sceneNumber = merchantScenario;
       }
 
       if (filterSize !== 'All') {
