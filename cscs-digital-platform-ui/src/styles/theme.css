@@ -133,6 +133,42 @@ select option {
   transform: scale(0.98);
 }
 
+/* Global Premium Secondary/Refresh Button Styles */
+.btn-secondary {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 8px !important;
+  background-color: var(--bg-secondary) !important;
+  color: var(--text-primary) !important;
+  border: 1px solid var(--border-color) !important;
+  padding: 10px 20px !important;
+  border-radius: 8px !important;
+  cursor: pointer !important;
+  font-weight: 600 !important;
+  font-size: 14px !important;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  box-shadow: var(--shadow-sm) !important;
+}
+
+.btn-secondary:hover {
+  background-color: var(--bg-accent) !important;
+  border-color: var(--primary-color) !important;
+  color: var(--primary-color) !important;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15) !important;
+  transform: translateY(-1px) !important;
+}
+
+.btn-secondary:active {
+  transform: translateY(1px) !important;
+}
+
+/* Subtle icon hover rotation for refresh buttons */
+.btn-secondary:hover svg {
+  transform: rotate(60deg) !important;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
 /* Form Required Asterisk */
 .required-asterisk {
   color: var(--danger-color) !important;
@@ -456,20 +492,21 @@ select option {
 }
 /* Global Header Search Bar Standard */
 .global-search-bar {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 12px;
-  border-radius: 8px;
-  min-width: 280px;
-  background: var(--bg-primary);
-  border: 1px solid var(--glass-border);
-  transition: border-color 0.2s, box-shadow 0.2s;
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  padding: 8px 12px !important;
+  border-radius: 8px !important;
+  min-width: 280px !important;
+  background: var(--bg-secondary) !important;
+  border: 1.5px solid var(--border-color) !important;
+  box-shadow: var(--shadow-sm) !important;
+  transition: all 0.2s ease-in-out !important;
 }
 
 .global-search-bar:focus-within {
-  border-color: var(--primary-color);
-  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+  border-color: var(--primary-color) !important;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15) !important;
 }
 
 .global-search-bar input {
@@ -483,7 +520,8 @@ select option {
 }
 
 .global-search-bar input::placeholder {
-  color: var(--text-muted);
+  color: var(--text-secondary) !important;
+  opacity: 0.75 !important;
 }
 
 @media (max-width: 768px) {

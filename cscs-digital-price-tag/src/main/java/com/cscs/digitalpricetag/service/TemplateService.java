@@ -143,6 +143,24 @@ public class TemplateService {
     }
 
     public Object addTemplate(Map<String, Object> request) {
+        if (request != null) {
+            if (request.containsKey("storeId")) {
+                Object storeIdObj = request.get("storeId");
+                if (storeIdObj instanceof String && !((String) storeIdObj).isBlank()) {
+                    try {
+                        request.put("storeId", Long.parseLong(storeIdObj.toString().trim()));
+                    } catch (NumberFormatException e) {
+                        log.warn("Could not parse storeId string to long: {}", storeIdObj);
+                    }
+                }
+            }
+            if (!request.containsKey("items")) {
+                request.put("items", new java.util.ArrayList<>());
+            }
+            if (!request.containsKey("type")) {
+                request.put("type", 1);
+            }
+        }
         return performPost("/zk/template/addTemplateAllRefactor", request);
     }
 

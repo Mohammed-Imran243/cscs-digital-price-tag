@@ -12,8 +12,8 @@ import org.springframework.stereotype.Component;
 public class DragonEslProperties {
 
     private String baseUrl;
-    private int connectTimeoutMs = 5000;
-    private int readTimeoutMs    = 10000;
+    private int connectTimeoutMs = 10000;
+    private int readTimeoutMs    = 30000;
 
     // Dragon ESL login credentials (set via env vars in production)
     private String username;
@@ -22,6 +22,7 @@ public class DragonEslProperties {
     // API paths
     private String publicKeyPath = "/zk/user/getErpPublicKey";
     private String loginPath     = "/zk/user/login";
+    private Long merchantId;
 
     // ----------------------------------------------------------------
     // Getters & Setters (no Lombok on config classes — Spring needs them)
@@ -47,4 +48,7 @@ public class DragonEslProperties {
 
     public String getLoginPath() { return loginPath; }
     public void setLoginPath(String loginPath) { this.loginPath = loginPath; }
+
+    public Long getMerchantId() { return merchantId; }
+    public void setMerchantId(Long merchantId) { this.merchantId = merchantId; }
 }
