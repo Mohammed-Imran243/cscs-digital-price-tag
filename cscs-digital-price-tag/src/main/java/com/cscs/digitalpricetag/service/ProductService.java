@@ -59,7 +59,7 @@ public class ProductService {
 
             if (search != null && !search.isBlank()) {
                 // Fetch first page of size 10 to find totalElements and get first batch
-                String firstPageUri = "/zk/item/list/0/1/10/" + storeId;
+                String firstPageUri = "/zk/item/list/1/0/10/" + storeId;
                 log.info("Search active. Fetching first page: URI={}, Body={}", firstPageUri, body);
                 Map<?, ?> firstResp = dragonEslApiClient.post(firstPageUri, body, Map.class);
                 if (hasItems(firstResp)) {
@@ -97,7 +97,7 @@ public class ProductService {
                         final int pageNum = p;
                         futures.add(CompletableFuture.supplyAsync(() -> 
                             dragonEslApiClient.post(
-                                    "/zk/item/list/0/" + pageNum + "/10/" + storeId,
+                                    "/zk/item/list/" + pageNum + "/0/10/" + storeId,
                                     body,
                                     Map.class
                             )
@@ -120,8 +120,8 @@ public class ProductService {
                 }
             } else {
                 if (size <= 50) {
-                    // Zkong uses 0-based indexing for page
-                    String normalUri = "/zk/item/list/0/" + page + "/" + size + "/" + storeId;
+                    // API Pattern: /zk/item/list/{page}/0/{pageSize}/{storeId} where page starts at 1
+                    String normalUri = "/zk/item/list/" + (page + 1) + "/0/" + size + "/" + storeId;
                     log.info("Normal pagination active. Querying Zkong with: URI={}, Body={}", normalUri, body);
                     Map<?, ?> normalResp = dragonEslApiClient.post(normalUri, body, Map.class);
                     if (hasItems(normalResp)) {
@@ -133,9 +133,9 @@ public class ProductService {
                     int startItemIndex = page * size;
                     int endItemIndex = startItemIndex + size;
                     
-                    // Zkong uses 0-based indexing for page
-                    int startZkongPage = (startItemIndex / zkongPageSize);
-                    int endZkongPage = ((endItemIndex - 1) / zkongPageSize);
+                    // Zkong uses 1-based indexing for page
+                    int startZkongPage = (startItemIndex / zkongPageSize) + 1;
+                    int endZkongPage = ((endItemIndex - 1) / zkongPageSize) + 1;
                     
                     List<CompletableFuture<Map<?, ?>>> futures = new ArrayList<>();
                     // To prevent overloading Zkong API with huge 'All' requests, limit concurrent fetching to max 40 pages (2000 items)
@@ -145,7 +145,7 @@ public class ProductService {
                         final int pageNum = p;
                         futures.add(CompletableFuture.supplyAsync(() -> 
                             dragonEslApiClient.post(
-                                    "/zk/item/list/0/" + pageNum + "/" + zkongPageSize + "/" + storeId,
+                                    "/zk/item/list/" + pageNum + "/0/" + zkongPageSize + "/" + storeId,
                                     body,
                                     Map.class
                             )
@@ -553,7 +553,7 @@ public class ProductService {
         barcodeBody.put("pcBarCode", barcodeValue);
         try {
             return dragonEslApiClient.post(
-                    "/zk/item/list/0/" + page + "/" + size + "/" + storeId,
+                    "/zk/item/list/" + page + "/0/" + size + "/" + storeId,
                     barcodeBody,
                     Map.class
             );
@@ -584,7 +584,7 @@ public class ProductService {
         titleBody.put("itemTitle", titleValue);
         try {
             return dragonEslApiClient.post(
-                    "/zk/item/list/0/" + page + "/" + size + "/" + storeId,
+                    "/zk/item/list/" + page + "/0/" + size + "/" + storeId,
                     titleBody,
                     Map.class
             );
