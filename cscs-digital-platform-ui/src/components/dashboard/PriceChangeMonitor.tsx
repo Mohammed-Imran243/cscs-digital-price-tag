@@ -88,8 +88,8 @@ const PriceChangeMonitor: React.FC = () => {
           const storeIdStr = store.storeId || store.id || '';
           if (!storeIdStr) return;
           
-          // operation = 4 (Product Change)
-          const response = await getAuditLogs(storeIdStr, startDate, endDate, 0, 500, 4);
+          // Fetch logs for all operations to ensure we capture initial prices (e.g. from Bind Tag)
+          const response = await getAuditLogs(storeIdStr, startDate, endDate, 0, 500, undefined);
           const logs = response.content || [];
           
           // Group by barcode
@@ -227,7 +227,7 @@ const PriceChangeMonitor: React.FC = () => {
       </div>
 
       {/* Summary Metrics */}
-      <div className="dash-stats-grid" style={{ marginBottom: '24px', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))' }}>
+      <div className="dashboard-grid" style={{ marginBottom: '24px' }}>
         <div className="stat-card glass-card">
           <div className="stat-info">
             <span className="stat-label">Total Today | الإجمالي اليوم</span>
