@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Store, Package, FileText, RefreshCw, Wifi, WifiOff, AlertTriangle, CheckCircle, ChevronLeft, ChevronRight } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 import { apiCache } from '../services/apiCache';
 import { storeService } from '../services/storeService';
 import type { Store as StoreType } from '../services/storeService';
@@ -102,6 +103,7 @@ const PaginationControls: React.FC<{
 // Dashboard Page
 // ──────────────────────────────────────────────────
 const Dashboard: React.FC = () => {
+  const { user } = useAuth();
   const [stats, setStats] = useState<DashboardStats>({
     storeCount: null,
     productCount: null,
@@ -152,7 +154,7 @@ const Dashboard: React.FC = () => {
         getTemplates(0, 1),
         getCategories(),
         storeService.getActiveStoreCount(),
-        storeService.getMerchantInfo(),
+        user?.permissions?.includes('staffManager') ? storeService.getMerchantInfo() : Promise.resolve(null),
         stores.length > 0
           ? deviceService.getEslDevices(0, 500, stores[0].storeId)
           : Promise.resolve(null),
@@ -161,7 +163,7 @@ const Dashboard: React.FC = () => {
     const templateCount = tmplResult.status === 'fulfilled' ? (tmplResult.value?.totalElements ?? 0) : null;
     const categoryCount = catsResult.status === 'fulfilled' ? (catsResult.value?.length ?? 0) : null;
     const activeStoreCount = activeCountResult.status === 'fulfilled' ? activeCountResult.value : null;
-    const merchantCount = merchantResult.status === 'fulfilled' ? (merchantResult.value?.merchantCount ?? (merchantResult.value?.merchantName ? 1 : null)) : null;
+    const merchantCount = (merchantResult.status === 'fulfilled' && merchantResult.value != null) ? (merchantResult.value?.merchantCount ?? (merchantResult.value?.merchantName ? 1 : null)) : null;
     const eslAll = eslResult.status === 'fulfilled' ? eslResult.value : null;
     const eslTagCount = eslAll?.totalElements ?? null;
     const eslBoundCount = eslAll?.content?.filter((esl: any) => esl.bindState === 1).length ?? null;

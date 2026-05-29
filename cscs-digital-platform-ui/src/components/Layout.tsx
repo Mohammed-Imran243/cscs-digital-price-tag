@@ -109,7 +109,9 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
         
         <nav className="sidebar-nav">
           <SidebarItem to="/" icon={<LayoutDashboard size={20} />} label="Dashboard / لوحة التحكم" collapsed={isSidebarCollapsed} />
-          <SidebarItem to="/merchants" icon={<Building2 size={20} />} label="Merchants / التجار" collapsed={isSidebarCollapsed} />
+          {(user?.permissions?.includes('staffManager') || false) && (
+            <SidebarItem to="/merchants" icon={<Building2 size={20} />} label="Merchants / التجار" collapsed={isSidebarCollapsed} />
+          )}
           {(user?.permissions?.includes('store') || false) && (
             <SidebarItem to="/stores" icon={<Store size={20} />} label="Stores / المتاجر" collapsed={isSidebarCollapsed} />
           )}

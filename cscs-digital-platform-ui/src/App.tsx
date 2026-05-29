@@ -62,7 +62,7 @@ const App: React.FC = () => {
               } />
 
               {/* Placeholders for other routes */}
-              <Route path="/merchants" element={<ProtectedRoute><Merchants /></ProtectedRoute>} />
+              <Route path="/merchants" element={<ProtectedRoute requiredPermission="staffManager"><Merchants /></ProtectedRoute>} />
               <Route path="/stores" element={<ProtectedRoute requiredPermission="store"><Stores /></ProtectedRoute>} />
               <Route path="/products" element={<ProtectedRoute requiredPermission="product"><Products /></ProtectedRoute>} />
               <Route path="/templates" element={<ProtectedRoute requiredPermission="template"><Templates /></ProtectedRoute>} />
