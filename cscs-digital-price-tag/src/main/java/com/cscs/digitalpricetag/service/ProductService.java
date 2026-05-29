@@ -119,11 +119,51 @@ public class ProductService {
                     }
                 }
             } else {
-                String normalUri = "/zk/item/list/0/" + (page + 1) + "/" + size + "/" + storeId;
-                log.info("Normal pagination active. Querying Zkong with: URI={}, Body={}", normalUri, body);
-                Map<?, ?> normalResp = dragonEslApiClient.post(normalUri, body, Map.class);
-                if (hasItems(normalResp)) {
-                    responses.add(normalResp);
+                if (size <= 50) {
+                    String normalUri = "/zk/item/list/0/" + (page + 1) + "/" + size + "/" + storeId;
+                    log.info("Normal pagination active. Querying Zkong with: URI={}, Body={}", normalUri, body);
+                    Map<?, ?> normalResp = dragonEslApiClient.post(normalUri, body, Map.class);
+                    if (hasItems(normalResp)) {
+                        responses.add(normalResp);
+                    }
+                } else {
+                    log.info("Requested size {} > 50. Fetching multiple chunks from Zkong.", size);
+                    int zkongPageSize = 50;
+                    int startItemIndex = page * size;
+                    int endItemIndex = startItemIndex + size;
+                    
+                    int startZkongPage = (startItemIndex / zkongPageSize) + 1;
+                    int endZkongPage = ((endItemIndex - 1) / zkongPageSize) + 1;
+                    
+                    List<CompletableFuture<Map<?, ?>>> futures = new ArrayList<>();
+                    // To prevent overloading Zkong API with huge 'All' requests, limit concurrent fetching to max 40 pages (2000 items)
+                    endZkongPage = Math.min(endZkongPage, startZkongPage + 39);
+                    
+                    for (int p = startZkongPage; p <= endZkongPage; p++) {
+                        final int pageNum = p;
+                        futures.add(CompletableFuture.supplyAsync(() -> 
+                            dragonEslApiClient.post(
+                                    "/zk/item/list/0/" + pageNum + "/" + zkongPageSize + "/" + storeId,
+                                    body,
+                                    Map.class
+                            )
+                        ));
+                    }
+                    
+                    if (!futures.isEmpty()) {
+                        CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
+                        // Maintain order of pages by iterating in the same order futures were added
+                        for (CompletableFuture<Map<?, ?>> f : futures) {
+                            try {
+                                Map<?, ?> resp = f.get();
+                                if (hasItems(resp)) {
+                                    responses.add(resp);
+                                }
+                            } catch (Exception e) {
+                                log.error("Error fetching chunked pages for large size", e);
+                            }
+                        }
+                    }
                 }
             }
 

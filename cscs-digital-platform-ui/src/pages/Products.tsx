@@ -152,7 +152,7 @@ const [storeFilterType, setStoreFilterType] = useState('');
 
   // Pagination states
   const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
+  const [pageSize, setPageSize] = useState(50);
   const [totalElements, setTotalElements] = useState(0);
 
   // Custom alert/confirm / notification state
@@ -1117,6 +1117,8 @@ const [storeFilterType, setStoreFilterType] = useState('');
             <option value={20}>20/page</option>
             <option value={50}>50/page</option>
             <option value={100}>100/page</option>
+            <option value={500}>500/page</option>
+            <option value={1000}>1000/page</option>
           </select>
         </div>
         <div className="pagination-right">
