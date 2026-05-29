@@ -408,6 +408,14 @@ const [storeFilterType, setStoreFilterType] = useState('');
     }
   };
 
+  // Sync storeOpSelectedStore with global selectedStore so it fetches automatically
+  useEffect(() => {
+    if (selectedStore && selectedStore !== storeOpSelectedStore) {
+      setStoreOpSelectedStore(selectedStore);
+      fetchStoreOpProducts(selectedStore);
+    }
+  }, [selectedStore]);
+
   useEffect(() => {
     fetchStores();
   }, []);
