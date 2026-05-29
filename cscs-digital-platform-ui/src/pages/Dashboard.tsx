@@ -490,12 +490,12 @@ const Dashboard: React.FC = () => {
       </div>
 
       <style>{`
-        /* ── Layout ── */
+        /* Layout */
         .dashboard-page {
           display: flex;
           flex-direction: column;
-          gap: 28px;
-          padding: 4px;
+          gap: var(--space-lg, 24px);
+          padding: var(--space-xs, 4px);
         }
 
         /* ── Header ── */
@@ -532,11 +532,12 @@ const Dashboard: React.FC = () => {
         .spin { animation: spin 1s linear infinite; }
         @keyframes spin { to { transform: rotate(360deg); } }
 
-        /* ── Stat Cards Grid ── */
+        /* Stat Cards Grid */
         .dashboard-grid {
           display: grid;
           grid-template-columns: repeat(3, 1fr);
-          gap: 20px;
+          gap: var(--space-lg, 24px);
+          align-items: stretch;
         }
         @media (max-width: 1024px) {
           .dashboard-grid { grid-template-columns: repeat(2, 1fr); }
@@ -547,14 +548,15 @@ const Dashboard: React.FC = () => {
 
         /* StatCard sub-styles */
         .stat-card {
-          padding: 24px 28px;
+          padding: var(--space-lg, 24px) 28px;
           display: flex;
           align-items: center;
           justify-content: space-between;
-          gap: 16px;
+          gap: var(--space-md, 16px);
           transition: transform 0.2s, box-shadow 0.2s;
-          border-radius: 16px;
+          border-radius: 12px;
           cursor: default;
+          height: 100%;
         }
         .stat-card:hover {
           transform: translateY(-3px);

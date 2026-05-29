@@ -25,13 +25,9 @@ import {
   Loader2,
   RefreshCw,
   Search,
-  Tag,
   Layers,
   Trash2,
-  Smartphone,
-  Settings,
   FolderOpen,
-  Image as ImageIcon,
   Edit
 } from 'lucide-react';
 
@@ -513,7 +509,6 @@ const Templates: React.FC = () => {
             Templates &gt; <span style={{ color: 'var(--primary-color)', fontWeight: 600 }}>
               {activeMenuTab === 'merchant' && 'Merchant Template / قوالب التاجر'}
               {activeMenuTab === 'store' && 'Store Template / قوالب المتجر'}
-              {activeMenuTab === 'business_icon' && 'Business Icon / أيقونة العمل'}
               {activeMenuTab === 'store_icon' && 'Store Icon / أيقونة المتجر'}
               {activeMenuTab === 'properties' && 'Template Properties / خصائص القالب'}
             </span>
@@ -524,7 +519,7 @@ const Templates: React.FC = () => {
             <Search size={16} className="text-muted" />
             <input
               type="text"
-              placeholder="<strong>Search templates...</strong> / ابحث عن القوالب..."
+              placeholder="Search templates... / ابحث عن القوالب..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
@@ -698,8 +693,8 @@ const Templates: React.FC = () => {
             </div>
           )}
 
-          {/* ================= SECTION 3 & 4: BUSINESS / STORE ICONS ================= */}
-          {(activeMenuTab === 'business_icon' || activeMenuTab === 'store_icon') && (
+          {/* ================= SECTION 3: STORE ICONS ================= */}
+          {activeMenuTab === 'store_icon' && (
             <div className="workspace-tab-content">
               <div className="icon-actions-bar">
                 {activeMenuTab === 'store_icon' && (
@@ -715,7 +710,7 @@ const Templates: React.FC = () => {
                   </div>
                 )}
                 <button className="btn-primary sm-btn">
-                  <Plus size={16} /> Add {activeMenuTab === 'business_icon' ? 'Merchant / تاجر' : 'Store / متجر'} Icon / إضافة أيقونة
+                  <Plus size={16} /> Add Store / متجر Icon / إضافة أيقونة
                 </button>
               </div>
 
