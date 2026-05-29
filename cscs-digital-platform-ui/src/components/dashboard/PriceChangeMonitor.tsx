@@ -93,13 +93,14 @@ const PriceChangeMonitor: React.FC = () => {
           const storeIdStr = store.storeId || store.id || '';
           if (!storeIdStr) return;
           
-          // Fetch up to 3 pages of 100 logs to ensure we capture older prices safely without causing 502 errors
+          // Fetch up to 3 pages of 50 logs to ensure we capture older prices safely without causing 502 errors
           let logs: AuditLog[] = [];
           for (let p = 0; p < 3; p++) {
             try {
-              const response = await getAuditLogs(storeIdStr, startDate, endDate, p, 100, undefined);
+              // Fetch up to 50 logs at a time to prevent Zkong API 400 Bad Request errors
+              const response = await getAuditLogs(storeIdStr, startDate, endDate, p, 50, undefined);
               if (response.content) logs = logs.concat(response.content);
-              if (!response.content || response.content.length < 100) break; // Reached end of logs
+              if (!response.content || response.content.length < 50) break; // Reached end of logs
             } catch (err) {
               console.warn(`Page ${p} failed for store ${storeIdStr}`, err);
               break;
