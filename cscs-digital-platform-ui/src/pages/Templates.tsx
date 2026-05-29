@@ -436,6 +436,7 @@ const Templates: React.FC = () => {
       storeId: activeMenuTab === 'store' ? selectedStore : '0',
       size: newTemplate.size || modelObj?.size || '',
       resolution: newTemplate.resolution || modelObj?.resolution || '152*152',
+      modelId: modelObj?.id ? `[${modelObj.id}]` : '[65]',
       sceneNumber: activeMenuTab === 'merchant' ? merchantScenario : 1,
       screenType: newTemplate.screenType || 'single',
       attrCategory: newTemplate.attrCategory || '',
