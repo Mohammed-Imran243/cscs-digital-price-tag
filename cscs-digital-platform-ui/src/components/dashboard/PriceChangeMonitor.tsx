@@ -79,7 +79,10 @@ const PriceChangeMonitor: React.FC = () => {
       const thirtyDaysAgo = new Date();
       thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
       const startDate = thirtyDaysAgo.toISOString().split('T')[0];
-      const endDate = new Date().toISOString().split('T')[0];
+      
+      const endD = new Date();
+      endD.setDate(endD.getDate() + 1); // Pad by 1 day to ensure API includes today's logs regardless of timezone
+      const endDate = endD.toISOString().split('T')[0];
       
       const allChanges: PriceChangeRecord[] = [];
 
