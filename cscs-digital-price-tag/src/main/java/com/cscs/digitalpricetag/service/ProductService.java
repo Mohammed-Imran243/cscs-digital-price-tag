@@ -57,7 +57,10 @@ public class ProductService {
 
             List<Map<?, ?>> responses = new ArrayList<>();
 
+            int localStart = 0;
+
             if (search != null && !search.isBlank()) {
+                localStart = page * size;
                 // Fetch first page of size 10 to find totalElements and get first batch
                 String firstPageUri = "/zk/item/list/1/0/10/" + storeId;
                 log.info("Search active. Fetching first page: URI={}, Body={}", firstPageUri, body);
@@ -111,45 +114,37 @@ public class ProductService {
                     }
                 }
             } else {
-                if (size <= 50) {
-                    // API Pattern: /zk/item/list/{page}/0/{pageSize}/{storeId} where page starts at 1
-                    String normalUri = "/zk/item/list/" + (page + 1) + "/0/" + size + "/" + storeId;
-                    log.info("Normal pagination active. Querying Zkong with: URI={}, Body={}", normalUri, body);
-                    Map<?, ?> normalResp = dragonEslApiClient.post(normalUri, body, Map.class);
-                    if (hasItems(normalResp)) {
-                        responses.add(normalResp);
-                    }
-                } else {
-                    log.info("Requested size {} > 50. Fetching multiple chunks from Zkong.", size);
-                    int zkongPageSize = 50;
-                    int startItemIndex = page * size;
-                    int endItemIndex = startItemIndex + size;
-                    
-                    // Zkong uses 1-based indexing for page
-                    int startZkongPage = (startItemIndex / zkongPageSize) + 1;
-                    int endZkongPage = ((endItemIndex - 1) / zkongPageSize) + 1;
-                    
-                    // To prevent overloading Zkong API with huge requests, limit fetching to max 40 pages and do it sequentially
-                    endZkongPage = Math.min(endZkongPage, startZkongPage + 39);
-                    
-                    for (int p = startZkongPage; p <= endZkongPage; p++) {
-                        try {
-                            Map<?, ?> resp = dragonEslApiClient.post(
-                                    "/zk/item/list/" + p + "/0/" + zkongPageSize + "/" + storeId,
-                                    body,
-                                    Map.class
-                            );
-                            if (hasItems(resp)) {
-                                responses.add(resp);
-                            }
-                            if (p < endZkongPage) {
-                                Thread.sleep(200); // Rate limit protection
-                            }
-                        } catch (Exception e) {
-                            log.error("Error fetching chunked page " + p, e);
+                log.info("Fetching chunks from Zkong by strictly enforcing zkongPageSize=50 (API constraint).");
+                int zkongPageSize = 50;
+                int startItemIndex = page * size;
+                int endItemIndex = startItemIndex + size;
+                
+                // Zkong uses 1-based indexing for page
+                int startZkongPage = (startItemIndex / zkongPageSize) + 1;
+                int endZkongPage = ((endItemIndex - 1) / zkongPageSize) + 1;
+                
+                // To prevent overloading Zkong API with huge requests, limit fetching to max 40 pages and do it sequentially
+                endZkongPage = Math.min(endZkongPage, startZkongPage + 39);
+                
+                for (int p = startZkongPage; p <= endZkongPage; p++) {
+                    try {
+                        Map<?, ?> resp = dragonEslApiClient.post(
+                                "/zk/item/list/" + p + "/0/" + zkongPageSize + "/" + storeId,
+                                body,
+                                Map.class
+                        );
+                        if (hasItems(resp)) {
+                            responses.add(resp);
                         }
+                        if (p < endZkongPage) {
+                            Thread.sleep(200); // Rate limit protection
+                        }
+                    } catch (Exception e) {
+                        log.error("Error fetching chunked page " + p, e);
                     }
                 }
+                
+                localStart = startItemIndex - ((startZkongPage - 1) * zkongPageSize);
             }
 
             if (responses.isEmpty()) {
@@ -157,7 +152,7 @@ public class ProductService {
                 return new PagedResponse<>(Collections.emptyList(), page, size, 0);
             }
 
-            return mergeAndParseResponses(responses, page, size, barcodeFilter, searchLower);
+            return mergeAndParseResponses(responses, page, size, barcodeFilter, searchLower, localStart);
 
         } catch (DragonEslException e) {
             throw e;
@@ -169,7 +164,7 @@ public class ProductService {
 
     @SuppressWarnings("unchecked")
     private PagedResponse<ProductResponse> mergeAndParseResponses(
-            List<Map<?, ?>> responses, int page, int size, String barcodeFilter, String searchLower) {
+            List<Map<?, ?>> responses, int page, int size, String barcodeFilter, String searchLower, int localStart) {
         
         Map<String, ProductResponse> deduplicated = new LinkedHashMap<>();
         long totalElements = 0;
@@ -234,7 +229,7 @@ public class ProductService {
             totalElements = filteredProducts.size();
         }
 
-        int start = (searchLower != null || barcodeFilter != null) ? Math.min(page * size, filteredProducts.size()) : 0;
+        int start = Math.min(localStart, filteredProducts.size());
         int end = Math.min(start + size, filteredProducts.size());
         log.info("Slicing local list: start={}, end={}, totalElements={}", start, end, totalElements);
         List<ProductResponse> pagedList = filteredProducts.subList(start, end);
