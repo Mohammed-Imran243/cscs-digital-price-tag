@@ -162,7 +162,6 @@ const PriceChangeMonitor: React.FC = () => {
                   timestamp: changeTimestamp,
                   isIncrease
                 });
-              }
             }
           });
           
