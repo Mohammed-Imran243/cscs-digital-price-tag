@@ -226,6 +226,39 @@ const PriceChangeMonitor: React.FC = () => {
         </div>
       </div>
 
+      {/* Filters */}
+      <div className="filters-form glass-card" style={{ marginBottom: '24px', display: 'flex', flexWrap: 'wrap', gap: '16px', padding: '20px' }}>
+        <div className="filter-group">
+          <label><Store size={16} /> Store Filter / تصفية المتاجر</label>
+          <select className="glass-select" value={storeFilter} onChange={e => setStoreFilter(e.target.value)}>
+            <option value="all">All Stores / جميع المتاجر</option>
+            {stores.map(s => (
+              <option key={s.storeId || s.id} value={s.storeId || s.id}>
+                {s.storeName || `Store #${s.storeId}`}
+              </option>
+            ))}
+          </select>
+        </div>
+        
+        <div className="filter-group">
+          <label><Filter size={16} /> Type Filter / نوع التغيير</label>
+          <select className="glass-select" value={filterType} onChange={e => setFilterType(e.target.value as any)}>
+            <option value="all">All Types / كل الأنواع</option>
+            <option value="increased">Increased / زيادة</option>
+            <option value="decreased">Decreased / تخفيض</option>
+          </select>
+        </div>
+
+        <div className="filter-group">
+          <label><Clock size={16} /> Time Filter / تصفية الوقت</label>
+          <select className="glass-select" value={timeFilter} onChange={e => setTimeFilter(e.target.value as any)}>
+            <option value="all">All Time / كل الوقت</option>
+            <option value="today">Today / اليوم</option>
+            <option value="week">This Week / هذا الأسبوع</option>
+          </select>
+        </div>
+      </div>
+
       {/* Summary Metrics */}
       <div className="dashboard-grid" style={{ marginBottom: '24px' }}>
         <div className="stat-card glass-card">
@@ -257,36 +290,6 @@ const PriceChangeMonitor: React.FC = () => {
             <span className="stat-label">Largest Dec. | أكبر تخفيض</span>
             <h3 className="stat-value" style={{ color: '#10b981' }}>{metrics.maxDecrease.toFixed(1)}%</h3>
           </div>
-        </div>
-      </div>
-
-      {/* Filters */}
-      <div className="filters-form glass-card" style={{ marginBottom: '24px', display: 'flex', flexWrap: 'wrap', gap: '16px' }}>
-        <div className="filter-input-group flex-row-item" style={{ flex: '1 1 200px' }}>
-          <select className="glass-select" value={storeFilter} onChange={e => setStoreFilter(e.target.value)}>
-            <option value="all">All Stores / جميع المتاجر</option>
-            {stores.map(s => (
-              <option key={s.storeId || s.id} value={s.storeId || s.id}>
-                {s.storeName || `Store #${s.storeId}`}
-              </option>
-            ))}
-          </select>
-        </div>
-        
-        <div className="filter-input-group flex-row-item" style={{ flex: '1 1 200px' }}>
-          <select className="glass-select" value={filterType} onChange={e => setFilterType(e.target.value as any)}>
-            <option value="all">All Types / كل الأنواع</option>
-            <option value="increased">Increased / زيادة</option>
-            <option value="decreased">Decreased / تخفيض</option>
-          </select>
-        </div>
-
-        <div className="filter-input-group flex-row-item" style={{ flex: '1 1 200px' }}>
-          <select className="glass-select" value={timeFilter} onChange={e => setTimeFilter(e.target.value as any)}>
-            <option value="all">All Time / كل الوقت</option>
-            <option value="today">Today / اليوم</option>
-            <option value="week">This Week / هذا الأسبوع</option>
-          </select>
         </div>
       </div>
 
@@ -355,6 +358,49 @@ const PriceChangeMonitor: React.FC = () => {
         .price-changes-list::-webkit-scrollbar-thumb {
           background: var(--glass-border);
           border-radius: 4px;
+        }
+
+        .filter-group {
+          flex: 1 1 200px;
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
+        }
+
+        .filter-group label {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          font-size: 13px;
+          font-weight: 500;
+          color: var(--text-secondary);
+        }
+
+        .glass-select {
+          background-color: rgba(255, 255, 255, 0.05);
+          border: 1px solid rgba(255, 255, 255, 0.1);
+          padding: 10px 14px;
+          border-radius: 8px;
+          color: var(--text-primary);
+          font-size: 14px;
+          width: 100%;
+          outline: none;
+          transition: border-color 0.2s, background-color 0.2s;
+          appearance: none;
+          background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+          background-repeat: no-repeat;
+          background-position: right 12px center;
+          background-size: 16px;
+        }
+
+        .glass-select option {
+          background-color: #1e1b29;
+          color: #fff;
+        }
+
+        .glass-select:focus {
+          border-color: var(--primary-color);
+          background-color: rgba(255, 255, 255, 0.08);
         }
       `}</style>
     </div>
