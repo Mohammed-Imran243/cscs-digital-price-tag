@@ -1,4 +1,5 @@
 import api, { unwrapResponse } from './api';
+import { apiCache, TTL } from './apiCache';
 
 const mapStoreTerminology = (store: Store): Store => {
   if (store.storeName) {
@@ -40,9 +41,15 @@ export interface StoreResponseData {
 
 export const storeService = {
   getAllStores: async (): Promise<Store[]> => {
-    const response = await api.get('/stores/all');
-    const stores = unwrapResponse(response) as Store[];
-    return stores.map(mapStoreTerminology);
+    return apiCache.fetch(
+      'stores:all',
+      async () => {
+        const response = await api.get('/stores/all');
+        const stores = unwrapResponse(response) as Store[];
+        return stores.map(mapStoreTerminology);
+      },
+      TTL.STORES
+    );
   },
 
   listStores: async (page = 0, size = 10, search?: string): Promise<StoreResponseData> => {
@@ -82,21 +89,33 @@ export const storeService = {
   },
 
   getMerchantInfo: async (): Promise<any> => {
-    try {
-      const response = await api.get('/stores/merchant-info');
-      return unwrapResponse(response);
-    } catch {
-      return null;
-    }
+    return apiCache.fetch(
+      'merchant:info',
+      async () => {
+        try {
+          const response = await api.get('/stores/merchant-info');
+          return unwrapResponse(response);
+        } catch {
+          return null;
+        }
+      },
+      TTL.MERCHANT
+    );
   },
 
   getActiveStoreCount: async (): Promise<number> => {
-    try {
-      const response = await api.get('/stores/active-count');
-      return unwrapResponse(response) ?? 0;
-    } catch {
-      return 0;
-    }
+    return apiCache.fetch(
+      'stores:activeCount',
+      async () => {
+        try {
+          const response = await api.get('/stores/active-count');
+          return unwrapResponse(response) ?? 0;
+        } catch {
+          return 0;
+        }
+      },
+      TTL.STORES
+    );
   },
 };
 export default storeService;

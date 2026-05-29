@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Store, Package, FileText, RefreshCw, Wifi, WifiOff, AlertTriangle, CheckCircle } from 'lucide-react';
+import { apiCache } from '../services/apiCache';
 import { storeService } from '../services/storeService';
 import type { Store as StoreType } from '../services/storeService';
 import { getProducts } from '../services/productService';
@@ -104,64 +105,47 @@ const Dashboard: React.FC = () => {
     // Seed store breakdown skeleton
     setStoreBreakdown(stores.map(s => ({ store: s, productCount: null, loading: true })));
 
-    // ── 2. Fetch Templates count ─────────────────
-    try {
-      const tmplResponse = await getTemplates(0, 1);
-      setStats(prev => ({
-        ...prev,
-        templateCount: tmplResponse?.totalElements ?? 0,
-      }));
-    } catch {
-      setStats(prev => ({ ...prev, templateCount: null }));
-    }
+    // ── Run all independent fetches in parallel ──────
+    const [tmplResult, catsResult, activeCountResult, merchantResult, eslResult] =
+      await Promise.allSettled([
+        getTemplates(0, 1),
+        getCategories(),
+        storeService.getActiveStoreCount(),
+        storeService.getMerchantInfo(),
+        stores.length > 0
+          ? deviceService.getEslDevices(0, 500, stores[0].storeId)
+          : Promise.resolve(null),
+      ]);
 
-    // ── 3. Fetch Category count ──────────────────
-    try {
-      const cats = await getCategories();
-      setStats(prev => ({
-        ...prev,
-        categoryCount: cats?.length ?? 0,
-      }));
-    } catch {
-      setStats(prev => ({ ...prev, categoryCount: null }));
-    }
+    const templateCount = tmplResult.status === 'fulfilled'
+      ? (tmplResult.value?.totalElements ?? 0) : null;
 
-    // ── Fetch Active Store Count from DragonESL ──────
-    try {
-      const activeCount = await storeService.getActiveStoreCount();
-      setStats(prev => ({ ...prev, activeStoreCount: activeCount }));
-    } catch {
-      setStats(prev => ({ ...prev, activeStoreCount: null }));
-    }
+    const categoryCount = catsResult.status === 'fulfilled'
+      ? (catsResult.value?.length ?? 0) : null;
 
-    // ── Fetch Real Merchant Info from DragonESL ──────
-    try {
-      const merchantData = await storeService.getMerchantInfo();
-      const merchantCount = merchantData?.merchantCount
-        ?? (merchantData?.merchantName ? 1 : null);
-      setStats(prev => ({ ...prev, merchantCount }));
-    } catch {
-      setStats(prev => ({ ...prev, merchantCount: null }));
-    }
+    const activeStoreCount = activeCountResult.status === 'fulfilled'
+      ? activeCountResult.value : null;
 
-    // ── Fetch Real ESL Tag counts from DragonESL ─────
-    try {
-      if (stores.length > 0) {
-        const eslData = await deviceService.getEslDevices(0, 1, stores[0].storeId);
-        const totalTags = eslData?.totalElements ?? 0;
-        const eslAllData = await deviceService.getEslDevices(0, 500, stores[0].storeId);
-        const boundCount = eslAllData?.content?.filter(
-          (esl: any) => esl.bindState === 1
-        ).length ?? 0;
-        setStats(prev => ({
-          ...prev,
-          eslTagCount: totalTags,
-          eslBoundCount: boundCount,
-        }));
-      }
-    } catch {
-      setStats(prev => ({ ...prev, eslTagCount: null, eslBoundCount: null }));
-    }
+    const merchantCount = merchantResult.status === 'fulfilled'
+      ? (merchantResult.value?.merchantCount
+          ?? (merchantResult.value?.merchantName ? 1 : null))
+      : null;
+
+    const eslAll = eslResult.status === 'fulfilled' ? eslResult.value : null;
+    const eslTagCount = eslAll?.totalElements ?? null;
+    const eslBoundCount = eslAll?.content?.filter(
+      (esl: any) => esl.bindState === 1
+    ).length ?? null;
+
+    setStats(prev => ({
+      ...prev,
+      templateCount,
+      categoryCount,
+      activeStoreCount,
+      merchantCount,
+      eslTagCount,
+      eslBoundCount,
+    }));
 
     // ── 4. Fetch product counts per store ────────
     if (stores.length === 0) {
@@ -171,8 +155,8 @@ const Dashboard: React.FC = () => {
       return;
     }
 
-    // Cap to first 8 stores to avoid excessive parallel API calls
-    const targetStores = stores.slice(0, 8);
+    // Limit to 5 stores — reduces parallel API calls significantly
+    const targetStores = stores.slice(0, 5);
 
     // Each fetch returns its count (or 0 on error) — avoids race condition
     // from mutating a shared variable inside parallel async callbacks.
@@ -251,7 +235,10 @@ const Dashboard: React.FC = () => {
         <div className="header-actions" style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
           <button
             className="btn-secondary"
-            onClick={fetchDashboardData}
+            onClick={() => {
+              apiCache.clear();
+              fetchDashboardData();
+            }}
             disabled={loading}
             title="Refresh all stats / تحديث جميع الإحصائيات"
           >

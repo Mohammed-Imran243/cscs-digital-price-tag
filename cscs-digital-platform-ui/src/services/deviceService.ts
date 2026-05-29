@@ -1,4 +1,5 @@
 import api, { unwrapResponse } from './api';
+import { apiCache, TTL } from './apiCache';
 
 export interface EslDevice {
   id: string;
@@ -49,17 +50,31 @@ export interface ApResponseData {
 
 export const deviceService = {
   getEslDevices: async (page = 0, size = 10, storeId = '', search = ''): Promise<EslResponseData> => {
-    const response = await api.get(`/devices/esl`, {
-      params: { page, size, storeId, search }
-    });
-    return unwrapResponse(response);
+    const cacheKey = `esl:list:${storeId}:${page}:${size}:${search || ''}`;
+    return apiCache.fetch(
+      cacheKey,
+      async () => {
+        const response = await api.get(`/devices/esl`, {
+          params: { page, size, storeId, search }
+        });
+        return unwrapResponse(response);
+      },
+      TTL.ESL_DEVICES
+    );
   },
 
   getApDevices: async (page = 0, size = 10, storeId = '', search = ''): Promise<ApResponseData> => {
-    const response = await api.get(`/devices/ap`, {
-      params: { page, size, storeId, search }
-    });
-    return unwrapResponse(response);
+    const cacheKey = `ap:list:${storeId}:${page}:${size}:${search || ''}`;
+    return apiCache.fetch(
+      cacheKey,
+      async () => {
+        const response = await api.get(`/devices/ap`, {
+          params: { page, size, storeId, search }
+        });
+        return unwrapResponse(response);
+      },
+      TTL.AP_DEVICES
+    );
   },
 
   rebootEsl: async (barcode: string): Promise<void> => {
@@ -92,12 +107,14 @@ export const deviceService = {
   }): Promise<void> => {
     const response = await api.post(`/devices/esl/bind`, payload);
     unwrapResponse(response);
+    apiCache.invalidatePrefix('esl:list:');
   },
 
   /** Unbind one or more ESL devices from their bound products */
   unbindEsl: async (storeId: string, eslBarcodes: string[]): Promise<void> => {
     const response = await api.post(`/devices/esl/unbind`, { storeId, eslBarcodes });
     unwrapResponse(response);
+    apiCache.invalidatePrefix('esl:list:');
   },
 
   /** Force refresh all ESL tags inside a store */
