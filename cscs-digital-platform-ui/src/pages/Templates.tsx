@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import {
   getTemplates,
   getCategories,
@@ -49,8 +49,12 @@ const COLOR_MAPPINGS: Record<number, { key: string; label: string }> = {
 
 const Templates: React.FC = () => {
   const navigate = useNavigate();
-  // Navigation State (5 Main Zkong Menu Tabs)
-  const [activeMenuTab, setActiveMenuTab] = useState<'merchant' | 'store' | 'business_icon' | 'store_icon' | 'properties'>('merchant');
+  const location = useLocation();
+  const searchParams = new URLSearchParams(location.search);
+  const tabParam = searchParams.get('tab') || 'merchant';
+  const activeMenuTab = tabParam === 'icon' ? 'store_icon' : 
+                        tabParam === 'properties' ? 'properties' : 
+                        tabParam === 'store' ? 'store' : 'merchant';
 
   // Sub-navigation State for Merchant Template Tab (Zkong Scenario tabs)
   const [merchantScenario, setMerchantScenario] = useState<number>(1); // 1: Single, 4: Multi, 3: Segment, 2: Unbind
@@ -532,52 +536,7 @@ const Templates: React.FC = () => {
       </div>
 
       <div className="layout-split">
-        {/* Left Side Sub-Navigation Menu (Zkong Menu List) */}
-        <aside className="left-menu-bar glass-card">
-          <button
-            className={`menu-item-btn ${activeMenuTab === 'merchant' ? 'active' : ''}`}
-            onClick={() => {
-              setActiveMenuTab('merchant');
-              setPage(0);
-            }}
-          >
-            <Smartphone size={16} />
-            <span>Merchant Template / قوالب التاجر</span>
-          </button>
-          <button
-            className={`menu-item-btn ${activeMenuTab === 'store' ? 'active' : ''}`}
-            onClick={() => {
-              setActiveMenuTab('store');
-              setPage(0);
-            }}
-          >
-            <Settings size={16} />
-            <span>Store Template / قوالب المتجر</span>
-          </button>
-          {/* 
-          <button
-            className={`menu-item-btn ${activeMenuTab === 'business_icon' ? 'active' : ''}`}
-            onClick={() => setActiveMenuTab('business_icon')}
-          >
-            <ImageIcon size={16} />
-            <span>Business Icon / أيقونة العمل</span>
-          </button>
-          */}
-          <button
-            className={`menu-item-btn ${activeMenuTab === 'store_icon' ? 'active' : ''}`}
-            onClick={() => setActiveMenuTab('store_icon')}
-          >
-            <ImageIcon size={16} />
-            <span>Store Icon / أيقونة المتجر</span>
-          </button>
-          <button
-            className={`menu-item-btn ${activeMenuTab === 'properties' ? 'active' : ''}`}
-            onClick={() => setActiveMenuTab('properties')}
-          >
-            <Tag size={16} />
-            <span>Template Properties / خصائص القوالب</span>
-          </button>
-        </aside>
+
 
         {/* Right Content Workspace */}
         <main className="content-workspace">
@@ -1347,10 +1306,9 @@ const Templates: React.FC = () => {
         }
 
         .layout-split {
-          display: grid;
-          grid-template-columns: 240px 1fr;
+          display: flex;
+          flex-direction: column;
           gap: 24px;
-          align-items: start;
         }
 
         .left-menu-bar {
