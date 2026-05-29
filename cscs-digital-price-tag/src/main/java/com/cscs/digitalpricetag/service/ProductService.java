@@ -89,32 +89,24 @@ public class ProductService {
                 log.info("Search active. First page loaded. Total elements in Zkong: {}", totalElements);
 
                 if (totalElements > 10) {
-                    List<CompletableFuture<Map<?, ?>>> futures = new ArrayList<>();
                     // limit search to fetch up to 200 items (20 pages of 10) to keep it safe and performant
                     long maxPages = Math.min((totalElements + 9) / 10, 20); 
-                    log.info("Fetching remaining search pages in parallel: pages 2 to {}", maxPages);
+                    log.info("Fetching remaining search pages sequentially: pages 2 to {}", maxPages);
                     for (int p = 2; p <= maxPages; p++) {
-                        final int pageNum = p;
-                        futures.add(CompletableFuture.supplyAsync(() -> 
-                            dragonEslApiClient.post(
-                                    "/zk/item/list/" + pageNum + "/0/10/" + storeId,
+                        try {
+                            Map<?, ?> resp = dragonEslApiClient.post(
+                                    "/zk/item/list/" + p + "/0/10/" + storeId,
                                     body,
                                     Map.class
-                            )
-                        ));
-                    }
-
-                    if (!futures.isEmpty()) {
-                        CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
-                        for (CompletableFuture<Map<?, ?>> f : futures) {
-                            try {
-                                Map<?, ?> resp = f.get();
-                                if (hasItems(resp)) {
-                                    responses.add(resp);
-                                }
-                            } catch (Exception e) {
-                                log.error("Error fetching remaining search pages", e);
+                            );
+                            if (hasItems(resp)) {
+                                responses.add(resp);
                             }
+                            if (p < maxPages) {
+                                Thread.sleep(200); // Rate limit protection
+                            }
+                        } catch (Exception e) {
+                            log.error("Error fetching search page " + p, e);
                         }
                     }
                 }
@@ -137,33 +129,24 @@ public class ProductService {
                     int startZkongPage = (startItemIndex / zkongPageSize) + 1;
                     int endZkongPage = ((endItemIndex - 1) / zkongPageSize) + 1;
                     
-                    List<CompletableFuture<Map<?, ?>>> futures = new ArrayList<>();
-                    // To prevent overloading Zkong API with huge 'All' requests, limit concurrent fetching to max 40 pages (2000 items)
+                    // To prevent overloading Zkong API with huge requests, limit fetching to max 40 pages and do it sequentially
                     endZkongPage = Math.min(endZkongPage, startZkongPage + 39);
                     
                     for (int p = startZkongPage; p <= endZkongPage; p++) {
-                        final int pageNum = p;
-                        futures.add(CompletableFuture.supplyAsync(() -> 
-                            dragonEslApiClient.post(
-                                    "/zk/item/list/" + pageNum + "/0/" + zkongPageSize + "/" + storeId,
+                        try {
+                            Map<?, ?> resp = dragonEslApiClient.post(
+                                    "/zk/item/list/" + p + "/0/" + zkongPageSize + "/" + storeId,
                                     body,
                                     Map.class
-                            )
-                        ));
-                    }
-                    
-                    if (!futures.isEmpty()) {
-                        CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
-                        // Maintain order of pages by iterating in the same order futures were added
-                        for (CompletableFuture<Map<?, ?>> f : futures) {
-                            try {
-                                Map<?, ?> resp = f.get();
-                                if (hasItems(resp)) {
-                                    responses.add(resp);
-                                }
-                            } catch (Exception e) {
-                                log.error("Error fetching chunked pages for large size", e);
+                            );
+                            if (hasItems(resp)) {
+                                responses.add(resp);
                             }
+                            if (p < endZkongPage) {
+                                Thread.sleep(200); // Rate limit protection
+                            }
+                        } catch (Exception e) {
+                            log.error("Error fetching chunked page " + p, e);
                         }
                     }
                 }
