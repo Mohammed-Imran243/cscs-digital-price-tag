@@ -398,7 +398,7 @@ const [storeFilterType, setStoreFilterType] = useState('');
     if (!storeId) return;
     setStoreOpFetching(true);
     try {
-      const data = await getProducts(storeId, 0, 100);
+      const data = await getProducts(storeId, 0, 50);
       setStoreOpProducts(data.content || []);
     } catch (err) {
       console.error('Failed to fetch store operation products', err);
