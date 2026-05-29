@@ -92,9 +92,20 @@ const PriceChangeMonitor: React.FC = () => {
           const storeIdStr = store.storeId || store.id || '';
           if (!storeIdStr) return;
           
-          // Fetch logs for all operations to ensure we capture initial prices (e.g. from Bind Tag)
-          const response = await getAuditLogs(storeIdStr, startDate, endDate, 0, 500, undefined);
-          const logs = response.content || [];
+          // Fetch up to 3 pages of 100 logs to ensure we capture older prices safely without causing 502 errors
+          let logs: AuditLog[] = [];
+          for (let p = 0; p < 3; p++) {
+            try {
+              const response = await getAuditLogs(storeIdStr, startDate, endDate, p, 100, undefined);
+              if (response.content) logs = logs.concat(response.content);
+              if (!response.content || response.content.length < 100) break; // Reached end of logs
+            } catch (err) {
+              console.warn(`Page ${p} failed for store ${storeIdStr}`, err);
+              break;
+            }
+          }
+          
+          if (logs.length === 0) return;
           
           // Group by barcode
           const groupedLogs: Record<string, AuditLog[]> = {};
