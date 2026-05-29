@@ -1,5 +1,6 @@
 package com.cscs.digitalpricetag.service;
 
+import com.cscs.digitalpricetag.config.DragonEslProperties;
 import com.cscs.digitalpricetag.dto.dragon.DragonTemplateGenericResponse;
 import com.cscs.digitalpricetag.dto.dragon.DragonTemplateListResponse;
 import com.cscs.digitalpricetag.exception.DragonEslException;
@@ -8,10 +9,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.List;
-import java.util.Collections;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -19,9 +17,13 @@ public class TemplateService {
 
     private static final Logger log = LoggerFactory.getLogger(TemplateService.class);
     private final DragonEslApiClient dragonEslApiClient;
+    private final DragonEslProperties properties;
+    private final IconService iconService;
 
-    public TemplateService(DragonEslApiClient dragonEslApiClient) {
+    public TemplateService(DragonEslApiClient dragonEslApiClient, DragonEslProperties properties, IconService iconService) {
         this.dragonEslApiClient = dragonEslApiClient;
+        this.properties = properties;
+        this.iconService = iconService;
     }
 
     public List<String> getCategories() {
@@ -46,66 +48,6 @@ public class TemplateService {
             log.error("Error fetching template categories: {}", e.getMessage());
         }
         return Collections.emptyList();
-    }
-
-    public Object addCategory(Map<String, Object> request) {
-        return performPost("/zk/attrCategory/add", request);
-    }
-
-    public Object getModels() {
-        return performGet("/zk/pricetagModel/getAll");
-    }
-
-    public DragonTemplateListResponse getTemplates(int page, int size, Map<String, Object> searchParams) {
-        try {
-            int dragonPage = page; // Zkong template list is 0-based
-
-            if (searchParams != null && searchParams.containsKey("storeId")) {
-                Object storeIdObj = searchParams.get("storeId");
-                if (storeIdObj instanceof String && !((String) storeIdObj).toString().isBlank()) {
-                    try {
-                        long storeIdLong = Long.parseLong(storeIdObj.toString().trim());
-                        searchParams.put("storeId", storeIdLong);
-                    } catch (NumberFormatException e) {
-                        log.warn("Could not parse storeId string to long: {}", storeIdObj);
-                    }
-                }
-            }
-
-            if (searchParams != null && searchParams.containsKey("sceneNumber")) {
-                Object sceneObj = searchParams.get("sceneNumber");
-                if (sceneObj != null && !sceneObj.toString().isBlank()) {
-                    try {
-                        int sceneInt = Integer.parseInt(sceneObj.toString().trim());
-                        searchParams.put("sceneNumber", sceneInt);
-                    } catch (NumberFormatException e) {
-                        log.warn("Could not parse sceneNumber string to int: {}", sceneObj);
-                    }
-                }
-            }
-
-            DragonTemplateListResponse response = dragonEslApiClient.post(
-                    "/zk/template/list/" + dragonPage + "/" + size,
-                    searchParams != null ? searchParams : new HashMap<>(),
-                    DragonTemplateListResponse.class
-            );
-
-            if (response == null || !response.isSuccess()) {
-                String msg = response != null ? response.getMessage() : "No response";
-                throw new DragonEslException("Failed to fetch templates: " + msg, HttpStatus.BAD_GATEWAY);
-            }
-
-            return response;
-        } catch (DragonEslException e) {
-            throw e;
-        } catch (Exception e) {
-            log.error("Error fetching templates: {}", e.getMessage());
-            throw new DragonEslException("Template fetch failed: " + e.getMessage(), HttpStatus.BAD_GATEWAY);
-        }
-    }
-
-    public Object getTemplateBaseById(String id) {
-        return performGet("/zk/template/getTemplateBaseById/" + id);
     }
 
     public List<String> getTemplateTypes() {
@@ -138,43 +80,156 @@ public class TemplateService {
         return Collections.emptyList();
     }
 
+    public Object addCategory(Map<String, Object> request) {
+        return performPost("/zk/attrCategory/add", request);
+    }
+
+    public Object getModels() {
+        return performGet("/zk/pricetagModel/getAll");
+    }
+
+    public DragonTemplateListResponse getTemplates(int page, int size, Map<String, Object> searchParams) {
+        try {
+            int dragonPage = page;
+
+            Map<String, Object> requestBody = searchParams != null ? searchParams : new HashMap<>();
+
+            if (requestBody.containsKey("storeId")) {
+                Object storeIdObj = requestBody.get("storeId");
+                if (storeIdObj instanceof String && !((String) storeIdObj).isBlank()) {
+                    try {
+                        requestBody.put("storeId", Long.parseLong(storeIdObj.toString().trim()));
+                    } catch (NumberFormatException e) {
+                        log.warn("Could not parse storeId: {}", storeIdObj);
+                    }
+                }
+            }
+
+            String endpoint = "/zk/template/list/" + dragonPage + "/" + size;
+            log.info("Fetching templates from endpoint: {} with body: {}", endpoint, requestBody);
+
+            DragonTemplateListResponse response = dragonEslApiClient.post(
+                    endpoint,
+                    requestBody,
+                    DragonTemplateListResponse.class
+            );
+
+            if (response == null) {
+                log.error("Received null response from Dragon ESL");
+                throw new RuntimeException("Received null response from Dragon ESL");
+            }
+
+            if (!response.isSuccess()) {
+                String msg = response.getMessage() != null ? response.getMessage() : "Unknown error";
+                log.error("Failed to fetch templates: {} (code: {})", msg, response.getCode());
+                throw new RuntimeException("Failed to fetch templates: " + msg);
+            }
+
+            if (response.getData() == null) {
+                log.warn("Response data is null");
+                // Create empty data but with success=true
+                DragonTemplateListResponse emptyResponse = new DragonTemplateListResponse();
+                emptyResponse.setSuccess(true);
+                emptyResponse.setCode(10000);
+                DragonTemplateListResponse.DragonTemplateData emptyData = new DragonTemplateListResponse.DragonTemplateData();
+                emptyData.setContent(new ArrayList<>());
+                emptyData.setTotalElements(0L);
+                emptyData.setTotalPages(0L);
+                emptyData.setNumberOfElements(0L);
+                emptyResponse.setData(emptyData);
+                return emptyResponse;
+            }
+
+            // Ensure content is not null
+            if (response.getData().getContent() == null) {
+                response.getData().setContent(new ArrayList<>());
+            }
+
+            return response;
+
+        } catch (Exception e) {
+            log.error("Error fetching templates: {}", e.getMessage(), e);
+            // Return null to indicate error to frontend
+            return null;
+        }
+    }
+
+    public Object getTemplateBaseById(String id) {
+        return performGet("/zk/template/getTemplateBaseById/" + id);
+    }
+
     public Object checkTemplateName(String storeId, String templateName) {
         return performGet("/zk/template/checkTempName/" + storeId + "?templateName=" + templateName);
     }
 
+    public Object getFontTypes() {
+        return performGet("/zk/sys/getFontType/en");
+    }
+
+    public Object getMaxSubNum(String storeId) {
+        return performGet("/zk/sys/getMaxSubNum/" + storeId);
+    }
+
+    public Object getPictureNames(String storeId) {
+        return performGet("/zk/itemPicName/picName?combinationShow=true&storeId=" + storeId);
+    }
+
+    public Object getFieldNames(String type) {
+        return performGet("/zk/sys/getFieldNames/" + type);
+    }
+
     public Object addTemplate(Map<String, Object> request) {
-        if (request != null) {
-            if (request.containsKey("storeId")) {
-                Object storeIdObj = request.get("storeId");
-                if (storeIdObj instanceof String && !((String) storeIdObj).isBlank()) {
-                    try {
-                        request.put("storeId", Long.parseLong(storeIdObj.toString().trim()));
-                    } catch (NumberFormatException e) {
-                        log.warn("Could not parse storeId string to long: {}", storeIdObj);
-                    }
+        try {
+            Map<String, Object> payload = new HashMap<>();
+            payload.putAll(request);
+
+            if (payload.containsKey("storeId") && payload.get("storeId") instanceof String) {
+                payload.put("storeId", Long.parseLong(payload.get("storeId").toString()));
+            }
+
+            if (payload.containsKey("resolution")) {
+                String resolution = payload.get("resolution").toString();
+                String[] dimensions = resolution.split("\\*");
+                if (dimensions.length == 2) {
+                    payload.put("width", Integer.parseInt(dimensions[0]));
+                    payload.put("height", Integer.parseInt(dimensions[1]));
                 }
             }
+
+            payload.putIfAbsent("status", 1);
+            payload.putIfAbsent("color", 1);
+            payload.putIfAbsent("type", 1);
+            payload.putIfAbsent("drawLayout", 0);
+            payload.putIfAbsent("itemNum", 1);
+
+            Long merchantId = properties != null && properties.getMerchantId() != null
+                    ? properties.getMerchantId()
+                    : 1775639851383L;
+            payload.putIfAbsent("merchantId", merchantId);
+
+            log.info("Creating template with payload: {}", payload);
+
+            DragonTemplateGenericResponse response = dragonEslApiClient.post(
+                    "/zk/template/addTemplateAllRefactor",
+                    payload,
+                    DragonTemplateGenericResponse.class
+            );
+
+            if (response == null || !response.isSuccess()) {
+                String msg = response != null ? response.getMessage() : "No response";
+                log.error("Template creation failed: {}", msg);
+                throw new DragonEslException("Failed to create template: " + msg, HttpStatus.BAD_REQUEST);
+            }
+
+            log.info("Template created successfully");
+            return response.getData() != null ? response.getData() : response;
+
+        } catch (DragonEslException e) {
+            throw e;
+        } catch (Exception e) {
+            log.error("Error creating template: {}", e.getMessage(), e);
+            throw new DragonEslException("Template creation failed: " + e.getMessage(), HttpStatus.BAD_REQUEST);
         }
-
-        // Dragon ESL expects { templateBase: {}, templateElements: [], templateElementAdvancedAttributes: [] }
-        Map<String, Object> payload = new HashMap<>();
-        
-        // Extract elements if present
-        Object items = request.get("items");
-        if (items == null) {
-            items = new java.util.ArrayList<>();
-        }
-        
-        // Clean up the base request to only contain base fields
-        request.remove("items");
-        request.remove("type");
-
-        payload.put("templateBase", request);
-        // We will send empty arrays for now until we fully reverse-engineer the element attributes
-        payload.put("templateElements", new java.util.ArrayList<>());
-        payload.put("templateElementAdvancedAttributes", new java.util.ArrayList<>());
-
-        return performPost("/zk/template/addTemplateAllRefactor", payload);
     }
 
     public Object updateTemplateBase(String id, Map<String, Object> request) {
@@ -190,15 +245,27 @@ public class TemplateService {
     }
 
     public Object deleteTemplate(String id, String storeId, boolean isCompel) {
-        Map<String, Object> body = new HashMap<>();
         String compelFlag = isCompel ? "1" : "0";
+        Map<String, Object> body = new HashMap<>();
         return performPut("/zk/template/delete/" + id + "/" + compelFlag, body);
     }
 
-    /**
-     * Fetch store icons list from Dragon ESL.
-     * Uses POST /zk/storeIcon/list matching DragonESL Store Icon tab.
-     */
+    public Object findIconsInTemplate(String templateId) {
+        return iconService.findIconsInTemplate(templateId);
+    }
+
+    public Object addIconToTemplate(String templateId, Map<String, Object> iconData) {
+        return iconService.addIconToTemplate(templateId, iconData);
+    }
+
+    public Object removeIconFromTemplate(String templateId, String iconId) {
+        return iconService.removeIconFromTemplate(templateId, iconId);
+    }
+
+    public Object updateIconInTemplate(String templateId, String iconId, Map<String, Object> updateData) {
+        return iconService.updateIconInTemplate(templateId, iconId, updateData);
+    }
+
     public Object getStoreIcons(int page, int size, Map<String, Object> params) {
         try {
             Map<String, Object> body = new HashMap<>();
@@ -206,8 +273,20 @@ public class TemplateService {
                 body.putAll(params);
             }
 
+            if (body.containsKey("storeId")) {
+                Object storeIdObj = body.get("storeId");
+                if (storeIdObj != null && !storeIdObj.toString().trim().isEmpty()) {
+                    try {
+                        long storeIdLong = Long.parseLong(storeIdObj.toString().trim());
+                        body.put("storeId", storeIdLong);
+                    } catch (NumberFormatException e) {
+                        log.warn("Could not parse storeId string to long for getStoreIcons: {}", storeIdObj);
+                    }
+                }
+            }
+
             Map<?, ?> response = dragonEslApiClient.post(
-                    "/zk/storeIcon/list/" + page + "/" + size,
+                    "/zk/icon/list/" + page + "/" + size,
                     body,
                     Map.class
             );
@@ -221,13 +300,13 @@ public class TemplateService {
             boolean success = Boolean.TRUE.equals(successObj);
             Object codeObj = response.get("code");
             boolean codeOk = codeObj != null && (
-                Integer.valueOf(10000).equals(codeObj) || Integer.valueOf(200).equals(codeObj)
+                    Integer.valueOf(10000).equals(codeObj) || Integer.valueOf(200).equals(codeObj)
             );
 
             if (!success && !codeOk) {
                 String msg = response.get("message") != null
-                    ? response.get("message").toString()
-                    : "Unknown error";
+                        ? response.get("message").toString()
+                        : "Unknown error";
                 log.warn("getStoreIcons failed: {}", msg);
                 return Collections.emptyMap();
             }
@@ -240,6 +319,22 @@ public class TemplateService {
         }
     }
 
+    private DragonTemplateListResponse createEmptyResponse() {
+        DragonTemplateListResponse emptyResponse = new DragonTemplateListResponse();
+        emptyResponse.setSuccess(true);
+        emptyResponse.setCode(10000);  // Dragon ESL success code
+        emptyResponse.setMessage("Empty response");
+
+        DragonTemplateListResponse.DragonTemplateData emptyData = new DragonTemplateListResponse.DragonTemplateData();
+        emptyData.setContent(new ArrayList<>());  // Empty list of templates
+        emptyData.setTotalElements(0L);           // Long value
+        emptyData.setTotalPages(0L);              // Long value, not int
+        emptyData.setNumberOfElements(0L);        // Long value
+
+        emptyResponse.setData(emptyData);
+        return emptyResponse;
+    }
+
     private Object performGet(String url) {
         try {
             DragonTemplateGenericResponse response = dragonEslApiClient.get(
@@ -248,14 +343,14 @@ public class TemplateService {
             );
             if (response == null || !response.isSuccess()) {
                 String msg = response != null ? response.getMessage() : "No response";
-                throw new DragonEslException("GET failed: " + msg, HttpStatus.BAD_GATEWAY);
+                throw new DragonEslException(msg, HttpStatus.BAD_REQUEST);
             }
             return response.getData() != null ? response.getData() : response;
         } catch (DragonEslException e) {
             throw e;
         } catch (Exception e) {
             log.error("Error on GET {}: {}", url, e.getMessage());
-            throw new DragonEslException("GET request failed: " + e.getMessage(), HttpStatus.BAD_GATEWAY);
+            throw new DragonEslException(extractErrorDetails(e), HttpStatus.BAD_REQUEST);
         }
     }
 
@@ -268,14 +363,14 @@ public class TemplateService {
             );
             if (response == null || !response.isSuccess()) {
                 String msg = response != null ? response.getMessage() : "No response";
-                throw new DragonEslException("POST failed: " + msg, HttpStatus.BAD_GATEWAY);
+                throw new DragonEslException(msg, HttpStatus.BAD_REQUEST);
             }
             return response.getData() != null ? response.getData() : response;
         } catch (DragonEslException e) {
             throw e;
         } catch (Exception e) {
             log.error("Error on POST {}: {}", url, e.getMessage());
-            throw new DragonEslException("POST request failed: " + e.getMessage(), HttpStatus.BAD_GATEWAY);
+            throw new DragonEslException(extractErrorDetails(e), HttpStatus.BAD_REQUEST);
         }
     }
 
@@ -288,15 +383,31 @@ public class TemplateService {
             );
             if (response == null || !response.isSuccess()) {
                 String msg = response != null ? response.getMessage() : "No response";
-                throw new DragonEslException("PUT failed: " + msg, HttpStatus.BAD_GATEWAY);
+                throw new DragonEslException(msg, HttpStatus.BAD_REQUEST);
             }
             return response.getData() != null ? response.getData() : response;
         } catch (DragonEslException e) {
             throw e;
         } catch (Exception e) {
             log.error("Error on PUT {}: {}", url, e.getMessage());
-            throw new DragonEslException("PUT request failed: " + e.getMessage(), HttpStatus.BAD_GATEWAY);
+            throw new DragonEslException(extractErrorDetails(e), HttpStatus.BAD_REQUEST);
         }
     }
-}
 
+    private String extractErrorDetails(Exception e) {
+        try {
+            java.lang.reflect.Method method = e.getClass().getMethod("getResponseBodyAsString");
+            String body = (String) method.invoke(e);
+            if (body != null && !body.isEmpty()) {
+                if (body.contains("\"message\"")) {
+                    java.util.regex.Matcher m = java.util.regex.Pattern.compile("\"message\"\\s*:\\s*\"([^\"]+)\"").matcher(body);
+                    if (m.find()) {
+                        return m.group(1);
+                    }
+                }
+                return body;
+            }
+        } catch (Exception ignored) {}
+        return e.getMessage();
+    }
+}

@@ -5,10 +5,8 @@ import com.cscs.digitalpricetag.dto.dragon.DragonTemplateListResponse;
 import com.cscs.digitalpricetag.service.TemplateService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.security.access.prepost.PreAuthorize;
 
 import java.util.Map;
-import java.util.List;
 
 @RestController
 @RequestMapping("/templates")
@@ -21,12 +19,12 @@ public class TemplateController {
     }
 
     @GetMapping("/categories")
-    public ResponseEntity<ApiResponse<List<String>>> getCategories() {
+    public ResponseEntity<ApiResponse<Object>> getCategories() {
         return ResponseEntity.ok(ApiResponse.success("Categories fetched successfully", templateService.getCategories()));
     }
 
     @GetMapping("/types")
-    public ResponseEntity<ApiResponse<List<String>>> getTemplateTypes() {
+    public ResponseEntity<ApiResponse<Object>> getTemplateTypes() {
         return ResponseEntity.ok(ApiResponse.success("Template types fetched successfully", templateService.getTemplateTypes()));
     }
 
@@ -61,11 +59,58 @@ public class TemplateController {
         return ResponseEntity.ok(ApiResponse.success("Template fetched successfully", templateService.getTemplateBaseById(id)));
     }
 
+    @GetMapping("/{id}/findInTemp")
+    public ResponseEntity<ApiResponse<Object>> findIconsInTemplate(@PathVariable String id) {
+        return ResponseEntity.ok(ApiResponse.success("Template icons fetched successfully", templateService.findIconsInTemplate(id)));
+    }
+
+    @PostMapping("/{id}/addIcon")
+    public ResponseEntity<ApiResponse<Object>> addIconToTemplate(
+            @PathVariable String id,
+            @RequestBody Map<String, Object> iconData) {
+        return ResponseEntity.ok(ApiResponse.success("Icon added to template successfully", templateService.addIconToTemplate(id, iconData)));
+    }
+
+    @DeleteMapping("/{id}/removeIcon/{iconId}")
+    public ResponseEntity<ApiResponse<Object>> removeIconFromTemplate(
+            @PathVariable String id,
+            @PathVariable String iconId) {
+        return ResponseEntity.ok(ApiResponse.success("Icon removed from template successfully", templateService.removeIconFromTemplate(id, iconId)));
+    }
+
+    @PutMapping("/{id}/updateIcon/{iconId}")
+    public ResponseEntity<ApiResponse<Object>> updateIconInTemplate(
+            @PathVariable String id,
+            @PathVariable String iconId,
+            @RequestBody Map<String, Object> updateData) {
+        return ResponseEntity.ok(ApiResponse.success("Icon updated successfully", templateService.updateIconInTemplate(id, iconId, updateData)));
+    }
+
     @GetMapping("/check-name")
     public ResponseEntity<ApiResponse<Object>> checkTemplateName(
             @RequestParam String storeId,
             @RequestParam String templateName) {
         return ResponseEntity.ok(ApiResponse.success("Template name checked", templateService.checkTemplateName(storeId, templateName)));
+    }
+
+    @GetMapping("/fonts")
+    public ResponseEntity<ApiResponse<Object>> getFontTypes() {
+        return ResponseEntity.ok(ApiResponse.success("Font types fetched", templateService.getFontTypes()));
+    }
+
+    @GetMapping("/maxSubNum/{storeId}")
+    public ResponseEntity<ApiResponse<Object>> getMaxSubNum(@PathVariable String storeId) {
+        return ResponseEntity.ok(ApiResponse.success("Max sub number fetched", templateService.getMaxSubNum(storeId)));
+    }
+
+    @GetMapping("/itemPicName")
+    public ResponseEntity<ApiResponse<Object>> getPictureNames(@RequestParam String storeId) {
+        return ResponseEntity.ok(ApiResponse.success("Picture names fetched", templateService.getPictureNames(storeId)));
+    }
+
+    @GetMapping("/fieldNames/{type}")
+    public ResponseEntity<ApiResponse<Object>> getFieldNames(@PathVariable String type) {
+        return ResponseEntity.ok(ApiResponse.success("Field names fetched", templateService.getFieldNames(type)));
     }
 
     @PostMapping
@@ -95,4 +140,3 @@ public class TemplateController {
         return ResponseEntity.ok(ApiResponse.success("Template deleted successfully", templateService.deleteTemplate(id, storeId, isCompel)));
     }
 }
-
