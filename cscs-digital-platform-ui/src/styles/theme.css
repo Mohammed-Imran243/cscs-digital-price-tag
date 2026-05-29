@@ -3,6 +3,13 @@
   --font-main: 'Outfit', 'Inter', sans-serif;
   --transition-speed: 0.3s;
   --glass-blur: 12px;
+  /* Spacing System */
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 16px;
+  --space-lg: 24px;
+  --space-xl: 32px;
+
   color-scheme: light;
 
   /* Light Theme */
@@ -566,6 +573,31 @@ td, .zkong-table td, .users-table td, table td {
 }
 
 /* For Arabic text alignment (RTL fallback) - removed since it's now center aligned globally */
+
+/* ==========================================================================
+   GLOBAL RESPONSIVE TABLE CONTAINERS
+   ========================================================================== */
+.table-responsive, .zkong-table-container, .zkong-table-wrapper {
+  display: block;
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  margin-bottom: var(--space-md);
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  white-space: nowrap;
+}
+
+tbody tr {
+  transition: background-color var(--transition-speed);
+}
+
+tbody tr:hover {
+  background-color: var(--bg-accent) !important;
+}
 
 /* ==========================================================================
    ESL DETAIL MODAL - CLEAN INFO CARDS
