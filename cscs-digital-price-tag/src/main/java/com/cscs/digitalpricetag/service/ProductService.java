@@ -34,6 +34,8 @@ public class ProductService {
             throw new DragonEslException("storeId is required", HttpStatus.BAD_REQUEST);
         }
 
+        log.info("getProducts called with page={}, size={}, storeId={}, barcode={}, search={}", page, size, storeId, barcode, search);
+
         try {
             Map<String, Object> body = new HashMap<>();
             if (storeId != null && !storeId.isBlank()) {
@@ -54,63 +56,79 @@ public class ProductService {
             final String searchLower = (search != null && !search.isBlank()) ? search.toLowerCase() : null;
 
             List<Map<?, ?>> responses = new ArrayList<>();
-            List<CompletableFuture<Map<?, ?>>> futures = new ArrayList<>();
 
-            // If there's a search term, try matching both barcode and title casing variations in parallel
             if (search != null && !search.isBlank()) {
-                String searchTrimmed = search.trim();
-                boolean isSingleWordAlphanumeric = searchTrimmed.matches("^[a-zA-Z0-9_-]+$");
-
-                Set<String> barcodeQueries = new LinkedHashSet<>();
-                Set<String> titleQueries = new LinkedHashSet<>();
-
-                if (isSingleWordAlphanumeric && barcode == null) {
-                    barcodeQueries.add(searchTrimmed);
-                    barcodeQueries.add(searchTrimmed.toUpperCase());
-                    barcodeQueries.add(searchTrimmed.toLowerCase());
+                // Fetch first page of size 10 to find totalElements and get first batch
+                String firstPageUri = "/zk/item/list/0/1/10/" + storeId;
+                log.info("Search active. Fetching first page: URI={}, Body={}", firstPageUri, body);
+                Map<?, ?> firstResp = dragonEslApiClient.post(firstPageUri, body, Map.class);
+                if (hasItems(firstResp)) {
+                    responses.add(firstResp);
                 }
 
-                titleQueries.add(searchTrimmed);
-                titleQueries.add(searchTrimmed.toUpperCase());
-                titleQueries.add(searchTrimmed.toLowerCase());
-                if (searchTrimmed.length() > 1) {
-                    String capitalized = searchTrimmed.substring(0, 1).toUpperCase() + searchTrimmed.substring(1).toLowerCase();
-                    titleQueries.add(capitalized);
+                long totalElements = 0;
+                if (firstResp != null) {
+                    Object dataObj = firstResp.get("data");
+                    if (dataObj instanceof Map) {
+                        Map<?, ?> dataMap = (Map<?, ?>) dataObj;
+                        Object totalObj = dataMap.get("totalElements");
+                        if (totalObj == null) totalObj = dataMap.get("total");
+                        if (totalObj == null) totalObj = dataMap.get("totalCount");
+                        if (totalObj instanceof Number) {
+                            totalElements = ((Number) totalObj).longValue();
+                        } else if (totalObj != null) {
+                            try {
+                                totalElements = Long.parseLong(totalObj.toString().trim());
+                            } catch (NumberFormatException e) {
+                                // ignore
+                            }
+                        }
+                    }
                 }
 
-                // Add parallel queries
-                for (String term : barcodeQueries) {
-                    futures.add(CompletableFuture.supplyAsync(() -> queryBarcode(body, term, page, size, storeId)));
-                }
-                for (String term : titleQueries) {
-                    futures.add(CompletableFuture.supplyAsync(() -> queryTitle(body, term, page, size, storeId)));
+                log.info("Search active. First page loaded. Total elements in Zkong: {}", totalElements);
+
+                if (totalElements > 10) {
+                    List<CompletableFuture<Map<?, ?>>> futures = new ArrayList<>();
+                    // limit search to fetch up to 200 items (20 pages of 10) to keep it safe and performant
+                    long maxPages = Math.min((totalElements + 9) / 10, 20); 
+                    log.info("Fetching remaining search pages in parallel: pages 2 to {}", maxPages);
+                    for (int p = 2; p <= maxPages; p++) {
+                        final int pageNum = p;
+                        futures.add(CompletableFuture.supplyAsync(() -> 
+                            dragonEslApiClient.post(
+                                    "/zk/item/list/0/" + pageNum + "/10/" + storeId,
+                                    body,
+                                    Map.class
+                            )
+                        ));
+                    }
+
+                    if (!futures.isEmpty()) {
+                        CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
+                        for (CompletableFuture<Map<?, ?>> f : futures) {
+                            try {
+                                Map<?, ?> resp = f.get();
+                                if (hasItems(resp)) {
+                                    responses.add(resp);
+                                }
+                            } catch (Exception e) {
+                                log.error("Error fetching remaining search pages", e);
+                            }
+                        }
+                    }
                 }
             } else {
-                futures.add(CompletableFuture.supplyAsync(() -> 
-                    dragonEslApiClient.post(
-                            "/zk/item/list/0/" + page + "/" + size + "/" + storeId,
-                            body,
-                            Map.class
-                    )
-                ));
-            }
-
-            // Wait for all parallel API requests to finish concurrently
-            CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
-
-            // Collect results
-            for (CompletableFuture<Map<?, ?>> future : futures) {
-                try {
-                    Map<?, ?> resp = future.get();
-                    if (hasItems(resp)) {
-                        responses.add(resp);
-                    }
-                } catch (Exception e) {
-                    log.error("Error fetching parallel search results", e);
+                String normalUri = "/zk/item/list/0/" + (page + 1) + "/" + size + "/" + storeId;
+                log.info("Normal pagination active. Querying Zkong with: URI={}, Body={}", normalUri, body);
+                Map<?, ?> normalResp = dragonEslApiClient.post(normalUri, body, Map.class);
+                if (hasItems(normalResp)) {
+                    responses.add(normalResp);
                 }
             }
 
             if (responses.isEmpty()) {
+                log.warn("No items returned from Zkong API for this query.");
                 return new PagedResponse<>(Collections.emptyList(), page, size, 0);
             }
 
@@ -170,21 +188,30 @@ public class ProductService {
             }
         }
 
+        log.info("Deduplicated product count from Zkong: {}", deduplicated.size());
+
         List<ProductResponse> filteredProducts = deduplicated.values().stream()
                 .filter(item -> barcodeFilter == null || barcodeFilter.equals(item.getBarcode()))
                 .filter(item -> {
                     if (searchLower == null) return true;
-                    return (item.getItemName() != null && item.getItemName().toLowerCase().contains(searchLower))
-                            || (item.getBarcode() != null && item.getBarcode().toLowerCase().contains(searchLower));
+                    boolean matchesName = (item.getItemName() != null && item.getItemName().toLowerCase().contains(searchLower));
+                    boolean matchesBarcode = (item.getBarcode() != null && item.getBarcode().toLowerCase().contains(searchLower));
+                    if (matchesName || matchesBarcode) {
+                        log.info("Match found: name='{}', barcode='{}'", item.getItemName(), item.getBarcode());
+                    }
+                    return matchesName || matchesBarcode;
                 })
                 .collect(Collectors.toList());
+
+        log.info("Filtered product count: {}", filteredProducts.size());
 
         if (searchLower != null || barcodeFilter != null) {
             totalElements = filteredProducts.size();
         }
 
-        int start = Math.min(page * size, filteredProducts.size());
+        int start = (searchLower != null || barcodeFilter != null) ? Math.min(page * size, filteredProducts.size()) : 0;
         int end = Math.min(start + size, filteredProducts.size());
+        log.info("Slicing local list: start={}, end={}, totalElements={}", start, end, totalElements);
         List<ProductResponse> pagedList = filteredProducts.subList(start, end);
 
         return new PagedResponse<>(pagedList, page, size, totalElements);

@@ -11,6 +11,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 @Service
@@ -30,8 +31,8 @@ public class DeviceService {
     @SuppressWarnings("unchecked")
     public PagedResponse<EslResponse> getEslDevices(int page, int size, String storeId, String search) {
         try {
-            // Zkong pagination
-            int dragonPage = page; // Zkong uses 0-based index (page 1 is 0)
+            int dragonPage = page; // Zkong uses 0-based index
+            String url = String.format("/zk/erp/esl/list?page=%d&size=%d", dragonPage, size);
 
             // Construct body
             Map<String, Object> body = new HashMap<>();
@@ -43,53 +44,97 @@ public class DeviceService {
                 }
             }
 
-            // Apply search parameters
+            List<Map<?, ?>> responses = new ArrayList<>();
+            List<CompletableFuture<Map<?, ?>>> futures = new ArrayList<>();
+
             if (search != null && !search.isBlank()) {
                 String cleanSearch = search.trim();
-                // If it looks like an ESL barcode (usually numbers), put it in priceTagCode
-                if (cleanSearch.matches("\\d{6,}")) {
-                    body.put("priceTagCode", cleanSearch);
-                    body.put("itemBarCode", "");
-                    body.put("itemTitle", "");
-                } else if (cleanSearch.matches("[a-zA-Z0-9_-]+")) {
-                    // Alphanumeric search term represents item barcode (SKU)
-                    body.put("itemBarCode", cleanSearch);
-                    body.put("priceTagCode", "");
-                    body.put("itemTitle", "");
-                } else {
-                    // Search term with spaces or non-alphanumeric represents title
-                    body.put("itemTitle", cleanSearch);
-                    body.put("itemBarCode", "");
-                    body.put("priceTagCode", "");
-                }
+
+                // 1. Query by priceTagCode (ESL tag barcode)
+                futures.add(CompletableFuture.supplyAsync(() -> {
+                    Map<String, Object> bodyCopy = new HashMap<>(body);
+                    bodyCopy.put("priceTagCode", cleanSearch);
+                    bodyCopy.put("itemBarCode", "");
+                    bodyCopy.put("itemTitle", "");
+                    return queryZkongEslList(url, bodyCopy);
+                }));
+
+                // 2. Query by itemBarCode (Product barcode)
+                futures.add(CompletableFuture.supplyAsync(() -> {
+                    Map<String, Object> bodyCopy = new HashMap<>(body);
+                    bodyCopy.put("itemBarCode", cleanSearch);
+                    bodyCopy.put("priceTagCode", "");
+                    bodyCopy.put("itemTitle", "");
+                    return queryZkongEslList(url, bodyCopy);
+                }));
+
+                // 3. Query by itemTitle (Product name)
+                futures.add(CompletableFuture.supplyAsync(() -> {
+                    Map<String, Object> bodyCopy = new HashMap<>(body);
+                    bodyCopy.put("itemTitle", cleanSearch);
+                    bodyCopy.put("itemBarCode", "");
+                    bodyCopy.put("priceTagCode", "");
+                    return queryZkongEslList(url, bodyCopy);
+                }));
             } else {
                 body.put("itemBarCode", "");
                 body.put("itemTitle", "");
                 body.put("priceTagCode", "");
                 body.put("oemModel", "");
                 body.put("shelfNo", "");
+                futures.add(CompletableFuture.supplyAsync(() -> queryZkongEslList(url, body)));
             }
 
-            String url = String.format("/zk/erp/esl/list?page=%d&size=%d", dragonPage, size);
-            Map<?, ?> response = dragonEslApiClient.post(url, body, Map.class);
+            // Wait for all parallel API requests to finish concurrently
+            CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
 
-            if (response == null) {
-                throw new DragonEslException("No response from Dragon ESL for ESL list", HttpStatus.BAD_GATEWAY);
+            // Collect results
+            for (CompletableFuture<Map<?, ?>> future : futures) {
+                try {
+                    Map<?, ?> resp = future.get();
+                    if (resp != null) {
+                        responses.add(resp);
+                    }
+                } catch (Exception e) {
+                    log.error("Error fetching parallel ESL search results", e);
+                }
             }
 
-            Object successObj = response.get("success");
-            boolean success = Boolean.TRUE.equals(successObj);
-            Object codeObj = response.get("code");
-            boolean codeOk = codeObj != null && (Integer.valueOf(10000).equals(codeObj) || Integer.valueOf(13001).equals(codeObj) || Integer.valueOf(200).equals(codeObj));
-
-            if (!success && !codeOk) {
-                String msg = response.get("message") != null ? response.get("message").toString() : "Unknown error";
-                throw new DragonEslException("Failed to fetch ESL list: " + msg, HttpStatus.BAD_GATEWAY);
+            if (responses.isEmpty()) {
+                return new PagedResponse<>(Collections.emptyList(), page, size, 0);
             }
 
-            List<EslResponse> eslList = new ArrayList<>();
-            long totalElements = 0;
+            return mergeAndParseEslResponses(responses, page, size, search);
 
+        } catch (DragonEslException e) {
+            throw e;
+        } catch (Exception e) {
+            log.error("Error fetching ESL list: {}", e.getMessage(), e);
+            throw new DragonEslException("ESL fetch failed: " + e.getMessage(), HttpStatus.BAD_GATEWAY);
+        }
+    }
+
+    private Map<?, ?> queryZkongEslList(String url, Map<String, Object> body) {
+        try {
+            return dragonEslApiClient.post(url, body, Map.class);
+        } catch (Exception e) {
+            log.warn("Failed Zkong ESL query for body: {}", body, e);
+            return null;
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private PagedResponse<EslResponse> mergeAndParseEslResponses(
+            List<Map<?, ?>> responses, int page, int size, String search) {
+        
+        Map<String, EslResponse> deduplicated = new LinkedHashMap<>();
+        long totalElements = 0;
+        final String searchLower = search != null ? search.trim().toLowerCase() : null;
+
+        for (Map<?, ?> response : responses) {
+            if (response == null || !Boolean.TRUE.equals(response.get("success"))) {
+                continue;
+            }
             Object dataObj = response.get("data");
             if (dataObj instanceof Map) {
                 Map<String, Object> dataMap = (Map<String, Object>) dataObj;
@@ -99,36 +144,54 @@ public class DeviceService {
                 }
                 if (listObj instanceof List) {
                     List<Map<String, Object>> list = (List<Map<String, Object>>) listObj;
-                    eslList = list.stream()
-                            .map(this::mapToEslResponse)
-                            .collect(Collectors.toList());
-                }
-
-                Object totalObj = dataMap.get("totalElements");
-                if (totalObj == null) {
-                    totalObj = dataMap.get("total");
-                }
-                if (totalObj != null) {
-                    if (totalObj instanceof Number) {
-                        totalElements = ((Number) totalObj).longValue();
-                    } else {
-                        try {
-                            totalElements = Long.parseLong(totalObj.toString().trim());
-                        } catch (NumberFormatException e) {
-                            log.warn("Failed to parse ESL total count: {}", totalObj);
+                    for (Map<String, Object> rawItem : list) {
+                        EslResponse p = mapToEslResponse(rawItem);
+                        if (p != null && p.getId() != null) {
+                            deduplicated.put(p.getId(), p);
                         }
                     }
                 }
+                
+                Object totalObj = dataMap.get("totalElements");
+                if (totalObj == null) totalObj = dataMap.get("total");
+                if (totalObj == null) totalObj = dataMap.get("totalCount");
+                if (totalObj != null) {
+                    long total = 0;
+                    if (totalObj instanceof Number) {
+                        total = ((Number) totalObj).longValue();
+                    } else {
+                        try {
+                            total = Long.parseLong(totalObj.toString().trim());
+                        } catch (NumberFormatException e) {
+                            // ignore
+                        }
+                    }
+                    if (total > totalElements) {
+                        totalElements = total;
+                    }
+                }
             }
-
-            return new PagedResponse<>(eslList, page, size, totalElements);
-
-        } catch (DragonEslException e) {
-            throw e;
-        } catch (Exception e) {
-            log.error("Error fetching ESL list: {}", e.getMessage(), e);
-            throw new DragonEslException("ESL fetch failed: " + e.getMessage(), HttpStatus.BAD_GATEWAY);
         }
+
+        // Apply local filtering to ensure case-insensitive matching for any of the fields (ESL barcode, product barcode, or title)
+        List<EslResponse> filteredList = deduplicated.values().stream()
+                .filter(item -> {
+                    if (searchLower == null || searchLower.isEmpty()) return true;
+                    return (item.getPriceTagCode() != null && item.getPriceTagCode().toLowerCase().contains(searchLower))
+                            || (item.getItemBarCode() != null && item.getItemBarCode().toLowerCase().contains(searchLower))
+                            || (item.getItemTitle() != null && item.getItemTitle().toLowerCase().contains(searchLower));
+                })
+                .collect(Collectors.toList());
+
+        if (searchLower != null && !searchLower.isEmpty()) {
+            totalElements = filteredList.size();
+        }
+
+        int start = Math.min(page * size, filteredList.size());
+        int end = Math.min(start + size, filteredList.size());
+        List<EslResponse> pagedList = filteredList.subList(start, end);
+
+        return new PagedResponse<>(pagedList, page, size, totalElements);
     }
 
     /**

@@ -539,7 +539,7 @@ const Templates: React.FC = () => {
             <Search size={16} className="text-muted" />
             <input
               type="text"
-              placeholder="<strong>Search templates...</strong> / ابحث عن القوالب..."
+              placeholder="Search templates... / ابحث عن القوالب..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
@@ -775,7 +775,10 @@ const Templates: React.FC = () => {
                   </div>
                 )}
                 <button className="btn-primary sm-btn">
-                  <Plus size={16} /> Add {activeMenuTab === 'business_icon' ? 'Merchant / تاجر' : 'Store / متجر'} Icon / إضافة أيقونة
+                  <Plus size={16} />
+                  {activeMenuTab === 'business_icon'
+                    ? 'Add Merchant Icon / إضافة أيقونة التاجر'
+                    : 'Add Store Icon / إضافة أيقونة المتجر'}
                 </button>
               </div>
 
