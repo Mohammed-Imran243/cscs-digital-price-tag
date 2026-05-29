@@ -392,6 +392,10 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
           justify-content: space-between;
         }
 
+        .sidebar.collapsed .accordion-label {
+          display: none !important;
+        }
+
         .sidebar-footer {
           margin-top: auto;
           padding-top: 16px;
