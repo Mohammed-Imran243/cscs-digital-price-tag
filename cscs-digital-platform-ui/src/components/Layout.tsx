@@ -392,8 +392,10 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
           justify-content: space-between;
         }
 
-        .sidebar.collapsed .accordion-label {
-          display: none !important;
+        @media (min-width: 1025px) {
+          .sidebar.collapsed .accordion-label {
+            display: none !important;
+          }
         }
 
         .sidebar-footer {
@@ -553,6 +555,10 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
           .sidebar.collapsed .theme-toggle .label,
           .sidebar.collapsed .logo-full {
             display: block;
+          }
+
+          .sidebar.collapsed .sidebar-item .accordion-label {
+            display: flex;
           }
 
           .sidebar.collapsed .logo-small,
