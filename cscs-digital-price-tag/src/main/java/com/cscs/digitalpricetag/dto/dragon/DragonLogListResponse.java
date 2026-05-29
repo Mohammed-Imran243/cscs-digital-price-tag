@@ -36,10 +36,10 @@ public class DragonLogListResponse {
     @JsonIgnoreProperties(ignoreUnknown = true)
     public static class DragonLogData {
 
-        @JsonProperty("total")
+        @JsonProperty("totalElements")
         private Long total;
 
-        @JsonProperty("list")
+        @JsonProperty("content")
         private List<DragonLogItem> list;
 
         public Long getTotal() { return total != null ? total : 0L; }
