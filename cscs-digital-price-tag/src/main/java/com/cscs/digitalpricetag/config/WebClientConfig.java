@@ -119,13 +119,17 @@ public class WebClientConfig {
                 }
 
                 log.warn("Dragon ESL returned 401 Unauthorized. Triggering token manager background refresh and retrying.");
-                tokenManager.forceRefresh();
                 
-                String newToken = tokenManager.getValidToken();
-                ClientRequest retryRequest = ClientRequest.from(request)
-                        .header(HttpHeaders.AUTHORIZATION, newToken)
-                        .build();
-                return next.exchange(retryRequest);
+                return Mono.fromCallable(() -> {
+                    tokenManager.forceRefresh();
+                    return tokenManager.getValidToken();
+                }).subscribeOn(reactor.core.scheduler.Schedulers.boundedElastic())
+                .flatMap(newToken -> {
+                    ClientRequest retryRequest = ClientRequest.from(request)
+                            .header(HttpHeaders.AUTHORIZATION, newToken)
+                            .build();
+                    return next.exchange(retryRequest);
+                });
             }
 
             // Check for 200 OK with business errors 10006 or 10013 in the JSON body
@@ -148,13 +152,17 @@ public class WebClientConfig {
                                 }
 
                                 log.warn("Dragon ESL returned system business error {} (Token expired/invalid). Triggering background token refresh and retrying.", code);
-                                tokenManager.forceRefresh();
                                 
-                                String newToken = tokenManager.getValidToken();
-                                ClientRequest retryRequest = ClientRequest.from(request)
-                                        .header(HttpHeaders.AUTHORIZATION, newToken)
-                                        .build();
-                                return next.exchange(retryRequest);
+                                return Mono.fromCallable(() -> {
+                                    tokenManager.forceRefresh();
+                                    return tokenManager.getValidToken();
+                                }).subscribeOn(reactor.core.scheduler.Schedulers.boundedElastic())
+                                .flatMap(newToken -> {
+                                    ClientRequest retryRequest = ClientRequest.from(request)
+                                            .header(HttpHeaders.AUTHORIZATION, newToken)
+                                            .build();
+                                    return next.exchange(retryRequest);
+                                });
                             }
                         }
                     } catch (Exception e) {
