@@ -710,7 +710,10 @@ const Templates: React.FC = () => {
                   </div>
                 )}
                 <button className="btn-primary sm-btn">
-                  <Plus size="16" /> Add Store Icon / ????? ?????? ??????
+                  <Plus size={16} />
+                  {activeMenuTab === 'business_icon'
+                    ? 'Add Merchant Icon / إضافة أيقونة التاجر'
+                    : 'Add Store Icon / إضافة أيقونة المتجر'}
                 </button>
               </div>
 
