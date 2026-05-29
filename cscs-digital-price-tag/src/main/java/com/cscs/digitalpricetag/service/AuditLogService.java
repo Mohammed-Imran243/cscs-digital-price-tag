@@ -48,8 +48,8 @@ public class AuditLogService {
                 requestBody.setOperation(operation);
             }
 
-            // 2. Query ZKong Cloud POST API (Zkong uses 1-based pagination, so we add 1)
-            String url = String.format("/zk/erp/log/listLog?page=%d&size=%d", page + 1, size);
+            // 2. Query ZKong Cloud POST API
+            String url = String.format("/zk/erp/log/listLog?page=%d&size=%d", page, size);
             log.info("Querying Dragon ESL log/listLog: URL={}, storeId={}, operation={}, dateRange={}", 
                     url, requestBody.getStoreId(), requestBody.getOperation(), requestBody.getCreatedTime());
 
