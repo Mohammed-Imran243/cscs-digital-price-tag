@@ -234,6 +234,21 @@ public class ProductService {
         log.info("Slicing local list: start={}, end={}, totalElements={}", start, end, totalElements);
         List<ProductResponse> pagedList = filteredProducts.subList(start, end);
 
+        try {
+            java.io.File file = new java.io.File("C:\\Users\\NICK\\Downloads\\debug_pagination.txt");
+            try (java.io.FileWriter fw = new java.io.FileWriter(file, true)) {
+                fw.write("=== DEBUG CALL ===\n");
+                fw.write("Requested Page: " + page + " | Size: " + size + " | LocalStart: " + localStart + "\n");
+                fw.write("FilteredProducts Size: " + filteredProducts.size() + "\n");
+                fw.write("Calculated Start: " + start + " | Calculated End: " + end + "\n");
+                fw.write("TotalElements extracted: " + totalElements + "\n");
+                fw.write("PagedList Size: " + pagedList.size() + "\n");
+                fw.write("Zkong Responses Count: " + responses.size() + "\n");
+                fw.write("==================\n\n");
+            }
+        } catch (Exception e) {
+        }
+
         return new PagedResponse<>(pagedList, page, size, totalElements);
     }
 
@@ -571,4 +586,4 @@ public class ProductService {
             return null;
         }
     }
-}
+} 
