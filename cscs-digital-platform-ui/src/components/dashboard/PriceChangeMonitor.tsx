@@ -4,6 +4,7 @@ import {
   TrendingDown, 
   Clock, 
   Store, 
+  Filter,
   Activity,
   ArrowRight,
   RefreshCw,
