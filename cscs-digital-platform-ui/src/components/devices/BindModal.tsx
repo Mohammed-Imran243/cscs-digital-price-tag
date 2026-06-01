@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useLanguage } from '../../context/LanguageContext';
 import { Loader2 } from 'lucide-react';
 import type { Store } from '../../services/storeService';
 import { deviceService } from '../../services/deviceService';
@@ -56,6 +57,7 @@ export const BindModal: React.FC<BindModalProps> = ({
   handleBind,
   handleUnbind,
 }) => {
+  const { t: translate } = useLanguage();
   const [storeProducts, setStoreProducts] = useState<Product[]>([]);
   const [loadingProducts, setLoadingProducts] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -112,7 +114,7 @@ export const BindModal: React.FC<BindModalProps> = ({
       setHasTypedEsl(false);
     } else {
       const matched = availableEsls.find(e => e.priceTagCode === bindFormEslBarcode);
-      const displayVal = matched ? `${matched.priceTagCode} (${matched.oemModel || 'N/A'})` : bindFormEslBarcode;
+      const displayVal = matched ? `${matched.priceTagCode} (${translate(matched.oemModel || 'N/A')})` : bindFormEslBarcode;
       if (displayVal !== eslSearchQuery) {
         setEslSearchQuery(displayVal);
         setHasTypedEsl(false);
@@ -309,13 +311,13 @@ export const BindModal: React.FC<BindModalProps> = ({
                           className="dropdown-option-item"
                           onClick={() => {
                             setBindFormEslBarcode(e.priceTagCode);
-                            setEslSearchQuery(`${e.priceTagCode} (${e.oemModel || 'N/A'})`);
+                            setEslSearchQuery(`${e.priceTagCode} (${translate(e.oemModel || 'N/A')})`);
                             setIsEslDropdownOpen(false);
                             setHasTypedEsl(false);
                           }}
                         >
                           <div className="option-item-name">{e.priceTagCode}</div>
-                          <div className="option-item-barcode">Model / الطراز: {e.oemModel || 'N/A'} — {e.state === 'ONLINE' ? 'Online / متصل' : 'Offline / غير متصل'}</div>
+                          <div className="option-item-barcode">Model / الطراز: {translate(e.oemModel || 'N/A')} — {e.state === 'ONLINE' ? 'Online / متصل' : 'Offline / غير متصل'}</div>
                         </div>
                       ))
                     )}

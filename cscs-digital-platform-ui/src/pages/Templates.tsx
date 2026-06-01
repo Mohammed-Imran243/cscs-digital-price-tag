@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { useLanguage } from '../context/LanguageContext';
 import {
   getTemplates,
   getCategories,
@@ -44,6 +45,7 @@ const COLOR_MAPPINGS: Record<number, { key: string; label: string }> = {
 };
 
 const Templates: React.FC = () => {
+  const { t: translate } = useLanguage();
   const navigate = useNavigate();
   const location = useLocation();
   const searchParams = new URLSearchParams(location.search);
@@ -746,7 +748,7 @@ const Templates: React.FC = () => {
                 )}
                 <button className="btn-primary sm-btn">
                   <Plus size={16} />
-                  {activeMenuTab === 'business_icon'
+                  {(activeMenuTab as string) === 'business_icon'
                     ? 'Add Merchant Icon / إضافة أيقونة التاجر'
                     : 'Add Store Icon / إضافة أيقونة المتجر'}
                 </button>
@@ -2364,7 +2366,14 @@ const Templates: React.FC = () => {
                       </div>
                     </td>
                     <td>{t.modelList?.join(', ') || 'ZKC29S'}</td>
-                    <td>{(t.attrCategory as any) && typeof t.attrCategory === 'object' ? ((t.attrCategory as any).categoryName || String(t.attrCategory)) : (t.attrCategory || 'General / عام')}</td>
+                    <td>
+                      {(() => {
+                        const rawCat = (t.attrCategory as any) && typeof t.attrCategory === 'object' 
+                          ? ((t.attrCategory as any).categoryName || String(t.attrCategory)) 
+                          : (t.attrCategory || 'General / عام');
+                        return translate(rawCat);
+                      })()}
+                    </td>
                     <td>
                       <span className={`status-pill ${isEnabled ? 'enabled' : 'disabled'}`}>
                         {isEnabled ? 'Enabled / مفعل' : 'Disabled / معطل'}

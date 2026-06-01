@@ -128,22 +128,18 @@ const PriceChangeMonitor: React.FC = () => {
             let previousPriceStr: string | null = null;
             let changeTimestamp = productLogs[0].createdTime;
             
-            if (productLogs.length === 1) {
-              // Only 1 log found in the window. If it's a price change, we show it, but old price is unknown.
-              if (productLogs[0].operation === 4 || (productLogs[0].operationText && productLogs[0].operationText.toLowerCase().includes('change'))) {
-                previousPriceStr = 'Unknown';
-              } else {
-                return; // Not a price change log
-              }
-            } else {
-              for (let i = 1; i < productLogs.length; i++) {
-                if (productLogs[i].price !== latestPriceStr && productLogs[i].price != null) {
-                  previousPriceStr = productLogs[i].price;
-                  break;
-                }
+
+            
+            // Try to find the actual old price in the history we fetched
+            for (let i = 1; i < productLogs.length; i++) {
+              if (productLogs[i].price !== latestPriceStr && productLogs[i].price != null) {
+                previousPriceStr = productLogs[i].price;
+                changeTimestamp = productLogs[i-1].createdTime; // The timestamp of the change is when the NEW price first appeared
+                break;
               }
             }
             
+            // Only consider it a change if we genuinely found a different previous price
             if (previousPriceStr !== null && previousPriceStr !== latestPriceStr) {
               const newPrice = parseFloat(latestPriceStr);
               const oldPrice = previousPriceStr === 'Unknown' ? null : parseFloat(previousPriceStr);
@@ -335,9 +331,12 @@ const PriceChangeMonitor: React.FC = () => {
           filteredChanges.map(record => (
             <div key={record.id} className="price-change-card glass-card" style={{ padding: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
               <div className="record-details" style={{ flex: '1 1 300px' }}>
-                <h4 style={{ margin: '0 0 12px 0', fontSize: '16px', fontWeight: '600', color: 'var(--text-primary)' }}>
+                <h4 style={{ margin: '0 0 4px 0', fontSize: '16px', fontWeight: '600', color: 'var(--text-primary)' }}>
                   {record.productName}
                 </h4>
+                <div style={{ color: 'var(--text-secondary)', fontSize: '13px', marginBottom: '12px' }}>
+                  Barcode: {record.barcode}
+                </div>
                 <div className="price-flow" style={{ display: 'flex', alignItems: 'center', gap: '12px', fontSize: '18px', fontWeight: '700', marginBottom: '12px' }}>
                   <span style={{ color: 'var(--text-secondary)', textDecoration: record.oldPrice !== null ? 'line-through' : 'none' }}>
                     {record.oldPrice !== null ? `${record.oldPrice} AED` : 'Unknown'}

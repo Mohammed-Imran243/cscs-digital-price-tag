@@ -281,14 +281,101 @@ public class ProductService {
             throw new DragonEslException("Item ID is required for price update", HttpStatus.BAD_REQUEST);
         }
 
-        String priceStr = request.getPriceAsString();
+        String priceStr         = request.getPriceAsString();
+        String originalPriceStr = request.getOriginalPriceAsString();
 
-        Map<String, Object> rawItem = getRawProductFromZkong(itemId);
-        Map<String, Object> body = new HashMap<>(rawItem);
-        body.put("price", priceStr);
-        body.put("custFeature1", priceStr);
-        body.put("id", Long.valueOf(itemId));
-        body.put("storeId", Long.valueOf(storeId));
+        // Build clean whitelist body — mirrors exactly what Dragon ESL UI sends on PUT
+        // DO NOT dump the full GET response back — Dragon ESL rejects its own read-only fields
+        Map<String, Object> body = new LinkedHashMap<>();
+        body.put("id",                       null);
+        body.put("productCode",              request.getProductCode());
+        body.put("barCode",                  request.getBarCode());
+        body.put("productSku",               null);
+        body.put("itemTitle",                request.getItemTitle());
+        body.put("shortTitle",               null);
+        body.put("classLevel",               null);
+        body.put("productArea",              request.getOrigin());
+        body.put("unit",                     request.getUnit());
+        body.put("spec",                     request.getSpec());
+        body.put("price",                    priceStr);
+        body.put("originalPrice",            originalPriceStr);
+        body.put("memberPrice",              request.getVipPrice() != null ? request.getVipPrice().toString() : null);
+        body.put("proStartTime",             null);
+        body.put("proEndTime",               null);
+        body.put("promotionText",            null);
+        body.put("qrCode",                   null);
+        body.put("nfcUrl",                   null);
+        body.put("stock1",                   null);
+        body.put("stock2",                   null);
+        body.put("stock3",                   null);
+        body.put("label",                    request.getProductLabel());
+        body.put("attrCategory",             request.getAttrCategory());
+        body.put("attrName",                 request.getAttrName());
+        body.put("isSpecs",                  "0");
+        body.put("storeId",                  "0");
+        body.put("custFeature1",             priceStr);
+        body.put("custFeature2",             null);
+        body.put("custFeature3",             null);
+        body.put("custFeature4",             null);
+        body.put("custFeature5",             null);
+        body.put("custFeature6",             null);
+        body.put("custFeature7",             null);
+        body.put("custFeature8",             null);
+        body.put("custFeature9",             null);
+        body.put("custFeature10",            null);
+        body.put("custFeature11",            null);
+        body.put("custFeature12",            null);
+        body.put("custFeature13",            null);
+        body.put("custFeature14",            null);
+        body.put("custFeature15",            null);
+        body.put("custFeature16",            null);
+        body.put("custFeature17",            null);
+        body.put("custFeature18",            null);
+        body.put("custFeature19",            null);
+        body.put("custFeature20",            null);
+        body.put("custFeature21",            null);
+        body.put("custFeature22",            null);
+        body.put("custFeature23",            null);
+        body.put("custFeature24",            null);
+        body.put("custFeature25",            null);
+        body.put("custFeature26",            null);
+        body.put("custFeature27",            null);
+        body.put("custFeature28",            null);
+        body.put("custFeature29",            null);
+        body.put("custFeature30",            null);
+        body.put("custFeature31",            null);
+        body.put("custFeature32",            null);
+        body.put("custFeature33",            null);
+        body.put("custFeature34",            null);
+        body.put("custFeature35",            null);
+        body.put("custFeature36",            null);
+        body.put("custFeature37",            null);
+        body.put("custFeature38",            null);
+        body.put("custFeature39",            null);
+        body.put("custFeature40",            null);
+        body.put("custFeature41",            null);
+        body.put("custFeature42",            null);
+        body.put("custFeature43",            null);
+        body.put("custFeature44",            null);
+        body.put("custFeature45",            null);
+        body.put("custFeature46",            null);
+        body.put("custFeature47",            null);
+        body.put("custFeature48",            null);
+        body.put("custFeature49",            null);
+        body.put("custFeature50",            null);
+        body.put("itemExt",                  null);
+        body.put("data",                     Collections.emptyList());
+        body.put("delPicIds",                Collections.emptyList());
+        body.put("itemPictureList",          Collections.emptyList());
+        body.put("itemSkuList",              Collections.emptyList());
+        body.put("itemSpecsGroupBeanList",   Collections.singletonList(
+                Map.of("type", "", "contentList", Collections.emptyList())
+        ));
+        body.put("itemSpecsSkuVoList",       Collections.emptyList());
+        body.put("itemVideoList",            Collections.emptyList());
+
+        log.info("updatePrice body for itemId={} storeId={}: price={} custFeature1={}",
+                itemId, storeId, priceStr, priceStr);
 
         try {
             Map<?, ?> response = dragonEslApiClient.put(
@@ -304,13 +391,22 @@ public class ProductService {
             log.info("Zkong updatePrice response: {}", response);
 
             Object successObj = response.get("success");
-            boolean success = Boolean.TRUE.equals(successObj);
-            Object codeObj = response.get("code");
-            boolean codeOk = codeObj != null && (Integer.valueOf(17019).equals(codeObj) || Integer.valueOf(200).equals(codeObj) || Integer.valueOf(10000).equals(codeObj));
+            boolean success   = Boolean.TRUE.equals(successObj);
+            Object codeObj    = response.get("code");
+            boolean codeOk    = codeObj != null && (
+                    Integer.valueOf(17019).equals(codeObj) ||
+                    Integer.valueOf(200).equals(codeObj)   ||
+                    Integer.valueOf(10000).equals(codeObj)
+            );
 
             if (!success && !codeOk) {
-                String msg = response.get("message") != null ? response.get("message").toString() : "Unknown error";
-                throw new DragonEslException("Price update failed: " + msg, HttpStatus.BAD_GATEWAY);
+                String msg = response.get("message") != null
+                        ? response.get("message").toString()
+                        : "Unknown error";
+                throw new DragonEslException(
+                        "Dragon ESL PUT /zk/item/pcItem/" + itemId + " failed: " + msg,
+                        HttpStatus.BAD_GATEWAY
+                );
             }
 
             log.info("Price updated for item {} in store {} to {}", itemId, storeId, priceStr);

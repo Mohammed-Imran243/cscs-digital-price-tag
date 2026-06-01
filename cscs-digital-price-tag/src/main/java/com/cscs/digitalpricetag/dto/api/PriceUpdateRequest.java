@@ -17,6 +17,10 @@ public class PriceUpdateRequest {
     private String attrCategory;
     private String attrName;
     private String unit;
+    private BigDecimal vipPrice;
+    private String     spec;
+    private String     origin;
+    private String     productLabel;
 
     // ── Constructors ────────────────────────────────────────────────────────
 
@@ -58,5 +62,21 @@ public class PriceUpdateRequest {
      */
     public String getPriceAsString() {
         return price != null ? price.stripTrailingZeros().toPlainString() : null;
+    }
+
+    public BigDecimal getVipPrice() { return vipPrice; }
+    public void setVipPrice(BigDecimal vipPrice) { this.vipPrice = vipPrice; }
+
+    public String getSpec() { return spec; }
+    public void setSpec(String spec) { this.spec = spec; }
+
+    public String getOrigin() { return origin; }
+    public void setOrigin(String origin) { this.origin = origin; }
+
+    public String getProductLabel() { return productLabel; }
+    public void setProductLabel(String productLabel) { this.productLabel = productLabel; }
+
+    public String getOriginalPriceAsString() {
+        return originalPrice != null ? originalPrice.stripTrailingZeros().toPlainString() : null;
     }
 }
