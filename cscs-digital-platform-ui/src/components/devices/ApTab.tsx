@@ -1,4 +1,5 @@
 import React from 'react';
+import { useLanguage } from '../../context/LanguageContext';
 import { Cpu, Copy, Check, Plus } from 'lucide-react';
 import type { ApDevice } from '../../services/deviceService';
 import { getPaginationRange } from '../../utils/paginationUtils';
@@ -26,6 +27,7 @@ export const ApTab: React.FC<ApTabProps> = ({
   copiedId,
   onAddAp,
 }) => {
+  const { t: translate } = useLanguage();
   const totalPages = Math.ceil(totalElements / pageSize) || 1;
 
   return (
@@ -82,7 +84,7 @@ export const ApTab: React.FC<ApTabProps> = ({
                   {/* Model */}
                   <td>
                     <div className="model-cell">
-                      <span className="model-badge">{ap.model || 'ZAP-CM'}</span>
+                      <span className="model-badge">{translate(ap.model || 'ZAP-CM')}</span>
                     </div>
                   </td>
 
@@ -103,7 +105,7 @@ export const ApTab: React.FC<ApTabProps> = ({
                       ap.online === 'ONLINE' ? 'online' : ap.online === 'UPGRADING' ? 'warning' : 'offline'
                     }`}>
                       <span className="dot" />
-                      <span>{ap.online === 'ONLINE' ? 'Online / متصل' : ap.online === 'UPGRADING' ? 'Upgrading / جاري الترقية' : 'Offline / غير متصل'}</span>
+                      <span>{ap.online === 'ONLINE' ? 'Online / متصل' : ap.online === 'UPGRADING' ? 'Upgrading / جاري الترقية' : (ap.online === 'OFFLINE' ? 'Offline / غير متصل' : translate(ap.online))}</span>
                     </span>
                   </td>
 

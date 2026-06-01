@@ -48,8 +48,20 @@ const getSortedTreeList = (permissions: PermissionMenu[]): PermissionMenu[] => {
   return result;
 };
 
+import { useLocation, useNavigate } from 'react-router-dom';
+import { useLanguage } from '../context/LanguageContext';
+
 const Users: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<'users' | 'roles'>('users');
+  const { t } = useLanguage();
+  const location = useLocation();
+  const navigate = useNavigate();
+  const searchParams = new URLSearchParams(location.search);
+  const tabParam = searchParams.get('tab');
+  const activeTab: 'users' | 'roles' = (tabParam === 'roles') ? 'roles' : 'users';
+
+  const setActiveTab = (tab: 'users' | 'roles') => {
+    navigate(`/users?tab=${tab}`, { replace: true });
+  };
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   
@@ -654,7 +666,7 @@ const Users: React.FC = () => {
                     <td>
                       <span className="role-chip">
                         <Shield size={12} />
-                        <span>{user.roleName || 'No Role Assigned / لم يتم تعيين دور'}</span>
+                        <span>{t(user.roleName) || 'No Role Assigned / لم يتم تعيين دور'}</span>
                       </span>
                     </td>
                     <td>
@@ -665,7 +677,7 @@ const Users: React.FC = () => {
                     </td>
                     <td>
                       <span className="badge-normal">
-                        {user.status || 'Normal / طبيعي'}
+                        {t(user.status) || 'Normal / طبيعي'}
                       </span>
                     </td>
                     <td>
@@ -778,7 +790,7 @@ const Users: React.FC = () => {
                   </div>
                   <div>
                     <h3>
-                      {role.roleName}
+                      {t(role.roleName)}
                       {role._pending && (
                         <span className="role-pending-badge">Syncing... / جاري المزامنة</span>
                       )}
@@ -884,7 +896,7 @@ const Users: React.FC = () => {
                 >
                   <option value="">Select Security Role... / اختر دور الأمان...</option>
                   {roles.map(r => (
-                    <option key={r.id} value={r.id}>{r.roleName}</option>
+                    <option key={r.id} value={r.id}>{t(r.roleName)}</option>
                   ))}
                 </select>
               </div>

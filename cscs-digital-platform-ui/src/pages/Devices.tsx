@@ -21,8 +21,18 @@ import { ApTab } from '../components/devices/ApTab';
 import { BindModal } from '../components/devices/BindModal';
 import { EslDetailModal } from '../components/devices/EslDetailModal';
 
+import { useLocation, useNavigate } from 'react-router-dom';
+
 const Devices: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<'esl' | 'ap'>('esl');
+  const location = useLocation();
+  const navigate = useNavigate();
+  const searchParams = new URLSearchParams(location.search);
+  const tabParam = searchParams.get('tab');
+  const activeTab: 'esl' | 'ap' = (tabParam === 'ap') ? 'ap' : 'esl';
+
+  const setActiveTab = (tab: 'esl' | 'ap') => {
+    navigate(`/devices?tab=${tab}`, { replace: true });
+  };
   
   // Store context states
   const [stores, setStores] = useState<Store[]>([]);

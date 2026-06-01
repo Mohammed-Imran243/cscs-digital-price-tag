@@ -1,4 +1,5 @@
 import React from 'react';
+import { useLanguage } from '../../context/LanguageContext';
 import { Smartphone, Copy, Check, Eye, RefreshCw, Loader2, Signal, WifiOff } from 'lucide-react';
 import type { EslDevice } from '../../services/deviceService';
 import { getPaginationRange } from '../../utils/paginationUtils';
@@ -38,6 +39,7 @@ export const EslTab: React.FC<EslTabProps> = ({
   copyToClipboard,
   copiedId,
 }) => {
+  const { t: translate } = useLanguage();
   const totalPages = Math.ceil(totalElements / pageSize) || 1;
 
   // Helper to determine battery rendering
@@ -122,7 +124,7 @@ export const EslTab: React.FC<EslTabProps> = ({
 
                     {/* OEM Model */}
                     <td>
-                      <span className="model-badge">{esl.oemModel || 'ZKC21S'}</span>
+                      <span className="model-badge">{translate(esl.oemModel || 'ZKC21S')}</span>
                     </td>
 
                     {/* Bound Product */}
@@ -141,7 +143,7 @@ export const EslTab: React.FC<EslTabProps> = ({
                     <td>
                       <span className={`status-pill ${esl.state === 'ONLINE' ? 'online' : 'offline'}`}>
                         <span className="dot" />
-                        <span>{esl.state === 'ONLINE' ? 'Online / متصل' : (esl.state === 'OFFLINE' ? 'Offline / غير متصل' : esl.state)}</span>
+                        <span>{esl.state === 'ONLINE' ? 'Online / متصل' : (esl.state === 'OFFLINE' ? 'Offline / غير متصل' : translate(esl.state))}</span>
                       </span>
                     </td>
 

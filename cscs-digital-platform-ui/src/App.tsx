@@ -2,6 +2,7 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { ThemeProvider } from './context/ThemeContext';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { LanguageProvider } from './context/LanguageContext';
 import Layout from './components/Layout';
 import LoginPage from './pages/Login';
 import Dashboard from './pages/Dashboard';
@@ -49,17 +50,18 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode; requiredPermission?:
 const App: React.FC = () => {
   return (
     <ErrorBoundary>
-      <ThemeProvider>
-        <AuthProvider>
-          <Router>
-            <Routes>
-              <Route path="/login" element={<LoginPage />} />
-              
-              <Route path="/" element={
-                <ProtectedRoute>
-                  <Dashboard />
-                </ProtectedRoute>
-              } />
+      <LanguageProvider>
+        <ThemeProvider>
+          <AuthProvider>
+            <Router>
+              <Routes>
+                <Route path="/login" element={<LoginPage />} />
+                
+                <Route path="/" element={
+                  <ProtectedRoute>
+                    <Dashboard />
+                  </ProtectedRoute>
+                } />
 
               {/* Placeholders for other routes */}
               <Route path="/merchants" element={<ProtectedRoute requiredPermission="staffManager"><Merchant /></ProtectedRoute>} />
@@ -72,11 +74,12 @@ const App: React.FC = () => {
               <Route path="/audit-logs" element={<ProtectedRoute requiredPermission="log"><AuditLogs /></ProtectedRoute>} />
               <Route path="/users" element={<ProtectedRoute requiredPermission="staffManager"><Users /></ProtectedRoute>} />
 
-              <Route path="*" element={<Navigate to="/" />} />
-            </Routes>
-          </Router>
-        </AuthProvider>
-      </ThemeProvider>
+                <Route path="*" element={<Navigate to="/" />} />
+              </Routes>
+            </Router>
+          </AuthProvider>
+        </ThemeProvider>
+      </LanguageProvider>
     </ErrorBoundary>
   );
 };

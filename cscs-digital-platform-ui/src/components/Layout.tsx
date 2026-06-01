@@ -1,10 +1,20 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useLayoutEffect, useRef } from 'react';
 import { useTheme } from '../context/ThemeContext';
 import { useAuth } from '../context/AuthContext';
-import { Sun, Moon, LogOut, LayoutDashboard, Store, Package, User, Cpu, Menu, Building2, LayoutTemplate, History, Smartphone, Settings, Image as ImageIcon, Tag } from 'lucide-react';
+import { useLanguage } from '../context/LanguageContext';
+import { Sun, Moon, LogOut, LayoutDashboard, Store, Package, User, Cpu, Menu, Building2, LayoutTemplate, History, Smartphone, Settings, Image as ImageIcon, Tag, Shield } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 
-const SidebarItem: React.FC<{ to: string, icon: React.ReactNode, label: string, collapsed: boolean, subItems?: {label: string, to: string, icon?: React.ReactNode}[] }> = ({ to, icon, label, collapsed, subItems }) => {
+const SidebarItem: React.FC<{ 
+  to: string, 
+  icon: React.ReactNode, 
+  label: string, 
+  collapsed: boolean, 
+  subItems?: {label: string, to: string, icon?: React.ReactNode}[],
+  onHover?: (rect: DOMRect | null, label: string, subItems: any[], to: string) => void,
+  onClickParent?: (rect: DOMRect | null, label: string, subItems: any[], to: string) => void,
+  activeFloatingParent?: string
+}> = ({ to, icon, label, collapsed, subItems, onHover, onClickParent, activeFloatingParent }) => {
   const location = useLocation();
   const isActive = location.pathname === to || (subItems && subItems.some(item => location.pathname === item.to || location.pathname.startsWith(item.to) || (location.pathname === to && location.search === item.to.split('?')[1])));
   const [expanded, setExpanded] = useState(isActive);
@@ -18,6 +28,9 @@ const SidebarItem: React.FC<{ to: string, icon: React.ReactNode, label: string, 
         to={to} 
         className={`sidebar-item ${isActive ? 'active' : ''}`}
         title={collapsed ? tooltipText : undefined}
+        onClick={() => {
+          onClickParent?.(null, '', [], '');
+        }}
       >
         <span className="icon">{icon}</span>
         <span className="label">{label}</span>
@@ -25,13 +38,31 @@ const SidebarItem: React.FC<{ to: string, icon: React.ReactNode, label: string, 
     );
   }
 
+  const isParentHighlighted = isActive || activeFloatingParent === to;
+
   return (
-    <div className={`sidebar-group ${isActive ? 'active-group' : ''}`}>
+    <div className={`sidebar-group ${isParentHighlighted ? 'active-group' : ''}`}>
       <div 
-        className={`sidebar-item ${isActive ? 'active' : ''}`}
+        className={`sidebar-item ${isParentHighlighted ? 'active' : ''}`}
         title={collapsed ? tooltipText : undefined}
-        onClick={() => {
-          setExpanded(!expanded);
+        onClick={(e) => {
+          if (collapsed) {
+            const rect = e.currentTarget.getBoundingClientRect();
+            onClickParent?.(rect, label, subItems, to);
+          } else {
+            setExpanded(!expanded);
+          }
+        }}
+        onMouseEnter={(e) => {
+          if (collapsed) {
+            const rect = e.currentTarget.getBoundingClientRect();
+            onHover?.(rect, label, subItems, to);
+          }
+        }}
+        onMouseLeave={() => {
+          if (collapsed) {
+            onHover?.(null, label, subItems, to);
+          }
         }}
         style={{ cursor: 'pointer' }}
       >
@@ -44,7 +75,7 @@ const SidebarItem: React.FC<{ to: string, icon: React.ReactNode, label: string, 
       {expanded && !collapsed && (
         <div className="sidebar-subitems">
           {subItems.map((sub, idx) => {
-            const isSubActive = location.pathname + location.search === sub.to || (!location.search && sub.to.includes('tab=merchant'));
+            const isSubActive = location.pathname + location.search === sub.to || (!location.search && (sub.to.includes('tab=merchant') || sub.to.includes('tab=esl') || sub.to.includes('tab=users')));
             return (
               <Link 
                 key={idx}
@@ -69,10 +100,156 @@ const SidebarItem: React.FC<{ to: string, icon: React.ReactNode, label: string, 
 const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { theme, toggleTheme } = useTheme();
   const { user, logout } = useAuth();
+  const { language, setLanguage, t } = useLanguage();
   const navigate = useNavigate();
+  const location = useLocation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(true);
+
+  // States and hooks for collapsed sidebar floating submenus
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 1024);
+  const [floatingMenu, setFloatingMenu] = useState<{
+    label: string;
+    subItems: { label: string; to: string; icon?: React.ReactNode }[];
+    rect: DOMRect;
+    to: string;
+  } | null>(null);
+  const [floatingPosition, setFloatingPosition] = useState<{ top: number; left: number }>({ top: 0, left: 0 });
+  const [hoveredSubIndex, setHoveredSubIndex] = useState<number>(-1);
+
+  const timeoutRef = useRef<number | null>(null);
+  const floatingMenuRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth <= 1024);
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  useLayoutEffect(() => {
+    if (floatingMenu && floatingMenuRef.current) {
+      const menuRect = floatingMenuRef.current.getBoundingClientRect();
+      const triggerRect = floatingMenu.rect;
+      const viewportHeight = window.innerHeight;
+      
+      let top = triggerRect.top;
+      if (top + menuRect.height > viewportHeight - 16) {
+        top = Math.max(16, viewportHeight - menuRect.height - 16);
+      }
+      
+      const left = triggerRect.right + 8;
+      setFloatingPosition({ top, left });
+    }
+  }, [floatingMenu]);
+
+  const handleHoverParent = (rect: DOMRect | null, label: string, subItems: any[], to: string) => {
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
+    }
+
+    if (rect) {
+      setHoveredSubIndex(-1);
+      setFloatingMenu({ label, subItems, rect, to });
+    } else {
+      timeoutRef.current = window.setTimeout(() => {
+        setFloatingMenu(null);
+      }, 150);
+    }
+  };
+
+  const handleClickParent = (rect: DOMRect | null, label: string, subItems: any[], to: string) => {
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
+    }
+
+    if (floatingMenu && floatingMenu.to === to) {
+      setFloatingMenu(null);
+    } else if (rect) {
+      setHoveredSubIndex(-1);
+      setFloatingMenu({ label, subItems, rect, to });
+    } else {
+      setFloatingMenu(null);
+    }
+  };
+
+  const handleMouseEnterFloatingMenu = () => {
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
+    }
+  };
+
+  const handleMouseLeaveFloatingMenu = () => {
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
+    }
+    timeoutRef.current = window.setTimeout(() => {
+      setFloatingMenu(null);
+    }, 150);
+  };
+
+  useEffect(() => {
+    if (!floatingMenu) {
+      setHoveredSubIndex(-1);
+      return;
+    }
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setFloatingMenu(null);
+        e.preventDefault();
+      } else if (e.key === 'ArrowDown') {
+        setHoveredSubIndex(prev => (prev + 1) % floatingMenu.subItems.length);
+        e.preventDefault();
+      } else if (e.key === 'ArrowUp') {
+        setHoveredSubIndex(prev => (prev - 1 + floatingMenu.subItems.length) % floatingMenu.subItems.length);
+        e.preventDefault();
+      } else if (e.key === 'Enter') {
+        if (hoveredSubIndex >= 0 && hoveredSubIndex < floatingMenu.subItems.length) {
+          const subItem = floatingMenu.subItems[hoveredSubIndex];
+          navigate(subItem.to);
+          setFloatingMenu(null);
+          e.preventDefault();
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [floatingMenu, hoveredSubIndex, navigate]);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (floatingMenu) {
+        const isClickInsideMenu = floatingMenuRef.current?.contains(event.target as Node);
+        const isClickOnTrigger = (event.target as HTMLElement).closest('.sidebar-item');
+        if (!isClickInsideMenu && !isClickOnTrigger) {
+          setFloatingMenu(null);
+        }
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [floatingMenu]);
+
+  useEffect(() => {
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+    };
+  }, []);
 
   const handleLogout = () => {
     logout();
@@ -128,22 +305,38 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
         </div>
         
         <nav className="sidebar-nav">
-          <SidebarItem to="/" icon={<LayoutDashboard size={20} />} label="Dashboard / لوحة التحكم" collapsed={isSidebarCollapsed} />
+          <SidebarItem to="/" icon={<LayoutDashboard size={20} />} label="Dashboard / لوحة التحكم" collapsed={isSidebarCollapsed && !isMobile} onClickParent={handleClickParent} />
           {(user?.permissions?.includes('staffManager') || false) && (
-            <SidebarItem to="/merchants" icon={<Building2 size={20} />} label="Merchants / التجار" collapsed={isSidebarCollapsed} />
+            <SidebarItem to="/merchants" icon={<Building2 size={20} />} label="Merchants / التجار" collapsed={isSidebarCollapsed && !isMobile} onClickParent={handleClickParent} />
           )}
           {(user?.permissions?.includes('store') || false) && (
-            <SidebarItem to="/stores" icon={<Store size={20} />} label="Stores / المتاجر" collapsed={isSidebarCollapsed} />
+            <SidebarItem to="/stores" icon={<Store size={20} />} label="Stores / المتاجر" collapsed={isSidebarCollapsed && !isMobile} onClickParent={handleClickParent} />
           )}
           {(user?.permissions?.includes('product') || false) && (
-            <SidebarItem to="/products" icon={<Package size={20} />} label="Products / المنتجات" collapsed={isSidebarCollapsed} />
+            <SidebarItem 
+              to="/products" 
+              icon={<Package size={20} />} 
+              label="Products / المنتجات" 
+              collapsed={isSidebarCollapsed && !isMobile} 
+              onHover={handleHoverParent}
+              onClickParent={handleClickParent}
+              activeFloatingParent={floatingMenu?.to}
+              subItems={[
+                { label: 'Merchant Merchandise / بضاعة التاجر', to: '/products?tab=merchant', icon: <Smartphone size={16} /> },
+                { label: 'Store Merchandise / بضاعة المتجر', to: '/products?tab=store', icon: <Store size={16} /> },
+                { label: 'Store Operation / عمليات المتجر', to: '/products?tab=store_operation', icon: <Settings size={16} /> }
+              ]}
+            />
           )}
           {(user?.permissions?.includes('template') || false) && (
             <SidebarItem 
               to="/templates" 
               icon={<LayoutTemplate size={20} />} 
               label="Templates / القوالب" 
-              collapsed={isSidebarCollapsed} 
+              collapsed={isSidebarCollapsed && !isMobile} 
+              onHover={handleHoverParent}
+              onClickParent={handleClickParent}
+              activeFloatingParent={floatingMenu?.to}
               subItems={[
                 { label: 'Merchant Template / قوالب التاجر', to: '/templates?tab=merchant', icon: <Smartphone size={16} /> },
                 { label: 'Store Template / قوالب المتجر', to: '/templates?tab=store', icon: <Settings size={16} /> },
@@ -153,22 +346,40 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
             />
           )}
           {(user?.permissions?.includes('equipment') || false) && (
-            <SidebarItem to="/devices" icon={<Cpu size={20} />} label="Devices / الأجهزة" collapsed={isSidebarCollapsed} />
+            <SidebarItem 
+              to="/devices" 
+              icon={<Cpu size={20} />} 
+              label="Devices / الأجهزة" 
+              collapsed={isSidebarCollapsed && !isMobile} 
+              onHover={handleHoverParent}
+              onClickParent={handleClickParent}
+              activeFloatingParent={floatingMenu?.to}
+              subItems={[
+                { label: 'ESL Tags / شاشات الأسعار', to: '/devices?tab=esl', icon: <Smartphone size={16} /> },
+                { label: 'AP Stations / محطات البث', to: '/devices?tab=ap', icon: <Cpu size={16} /> }
+              ]}
+            />
           )}
           {(user?.permissions?.includes('log') || false) && (
-            <SidebarItem to="/audit-logs" icon={<History size={20} />} label="Audit Logs / سجلات المراجعة" collapsed={isSidebarCollapsed} />
+            <SidebarItem to="/audit-logs" icon={<History size={20} />} label="Audit Logs / سجلات المراجعة" collapsed={isSidebarCollapsed && !isMobile} onClickParent={handleClickParent} />
           )}
           {(user?.permissions?.includes('staffManager') || false) && (
-            <SidebarItem to="/users" icon={<User size={20} />} label="Staff Users / الموظفين" collapsed={isSidebarCollapsed} />
+            <SidebarItem 
+              to="/users" 
+              icon={<User size={20} />} 
+              label="Staff Users / الموظفين" 
+              collapsed={isSidebarCollapsed && !isMobile} 
+              onHover={handleHoverParent}
+              onClickParent={handleClickParent}
+              activeFloatingParent={floatingMenu?.to}
+              subItems={[
+                { label: 'Staff Users / الموظفين', to: '/users?tab=users', icon: <User size={16} /> },
+                { label: 'Security Roles / أدوار الأمان', to: '/users?tab=roles', icon: <Shield size={16} /> }
+              ]}
+            />
           )}
         </nav>
 
-        <div className="sidebar-footer">
-          <button className="theme-toggle" onClick={toggleTheme} title={isSidebarCollapsed ? "Toggle Theme" : undefined}>
-            {theme === 'light' ? <Moon size={20} /> : <Sun size={20} />}
-            <span className="label">{theme === 'light' ? 'Dark Mode / الوضع الداكن' : 'Light Mode / الوضع المضيء'}</span>
-          </button>
-        </div>
       </aside>
 
       <main className="main-content">
@@ -181,6 +392,48 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
           </div>
           <div className="header-right">
             <div className="user-profile">
+              {/* Modern Theme Toggle Switch */}
+              <div 
+                className="theme-switch-container" 
+                onClick={toggleTheme} 
+                title={theme === 'light' ? 'Switch to Dark Mode / تفعيل الوضع الداكن' : 'Switch to Light Mode / تفعيل الوضع المضيء'}
+                tabIndex={0}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    toggleTheme();
+                    e.preventDefault();
+                  }
+                }}
+              >
+                {theme === 'light' ? <Sun size={18} className="theme-icon sun" /> : <Moon size={18} className="theme-icon moon" />}
+                <div className={`theme-switch ${theme}`}>
+                  <div className="theme-switch-handle" />
+                </div>
+              </div>
+
+              {/* Modern Language Segmented Switch */}
+              <div className="lang-switch-container" title="Switch Language / تغيير اللغة">
+                <button 
+                  className={`lang-btn ${language === 'en' ? 'active' : ''}`}
+                  onClick={() => setLanguage('en')}
+                >
+                  EN
+                </button>
+                <button 
+                  className={`lang-btn ${language === 'bilingual' ? 'active' : ''}`}
+                  onClick={() => setLanguage('bilingual')}
+                  title="Bilingual / ثنائي اللغة"
+                >
+                  EN/AR
+                </button>
+                <button 
+                  className={`lang-btn ${language === 'ar' ? 'active' : ''}`}
+                  onClick={() => setLanguage('ar')}
+                >
+                  AR
+                </button>
+              </div>
+
               <div className="user-info">
                 <span className="username">{user?.username}</span>
                 <span className="user-role">
@@ -190,7 +443,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                     if (r === 'MERCHANT_SUPER_ADMIN') return 'Merchant Super Admin / مسؤول التاجر الرئيسي';
                     if (r === 'MERCHANT') return 'Merchant / تاجر';
                     if (r === 'STAFF') return 'Staff / موظف';
-                    return user?.role;
+                    return t(user?.role);
                   })()}
                 </span>
               </div>
@@ -206,7 +459,217 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
         </div>
       </main>
 
+      {/* Dynamic Floating Submenu */}
+      {floatingMenu && (
+        <div 
+          ref={floatingMenuRef}
+          className="floating-submenu glass-card"
+          style={{
+            position: 'fixed',
+            top: `${floatingPosition.top}px`,
+            left: `${floatingPosition.left}px`,
+            zIndex: 1201,
+          }}
+          onMouseEnter={handleMouseEnterFloatingMenu}
+          onMouseLeave={handleMouseLeaveFloatingMenu}
+        >
+          <div className="floating-submenu-header">
+            {floatingMenu.to ? (
+              <Link 
+                to={floatingMenu.to} 
+                className="floating-submenu-header-link" 
+                onClick={() => setFloatingMenu(null)}
+              >
+                {floatingMenu.label}
+              </Link>
+            ) : (
+              floatingMenu.label
+            )}
+          </div>
+          <div className="floating-submenu-items">
+            {floatingMenu.subItems.map((sub, idx) => {
+              const isSubActive = location.pathname + location.search === sub.to || (!location.search && (sub.to.includes('tab=merchant') || sub.to.includes('tab=esl') || sub.to.includes('tab=users')));
+              return (
+                <Link 
+                  key={idx}
+                  to={sub.to}
+                  className={`sidebar-subitem ${isSubActive ? 'active' : ''} ${hoveredSubIndex === idx ? 'keyboard-hover' : ''}`}
+                  onClick={() => setFloatingMenu(null)}
+                >
+                  {sub.icon ? (
+                    <span className="subitem-icon" style={{ opacity: isSubActive ? 1 : 0.7 }}>{sub.icon}</span>
+                  ) : (
+                    <div className="subitem-dot" />
+                  )}
+                  <span>{sub.label}</span>
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
       <style>{`
+        /* Floating submenu custom styles */
+        .floating-submenu {
+          padding: 12px;
+          min-width: 220px;
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
+          animation: slideInRight 180ms cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .floating-submenu-header {
+          font-size: 11px;
+          font-weight: 700;
+          color: var(--text-muted);
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+          padding: 4px 8px 8px;
+          border-bottom: 1px solid var(--glass-border);
+          margin-bottom: 4px;
+        }
+
+        .floating-submenu-header-link {
+          text-decoration: none;
+          color: inherit;
+          transition: color 0.2s;
+        }
+
+        .floating-submenu-header-link:hover {
+          color: var(--primary-color);
+        }
+
+        .floating-submenu-items {
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+        }
+
+        .sidebar-subitem.keyboard-hover {
+          background: var(--bg-accent) !important;
+          color: var(--text-primary) !important;
+        }
+
+        @keyframes slideInRight {
+          from {
+            opacity: 0;
+            transform: translateX(-8px);
+          }
+          to {
+            opacity: 1;
+            transform: translateX(0);
+          }
+        }
+
+        .theme-switch-container {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          cursor: pointer;
+          padding: 6px 10px;
+          border-radius: 20px;
+          background: var(--bg-accent);
+          border: 1px solid var(--glass-border);
+          transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+          user-select: none;
+          outline: none;
+          flex-shrink: 0;
+        }
+
+        .lang-switch-container {
+          display: flex;
+          align-items: center;
+          background: var(--bg-accent);
+          border: 1px solid var(--glass-border);
+          border-radius: 20px;
+          padding: 2px;
+          gap: 2px;
+          flex-shrink: 0;
+          user-select: none;
+        }
+
+        .lang-btn {
+          background: transparent;
+          border: none;
+          color: var(--text-muted);
+          font-size: 11px;
+          font-weight: 700;
+          padding: 4px 8px;
+          border-radius: 16px;
+          cursor: pointer;
+          transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .lang-btn:hover {
+          color: var(--text-primary);
+          background: rgba(255, 255, 255, 0.05);
+        }
+
+        .lang-btn.active {
+          color: white;
+          background: var(--primary-color);
+          box-shadow: 0 2px 6px rgba(59, 130, 246, 0.3);
+        }
+
+        .theme-switch-container:hover {
+          background: rgba(255, 255, 255, 0.15);
+          box-shadow: 0 0 8px rgba(59, 130, 246, 0.15);
+        }
+
+        [data-theme='dark'] .theme-switch-container:hover {
+          background: rgba(255, 255, 255, 0.08);
+        }
+
+        .theme-switch-container:focus-visible {
+          outline: 2px solid var(--primary-color);
+          outline-offset: 2px;
+        }
+
+        .theme-icon {
+          transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.2s ease, color 0.2s ease;
+        }
+
+        .theme-icon.sun {
+          color: #eab308;
+          transform: rotate(0deg);
+        }
+
+        .theme-icon.moon {
+          color: #818cf8;
+          transform: rotate(360deg);
+        }
+
+        .theme-switch {
+          position: relative;
+          width: 36px;
+          height: 18px;
+          background: #cbd5e1;
+          border-radius: 9px;
+          transition: background 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .theme-switch.dark {
+          background: var(--primary-color);
+        }
+
+        .theme-switch-handle {
+          position: absolute;
+          top: 2px;
+          left: 2px;
+          width: 14px;
+          height: 14px;
+          border-radius: 50%;
+          background: white;
+          box-shadow: 0 1px 2px rgba(0,0,0,0.15);
+          transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .theme-switch.dark .theme-switch-handle {
+          transform: translateX(18px);
+        }
+
         .app-container {
           display: flex;
           height: 100vh;

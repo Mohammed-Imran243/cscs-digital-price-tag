@@ -5,6 +5,7 @@ import com.cscs.digitalpricetag.dto.api.PagedResponse;
 import com.cscs.digitalpricetag.dto.dragon.DragonLogListResponse;
 import com.cscs.digitalpricetag.dto.dragon.DragonLogRequest;
 import com.cscs.digitalpricetag.exception.DragonEslException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -53,7 +54,12 @@ public class AuditLogService {
             log.info("Querying Dragon ESL log/listLog: URL={}, storeId={}, operation={}, dateRange={}", 
                     url, requestBody.getStoreId(), requestBody.getOperation(), requestBody.getCreatedTime());
 
-            DragonLogListResponse response = dragonEslApiClient.post(url, requestBody, DragonLogListResponse.class);
+            // Temporarily fetch as String to log raw JSON, then deserialize
+            String rawJsonResponse = dragonEslApiClient.post(url, requestBody, String.class);
+            log.info("RAW ZKONG LOG RESPONSE: {}", rawJsonResponse);
+            
+            ObjectMapper mapper = new ObjectMapper();
+            DragonLogListResponse response = mapper.readValue(rawJsonResponse, DragonLogListResponse.class);
 
             if (response == null) {
                 throw new DragonEslException("No response from Dragon ESL for log history", HttpStatus.BAD_GATEWAY);
