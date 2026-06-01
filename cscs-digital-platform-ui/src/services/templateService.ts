@@ -135,6 +135,11 @@ export const addTemplate = async (data: TemplateCreateRequest): Promise<any> => 
   return unwrapResponse<any>(response);
 };
 
+export const previewTemplate = async (data: TemplateCreateRequest): Promise<any> => {
+  const response = await api.post('/templates/preview', data);
+  return unwrapResponse<any>(response);
+};
+
 export const updateTemplateBase = async (id: string, data: Partial<Template>): Promise<void> => {
   const response = await api.put(`/templates/${id}`, data);
   unwrapResponse(response);

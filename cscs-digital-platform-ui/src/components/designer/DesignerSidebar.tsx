@@ -10,6 +10,7 @@ interface DesignerSidebarProps {
   onUpdate: (id: string, updates: Partial<DesignerElement>) => void;
   onBringToFront: (id: string) => void;
   onSendToBack: (id: string) => void;
+  onAddElement: (type: ElementType) => void;
 }
 
 export const DesignerSidebar: React.FC<DesignerSidebarProps> = ({
@@ -19,7 +20,8 @@ export const DesignerSidebar: React.FC<DesignerSidebarProps> = ({
   onDelete,
   onUpdate,
   onBringToFront,
-  onSendToBack
+  onSendToBack,
+  onAddElement
 }) => {
   const [tab, setTab] = useState<'components' | 'layers'>('components');
 
@@ -62,9 +64,10 @@ export const DesignerSidebar: React.FC<DesignerSidebarProps> = ({
                 key={tool.type}
                 draggable
                 onDragStart={(e) => handleDragStart(e, tool.type)}
+                onClick={() => onAddElement(tool.type)}
                 style={{
                   display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-                  padding: '12px', border: '1px solid #e5e7eb', borderRadius: '4px', cursor: 'grab', background: '#fafafa'
+                  padding: '12px', border: '1px solid #e5e7eb', borderRadius: '4px', cursor: 'pointer', background: '#fafafa'
                 }}
               >
                 <tool.icon size={24} style={{ marginBottom: '8px', color: '#3b82f6' }} />

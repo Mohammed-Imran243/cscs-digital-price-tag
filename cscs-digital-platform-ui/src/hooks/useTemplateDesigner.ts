@@ -23,6 +23,11 @@ export interface DesignerElement {
   align?: 'left' | 'center' | 'right';
   businessAttribute?: string; // Data binding field
   exampleContent?: string;
+  
+  // New Styling Properties
+  borderThickness?: number;
+  borderColor?: string;
+  backgroundColor?: string;
 }
 
 export const useTemplateDesigner = () => {
@@ -42,7 +47,12 @@ export const useTemplateDesigner = () => {
       zIndex: elements.length,
       content: type === 'text' ? 'Text' : undefined,
       fontSize: type === 'text' ? 14 : undefined,
+      fontFamily: 'Arial',
       color: '#000000',
+      align: 'left',
+      borderThickness: 0,
+      borderColor: '#000000',
+      backgroundColor: 'transparent',
     };
     setElements(prev => [...prev, newElement]);
     setSelectedId(newElement.id);
