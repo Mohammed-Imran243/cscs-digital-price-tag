@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useLayoutEffect, useRef } from 'react';
 import { useTheme } from '../context/ThemeContext';
 import { useAuth } from '../context/AuthContext';
-import { useLanguage } from '../context/LanguageContext';
+
 import { Sun, Moon, LogOut, LayoutDashboard, Store, Package, User, Cpu, Menu, Building2, LayoutTemplate, History, Smartphone, Settings, Image as ImageIcon, Tag, Shield } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 
@@ -100,9 +100,9 @@ const SidebarItem: React.FC<{
 const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { theme, toggleTheme } = useTheme();
   const { user, logout } = useAuth();
-  const { language, setLanguage, t } = useLanguage();
   const navigate = useNavigate();
   const location = useLocation();
+
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(true);
@@ -411,29 +411,6 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                 </div>
               </div>
 
-              {/* Modern Language Segmented Switch */}
-              <div className="lang-switch-container" title="Switch Language / تغيير اللغة">
-                <button 
-                  className={`lang-btn ${language === 'en' ? 'active' : ''}`}
-                  onClick={() => setLanguage('en')}
-                >
-                  EN
-                </button>
-                <button 
-                  className={`lang-btn ${language === 'bilingual' ? 'active' : ''}`}
-                  onClick={() => setLanguage('bilingual')}
-                  title="Bilingual / ثنائي اللغة"
-                >
-                  EN/AR
-                </button>
-                <button 
-                  className={`lang-btn ${language === 'ar' ? 'active' : ''}`}
-                  onClick={() => setLanguage('ar')}
-                >
-                  AR
-                </button>
-              </div>
-
               <div className="user-info">
                 <span className="username">{user?.username}</span>
                 <span className="user-role">
@@ -443,7 +420,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                     if (r === 'MERCHANT_SUPER_ADMIN') return 'Merchant Super Admin / مسؤول التاجر الرئيسي';
                     if (r === 'MERCHANT') return 'Merchant / تاجر';
                     if (r === 'STAFF') return 'Staff / موظف';
-                    return t(user?.role);
+                    return user?.role;
                   })()}
                 </span>
               </div>
@@ -576,41 +553,6 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
           user-select: none;
           outline: none;
           flex-shrink: 0;
-        }
-
-        .lang-switch-container {
-          display: flex;
-          align-items: center;
-          background: var(--bg-accent);
-          border: 1px solid var(--glass-border);
-          border-radius: 20px;
-          padding: 2px;
-          gap: 2px;
-          flex-shrink: 0;
-          user-select: none;
-        }
-
-        .lang-btn {
-          background: transparent;
-          border: none;
-          color: var(--text-muted);
-          font-size: 11px;
-          font-weight: 700;
-          padding: 4px 8px;
-          border-radius: 16px;
-          cursor: pointer;
-          transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        .lang-btn:hover {
-          color: var(--text-primary);
-          background: rgba(255, 255, 255, 0.05);
-        }
-
-        .lang-btn.active {
-          color: white;
-          background: var(--primary-color);
-          box-shadow: 0 2px 6px rgba(59, 130, 246, 0.3);
         }
 
         .theme-switch-container:hover {

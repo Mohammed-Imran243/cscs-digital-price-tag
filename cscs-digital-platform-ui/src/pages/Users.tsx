@@ -49,10 +49,9 @@ const getSortedTreeList = (permissions: PermissionMenu[]): PermissionMenu[] => {
 };
 
 import { useLocation, useNavigate } from 'react-router-dom';
-import { useLanguage } from '../context/LanguageContext';
+
 
 const Users: React.FC = () => {
-  const { t } = useLanguage();
   const location = useLocation();
   const navigate = useNavigate();
   const searchParams = new URLSearchParams(location.search);
@@ -666,7 +665,7 @@ const Users: React.FC = () => {
                     <td>
                       <span className="role-chip">
                         <Shield size={12} />
-                        <span>{t(user.roleName) || 'No Role Assigned / لم يتم تعيين دور'}</span>
+                        <span>{user.roleName || 'No Role Assigned / لم يتم تعيين دور'}</span>
                       </span>
                     </td>
                     <td>
@@ -677,7 +676,7 @@ const Users: React.FC = () => {
                     </td>
                     <td>
                       <span className="badge-normal">
-                        {t(user.status) || 'Normal / طبيعي'}
+                        {user.status || 'Normal / طبيعي'}
                       </span>
                     </td>
                     <td>
@@ -790,7 +789,7 @@ const Users: React.FC = () => {
                   </div>
                   <div>
                     <h3>
-                      {t(role.roleName)}
+                      {role.roleName}
                       {role._pending && (
                         <span className="role-pending-badge">Syncing... / جاري المزامنة</span>
                       )}
@@ -896,7 +895,7 @@ const Users: React.FC = () => {
                 >
                   <option value="">Select Security Role... / اختر دور الأمان...</option>
                   {roles.map(r => (
-                    <option key={r.id} value={r.id}>{t(r.roleName)}</option>
+                    <option key={r.id} value={r.id}>{r.roleName}</option>
                   ))}
                 </select>
               </div>

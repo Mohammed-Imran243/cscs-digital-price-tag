@@ -1,5 +1,5 @@
 import React from 'react';
-import { useLanguage } from '../../context/LanguageContext';
+
 import { Loader2, AlertCircle, RefreshCw } from 'lucide-react';
 import type { Store } from '../../services/storeService';
 import { getEslModelSpecs, inferTemplateSize, renderEinkLayout } from '../../utils/eslModelUtils';
@@ -25,7 +25,6 @@ export const EslDetailModal: React.FC<EslDetailModalProps> = ({
   stores,
   selectedStoreId,
 }) => {
-  const { t: translate } = useLanguage();
   if (!detailModalOpen) return null;
 
   return (
@@ -61,7 +60,7 @@ export const EslDetailModal: React.FC<EslDetailModalProps> = ({
                   {(() => {
                     const isOnline = detailEsl.state === 'ONLINE' || detailEsl.state === 1 || detailEsl.state === '1' || detailEsl.status === 1 || detailEsl.status === '1' || String(detailEsl.state).trim() === '在线';
                     const rawState = detailEsl.state !== undefined ? detailEsl.state : detailEsl.status;
-                    const translatedState = rawState === 'ONLINE' || rawState === 1 || rawState === '1' || String(rawState).trim() === '在线' ? 'Online / متصل' : (rawState === 'OFFLINE' || rawState === 0 || rawState === '0' || String(rawState).trim() === '离线' ? 'Offline / غير متصل' : translate(rawState));
+                    const translatedState = rawState === 'ONLINE' || rawState === 1 || rawState === '1' || String(rawState).trim() === '在线' ? 'Online / متصل' : (rawState === 'OFFLINE' || rawState === 0 || rawState === '0' || String(rawState).trim() === '离线' ? 'Offline / غير متصل' : rawState);
                     return (
                       <div className={`card-value ${isOnline ? 'bind-status-online' : 'bind-status-offline'}`} style={{ color: isOnline ? '#22c55e' : '#ef4444', fontWeight: 'bold' }}>
                         {translatedState}
@@ -71,7 +70,7 @@ export const EslDetailModal: React.FC<EslDetailModalProps> = ({
                 </div>
                 <div className="bind-info-card">
                   <div className="card-label">Model / الطراز</div>
-                  <div className="card-value font-mono">{translate(detailEsl.model || 'N/A')}</div>
+                  <div className="card-value font-mono">{detailEsl.model || 'N/A'}</div>
                 </div>
                 <div className="bind-info-card">
                   <div className="card-label">Size / الحجم</div>

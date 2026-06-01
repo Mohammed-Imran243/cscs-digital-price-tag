@@ -2,7 +2,7 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { ThemeProvider } from './context/ThemeContext';
 import { AuthProvider, useAuth } from './context/AuthContext';
-import { LanguageProvider } from './context/LanguageContext';
+
 import Layout from './components/Layout';
 import LoginPage from './pages/Login';
 import Dashboard from './pages/Dashboard';
@@ -50,8 +50,7 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode; requiredPermission?:
 const App: React.FC = () => {
   return (
     <ErrorBoundary>
-      <LanguageProvider>
-        <ThemeProvider>
+      <ThemeProvider>
           <AuthProvider>
             <Router>
               <Routes>
@@ -79,8 +78,7 @@ const App: React.FC = () => {
             </Router>
           </AuthProvider>
         </ThemeProvider>
-      </LanguageProvider>
-    </ErrorBoundary>
+      </ErrorBoundary>
   );
 };
 

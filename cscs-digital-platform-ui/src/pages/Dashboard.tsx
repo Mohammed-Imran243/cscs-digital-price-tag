@@ -614,8 +614,8 @@ const Dashboard: React.FC = () => {
         .dashboard-row {
           display: grid;
           grid-template-columns: 1fr 1fr 320px;
-          gap: 20px;
-          align-items: start;
+          gap: 22px;
+          align-items: stretch;
         }
         @media (max-width: 1200px) {
           .dashboard-row { grid-template-columns: 1fr 1fr; }
@@ -628,6 +628,10 @@ const Dashboard: React.FC = () => {
         /* ── Store breakdown card ── */
         .store-breakdown, .system-health {
           overflow: hidden;
+          display: flex;
+          flex-direction: column;
+          height: 100%;
+          box-sizing: border-box;
         }
 
         .card-header {
@@ -683,7 +687,7 @@ const Dashboard: React.FC = () => {
 
         .breakdown-list {
           padding: 8px 0;
-          max-height: 480px;
+          flex: 1;
           overflow-y: auto;
         }
         .breakdown-row {
@@ -774,6 +778,7 @@ const Dashboard: React.FC = () => {
           padding: 8px 0 16px 0;
           display: flex;
           flex-direction: column;
+          flex: 1;
         }
         .status-item {
           display: flex;
@@ -816,9 +821,7 @@ const Dashboard: React.FC = () => {
       `}</style>
 
       {/* 📈 Price Change Monitor 📈 */}
-      <div style={{ marginTop: '24px' }}>
-        <PriceChangeMonitor />
-      </div>
+      <PriceChangeMonitor />
 
     </div>
   );

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { useLanguage } from '../context/LanguageContext';
+
 import {
   getTemplates,
   getCategories,
@@ -45,7 +45,6 @@ const COLOR_MAPPINGS: Record<number, { key: string; label: string }> = {
 };
 
 const Templates: React.FC = () => {
-  const { t: translate } = useLanguage();
   const navigate = useNavigate();
   const location = useLocation();
   const searchParams = new URLSearchParams(location.search);
@@ -2371,7 +2370,7 @@ const Templates: React.FC = () => {
                         const rawCat = (t.attrCategory as any) && typeof t.attrCategory === 'object' 
                           ? ((t.attrCategory as any).categoryName || String(t.attrCategory)) 
                           : (t.attrCategory || 'General / عام');
-                        return translate(rawCat);
+                        return rawCat;
                       })()}
                     </td>
                     <td>

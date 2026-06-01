@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Building, Shield, Save, Loader2, KeyRound } from 'lucide-react';
+import { Building, Shield, Save, Loader2 } from 'lucide-react';
 import api, { unwrapResponse } from '../services/api';
 
 const Merchant: React.FC = () => {
@@ -35,8 +35,8 @@ const Merchant: React.FC = () => {
         api.get('/merchant/settings'),
       ]);
 
-      const infoData = unwrapResponse(infoRes);
-      const settingsData = unwrapResponse(settingsRes);
+      const infoData = unwrapResponse<any>(infoRes);
+      const settingsData = unwrapResponse<any>(settingsRes);
 
       setInfo(infoData);
       setSettings(settingsData);

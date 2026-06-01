@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useLanguage } from '../context/LanguageContext';
+
 import { getProducts, createProduct, updateProductPrice, deleteProductFromStore, deleteProductGlobal } from '../services/productService';
 import type { Product, ProductCreateRequest } from '../services/productService';
 import { storeService } from '../services/storeService';
@@ -122,7 +122,6 @@ const SearchableDropdown: React.FC<SearchableDropdownProps> = ({
 import { useLocation, useNavigate } from 'react-router-dom';
 
 const Products: React.FC = () => {
-  const { t } = useLanguage();
   const [stores, setStores] = useState<Store[]>([]);
   const [selectedStore, setSelectedStore] = useState<string>('');
   
@@ -896,7 +895,7 @@ const [storeFilterType, setStoreFilterType] = useState('');
                     <td>{(product as any).origin || '—'}</td>
                     <td>{(product as any).spec || '—'}</td>
                     <td>{(product as any).productLabel || '—'}</td>
-                    <td>{t(product.attrCategory || product.category) || '—'}</td>
+                    <td>{product.attrCategory || product.category || '—'}</td>
                     <td>
                       <div className="op-buttons">
                         <button className="op-btn success-btn" onClick={() => openEditProductModal(product, true)}>View / عرض</button>
@@ -1002,7 +1001,7 @@ const [storeFilterType, setStoreFilterType] = useState('');
                           <td><input type="checkbox" /></td>
                           <td>{store.storeId}</td>
                           <td>{store.storeName}</td>
-                          <td>{t(selectedOpItem.attrCategory || selectedOpItem.category) || '—'}</td>
+                          <td>{selectedOpItem.attrCategory || selectedOpItem.category || '—'}</td>
                           <td>{selectedOpItem.attrName || '—'}</td>
                           <td>—</td>
                           <td>{selectedOpItem.originalPrice || '0'}</td>
@@ -1099,7 +1098,7 @@ const [storeFilterType, setStoreFilterType] = useState('');
                         <td><input type="checkbox" /></td>
                         <td>{product.barcode || '—'}</td>
                         <td>{product.itemName || '—'}</td>
-                        <td>{t(product.attrCategory || product.category) || '—'}</td>
+                        <td>{product.attrCategory || product.category || '—'}</td>
                         <td>{product.attrName || '—'}</td>
                         <td>{product.origin || '—'}</td>
                         <td>{product.originalPrice && parseFloat(product.originalPrice) > 0 ? product.originalPrice : '—'}</td>

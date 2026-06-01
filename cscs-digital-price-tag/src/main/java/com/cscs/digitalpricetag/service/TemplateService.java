@@ -248,6 +248,7 @@ public class TemplateService {
             log.error("Error previewing template: {}", e.getMessage(), e);
             throw new DragonEslException("Template preview failed: " + e.getMessage(), HttpStatus.BAD_REQUEST);
         }
+    }
 
     public Object updateTemplateBase(String id, Map<String, Object> request) {
         return performPut("/zk/template/updateBase/" + id, request);
