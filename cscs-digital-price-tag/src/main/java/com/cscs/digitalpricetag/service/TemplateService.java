@@ -211,6 +211,20 @@ public class TemplateService {
             // Preview endpoint expects the payload wrapped in "templateAllRefactor"
             Map<String, Object> finalPayload = new HashMap<>();
             finalPayload.put("templateAllRefactor", request);
+            
+            // DragonESL requires itemBarCode and storeId at the root to process a commodity preview
+            if (request.containsKey("templateBase")) {
+                Map<String, Object> templateBase = (Map<String, Object>) request.get("templateBase");
+                if (templateBase != null) {
+                    if (templateBase.containsKey("barCode")) {
+                        finalPayload.put("itemBarCode", templateBase.get("barCode"));
+                        finalPayload.put("barCode", templateBase.get("barCode"));
+                    }
+                    if (templateBase.containsKey("storeId")) {
+                        finalPayload.put("storeId", templateBase.get("storeId"));
+                    }
+                }
+            }
 
             log.info("Previewing template with payload: {}", finalPayload);
 

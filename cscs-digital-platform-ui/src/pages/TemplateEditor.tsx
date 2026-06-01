@@ -52,6 +52,7 @@ const TemplateEditor: React.FC = () => {
   const [isPublishing, setIsPublishing] = useState(false);
   
   // Preview State
+  const [showPreviewModal, setShowPreviewModal] = useState(false);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   const [isPreviewing, setIsPreviewing] = useState(false);
   const [previewError, setPreviewError] = useState<string | null>(null);
@@ -344,12 +345,18 @@ const TemplateEditor: React.FC = () => {
     }
   };
 
+  const [previewBarcode, setPreviewBarcode] = useState('');
+
   const handlePreview = async () => {
     setIsPreviewing(true);
+    setShowPreviewModal(true);
     setPreviewError(null);
     try {
       if (templateConfig) {
         const payload = buildDragonEslPayload(templateConfig, elements);
+        if (previewBarcode.trim()) {
+          payload.templateBase.barCode = previewBarcode.trim();
+        }
         console.log("Previewing payload:", payload);
         const response = await previewTemplate(payload as any);
         if (response && typeof response === 'string') {
@@ -360,9 +367,10 @@ const TemplateEditor: React.FC = () => {
            setPreviewError("Failed to generate preview image. Invalid response format.");
         }
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error("Failed to preview template:", err);
-      setPreviewError("Failed to generate preview. Check console for details.");
+      const msg = err.response?.data?.message || err.message || "Failed to generate preview.";
+      setPreviewError(`Preview Failed: ${msg}. If searching by barcode, ensure the commodity exists in this store.`);
     } finally {
       setIsPreviewing(false);
     }
@@ -761,20 +769,26 @@ const TemplateEditor: React.FC = () => {
       )}
 
       {/* Preview Modal */}
-      {(previewImage || previewError) && (
-        <div className="modal-overlay" onClick={() => { setPreviewImage(null); setPreviewError(null); }}>
+      {showPreviewModal && (
+        <div className="modal-overlay" onClick={() => setShowPreviewModal(false)}>
           <div className="modal-content" style={{ width: '600px', padding: 0, overflow: 'hidden' }} onClick={e => e.stopPropagation()}>
             {/* Header */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 24px', borderBottom: '1px solid #e2e8f0' }}>
               <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 400 }}>Preview</h3>
-              <button onClick={() => { setPreviewImage(null); setPreviewError(null); }} style={{ background: 'none', border: 'none', fontSize: '20px', cursor: 'pointer', color: '#94a3b8' }}>&times;</button>
+              <button onClick={() => setShowPreviewModal(false)} style={{ background: 'none', border: 'none', fontSize: '20px', cursor: 'pointer', color: '#94a3b8' }}>&times;</button>
             </div>
             
             {/* Sub-header toolbar */}
             <div style={{ display: 'flex', alignItems: 'center', padding: '12px 24px', borderBottom: '1px solid #e2e8f0', gap: '12px' }}>
               <span style={{ fontSize: '14px' }}>Current view:</span>
-              <input type="text" placeholder="Please enter product barcode" style={{ padding: '6px 12px', border: '1px solid #cbd5e1', borderRadius: '4px', flex: 1 }} />
-              <button style={{ padding: '6px 16px', background: '#3b82f6', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>Application</button>
+              <input 
+                type="text" 
+                placeholder="Please enter product barcode" 
+                value={previewBarcode}
+                onChange={e => setPreviewBarcode(e.target.value)}
+                style={{ padding: '6px 12px', border: '1px solid #cbd5e1', borderRadius: '4px', flex: 1 }} 
+              />
+              <button onClick={handlePreview} style={{ padding: '6px 16px', background: '#3b82f6', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>Application</button>
               <button onClick={() => { setShowFullScreenPreview(true); setFullScreenZoom(100); setFullScreenRotation(0); }} style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center' }} title="Zoom In">
                 <ZoomIn size={20} color="#333" />
               </button>
@@ -796,7 +810,7 @@ const TemplateEditor: React.FC = () => {
 
             {/* Footer */}
             <div style={{ padding: '16px', borderTop: '1px solid #e2e8f0', textAlign: 'center' }}>
-              <button onClick={() => { setPreviewImage(null); setPreviewError(null); }} style={{ padding: '8px 32px', background: 'transparent', border: 'none', cursor: 'pointer', fontSize: '16px' }}>Close</button>
+              <button onClick={() => setShowPreviewModal(false)} style={{ padding: '8px 32px', background: 'transparent', border: 'none', cursor: 'pointer', fontSize: '16px' }}>Close</button>
             </div>
           </div>
         </div>

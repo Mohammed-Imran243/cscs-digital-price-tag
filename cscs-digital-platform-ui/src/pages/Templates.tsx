@@ -140,6 +140,7 @@ const Templates: React.FC = () => {
     model: '',
     size: '',
     resolution: '152*152',
+    color: '',
     sceneNumber: 1,
     screenType: 'single',
     attrCategory: '',
@@ -500,6 +501,12 @@ const Templates: React.FC = () => {
 
   const uniqueSizes = Array.from(new Set(models.map(m => m.size))).filter(Boolean);
   const uniqueColors = Array.from(new Set(models.map(m => m.color))).filter(Boolean);
+
+  // Dynamic modal options based on selected size
+  const selectedSizeModels = models.filter(m => m.size === newTemplate.size);
+  const availableResolutions = Array.from(new Set(selectedSizeModels.map(m => m.resolution))).filter(Boolean);
+  const selectedResModels = selectedSizeModels.filter(m => m.resolution === newTemplate.resolution);
+  const availableModalColors = Array.from(new Set(selectedResModels.map(m => m.color))).filter(Boolean);
 
   return (
     <div className="templates-dashboard">
@@ -957,6 +964,7 @@ const Templates: React.FC = () => {
                   model: '',
                   size: '',
                   resolution: '152*152',
+                  color: '',
                   sceneNumber: 1,
                   screenType: 'single',
                   attrCategory: '',
@@ -1029,11 +1037,13 @@ const Templates: React.FC = () => {
                     value={newTemplate.size}
                     onChange={e => {
                       const selectedSize = e.target.value;
-                      const matchedModel = models.find(m => m.size === selectedSize);
+                      const sizeModelsList = models.filter(m => m.size === selectedSize);
+                      const matchedModel = sizeModelsList[0];
                       setNewTemplate({
                         ...newTemplate,
                         size: selectedSize,
                         resolution: matchedModel?.resolution || '',
+                        color: matchedModel?.color as any,
                         model: matchedModel?.model || newTemplate.model
                       });
                     }}
@@ -1046,41 +1056,64 @@ const Templates: React.FC = () => {
                 )}
               </div>
 
-              {/* Row 4: DPI — radio buttons */}
+              {/* Row 4: DPI — dynamic radio buttons */}
               <div className="form-group">
                 <label>Dpi / الدقة <span className="required-asterisk">*</span></label>
                 <div className="radio-group">
-                  <label className="radio-option">
-                    <input
-                      type="radio"
-                      name="dpi"
-                      value="152*152"
-                      checked={newTemplate.resolution !== '200*200'}
-                      onChange={() => setNewTemplate({ ...newTemplate, resolution: '152*152' })}
-                    />
-                    <span>152*152</span>
-                  </label>
-                  <label className="radio-option">
-                    <input
-                      type="radio"
-                      name="dpi"
-                      value="200*200"
-                      checked={newTemplate.resolution === '200*200'}
-                      onChange={() => setNewTemplate({ ...newTemplate, resolution: '200*200' })}
-                    />
-                    <span>200*200</span>
-                  </label>
+                  {availableResolutions.length > 0 ? availableResolutions.map(res => (
+                    <label key={res} className="radio-option">
+                      <input
+                        type="radio"
+                        name="dpi"
+                        value={res}
+                        checked={newTemplate.resolution === res}
+                        onChange={() => {
+                           const sizeResModelsList = selectedSizeModels.filter(m => m.resolution === res);
+                           const matchedModel = sizeResModelsList[0];
+                           setNewTemplate({ 
+                             ...newTemplate, 
+                             resolution: res,
+                             color: matchedModel?.color as any,
+                             model: matchedModel?.model || ''
+                           });
+                        }}
+                      />
+                      <span>{res}</span>
+                    </label>
+                  )) : (
+                    <span style={{ color: 'var(--text-muted)' }}>Select size first / اختر الحجم أولاً</span>
+                  )}
                 </div>
               </div>
 
-              {/* Row 5: Color — radio (read-only display from model) */}
+              {/* Row 5: Color — dynamic radio buttons */}
               <div className="form-group">
-                <label>Color / اللون</label>
+                <label>Color / اللون <span className="required-asterisk">*</span></label>
                 <div className="radio-group">
-                  <label className="radio-option">
-                    <input type="radio" name="color" checked readOnly />
-                    <span>Blackwhitered / أسود أبيض أحمر</span>
-                  </label>
+                  {availableModalColors.length > 0 ? availableModalColors.map((col: any) => {
+                     const config = COLOR_MAPPINGS[col] || { label: String(col) };
+                     return (
+                      <label key={col} className="radio-option">
+                        <input 
+                          type="radio" 
+                          name="color" 
+                          value={col}
+                          checked={newTemplate.color === col}
+                          onChange={() => {
+                            const exactModel = selectedResModels.find(m => m.color === col);
+                            setNewTemplate({
+                               ...newTemplate,
+                               color: col as any,
+                               model: exactModel?.model || ''
+                            });
+                          }}
+                        />
+                        <span>{config.label.split(' / ')[0]}</span>
+                      </label>
+                     );
+                  }) : (
+                    <span style={{ color: 'var(--text-muted)' }}>Select size first / اختر الحجم أولاً</span>
+                  )}
                 </div>
               </div>
 

@@ -57,6 +57,8 @@ export interface TemplateCreateRequest {
   model?: string;
   size?: string;
   resolution?: string;
+  color?: string;
+  barCode?: string;
   sceneNumber?: number;
   screenType?: string;
   attrCategory?: string;
