@@ -115,6 +115,7 @@ export const TemplateDesigner: React.FC<TemplateDesignerProps> = ({
           onUpdate={updateElement}
           onBringToFront={bringToFront}
           onSendToBack={sendToBack}
+          onAddElement={(type: string) => handleDropNewElement(type, 100, 100)}
         />
 
         {/* Center Canvas Workspace */}

@@ -60,58 +60,25 @@ public class ProductService {
             int localStart = 0;
 
             if (search != null && !search.isBlank()) {
-                localStart = page * size;
-                // Fetch first page of size 10 to find totalElements and get first batch
-                String firstPageUri = "/zk/item/list/1/0/10/" + storeId;
-                log.info("Search active. Fetching first page: URI={}, Body={}", firstPageUri, body);
-                Map<?, ?> firstResp = dragonEslApiClient.post(firstPageUri, body, Map.class);
-                if (hasItems(firstResp)) {
-                    responses.add(firstResp);
+                int zkongPage = page + 1; // Zkong uses 1-based indexing
+
+                log.info("Performing native Zkong API search for term: {}", search);
+                
+                // Try barcode search
+                Map<?, ?> barcodeResp = queryBarcode(body, search.trim(), zkongPage, size, storeId);
+                if (hasItems(barcodeResp)) {
+                    responses.add(barcodeResp);
+                }
+                
+                // Try title search
+                Map<?, ?> titleResp = queryTitle(body, search.trim(), zkongPage, size, storeId);
+                if (hasItems(titleResp)) {
+                    responses.add(titleResp);
                 }
 
-                long totalElements = 0;
-                if (firstResp != null) {
-                    Object dataObj = firstResp.get("data");
-                    if (dataObj instanceof Map) {
-                        Map<?, ?> dataMap = (Map<?, ?>) dataObj;
-                        Object totalObj = dataMap.get("totalElements");
-                        if (totalObj == null) totalObj = dataMap.get("total");
-                        if (totalObj == null) totalObj = dataMap.get("totalCount");
-                        if (totalObj instanceof Number) {
-                            totalElements = ((Number) totalObj).longValue();
-                        } else if (totalObj != null) {
-                            try {
-                                totalElements = Long.parseLong(totalObj.toString().trim());
-                            } catch (NumberFormatException e) {
-                                // ignore
-                            }
-                        }
-                    }
-                }
-
-                log.info("Search active. First page loaded. Total elements in Zkong: {}", totalElements);
-
-                if (totalElements > 10) {
-                    // limit search to fetch up to 200 items (20 pages of 10) to keep it safe and performant
-                    long maxPages = Math.min((totalElements + 9) / 10, 20); 
-                    log.info("Fetching remaining search pages sequentially: pages 2 to {}", maxPages);
-                    for (int p = 2; p <= maxPages; p++) {
-                        try {
-                            Map<?, ?> resp = dragonEslApiClient.post(
-                                    "/zk/item/list/" + p + "/0/10/" + storeId,
-                                    body,
-                                    Map.class
-                            );
-                            if (hasItems(resp)) {
-                                responses.add(resp);
-                            }
-                            if (p < maxPages) {
-                                Thread.sleep(200); // Rate limit protection
-                            }
-                        } catch (Exception e) {
-                            log.error("Error fetching search page " + p, e);
-                        }
-                    }
+                // If both are empty, we have no results
+                if (responses.isEmpty()) {
+                    return new PagedResponse<>(Collections.emptyList(), page, size, 0);
                 }
             } else {
                 log.info("Fetching chunks from Zkong by strictly enforcing zkongPageSize=50 (API constraint).");

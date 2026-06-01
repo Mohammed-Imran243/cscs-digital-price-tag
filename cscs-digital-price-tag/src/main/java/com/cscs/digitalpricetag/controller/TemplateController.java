@@ -118,6 +118,11 @@ public class TemplateController {
         return ResponseEntity.ok(ApiResponse.success("Template added successfully", templateService.addTemplate(request)));
     }
 
+    @PostMapping("/preview")
+    public ResponseEntity<ApiResponse<Object>> previewTemplate(@RequestBody Map<String, Object> request) {
+        return ResponseEntity.ok(ApiResponse.success("Template preview generated successfully", templateService.previewTemplate(request)));
+    }
+
     @PutMapping("/{id}")
     public ResponseEntity<ApiResponse<Object>> updateTemplateBase(
             @PathVariable String id,

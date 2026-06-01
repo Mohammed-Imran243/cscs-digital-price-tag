@@ -87,19 +87,39 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
       )}
 
       <aside className={`sidebar glass-card ${isMobileMenuOpen ? 'mobile-open' : ''} ${isSidebarCollapsed ? 'collapsed' : ''}`}>
-        <div className="sidebar-header">
+        <div 
+          className="sidebar-header" 
+          style={{ 
+            background: theme === 'dark' ? '#0f172a' : 'transparent',
+            padding: theme === 'dark' ? '8px' : '0',
+            borderRadius: theme === 'dark' ? '8px' : '0',
+            marginBottom: '32px',
+            borderBottom: 'none'
+          }}
+        >
           <div className="logo-container">
+            <div className="logo-full" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <img 
+                src={theme === 'dark' ? '/cscs-logo-square-white.png' : '/cscs-logo-square-dark.png'} 
+                alt="CSCS Logo" 
+                style={{ 
+                  width: '32px', 
+                  height: '32px', 
+                  objectFit: 'contain', 
+                  flexShrink: 0,
+                  mixBlendMode: theme === 'dark' ? 'screen' : 'multiply'
+                }} 
+              />
+              <span className="logo-text-override" style={{ fontSize: '13px', fontWeight: 'bold', color: theme === 'dark' ? 'white' : '#1e293b', lineHeight: '1.2', display: 'flex', flexDirection: 'column', letterSpacing: '-0.2px' }}>
+                <span style={{ whiteSpace: 'nowrap' }}>CSCS ESL</span>
+                <span style={{fontSize: '11px', opacity: 0.8, whiteSpace: 'nowrap'}}>CONNECT APP</span>
+              </span>
+            </div>
             <img 
-              src="/cscs.png" 
-              alt="CSCS ESL CONNECT APP" 
-              className="logo-full"
-              style={{ width: '180px', maxWidth: '100%', height: 'auto', objectFit: 'contain', filter: theme === 'dark' ? 'brightness(0) invert(1)' : 'none' }} 
-            />
-            <img 
-              src="/cscs-logo-square-dark.png" 
-              alt="CSCS" 
+              src={theme === 'dark' ? '/cscs-logo-square-white.png' : '/cscs-logo-square-dark.png'} 
+              alt="CSCS Logo" 
               className="logo-small"
-              style={{ filter: theme === 'dark' ? 'brightness(0) invert(1)' : 'none' }} 
+              style={{ mixBlendMode: theme === 'dark' ? 'screen' : 'multiply' }}
             />
           </div>
           <button className="sidebar-toggle-btn" onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}>
@@ -230,7 +250,9 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
         }
 
         .logo-full {
-          display: block;
+          display: flex;
+          align-items: center;
+          gap: 12px;
           transition: opacity 0.2s;
         }
 

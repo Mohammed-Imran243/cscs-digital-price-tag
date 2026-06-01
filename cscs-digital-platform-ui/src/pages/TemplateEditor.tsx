@@ -1,13 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { v4 as uuidv4 } from 'uuid';
 import { Rnd } from 'react-rnd';
 import { 
   ChevronLeft, ZoomIn, ZoomOut, Undo, Redo, 
   Copy, ClipboardPaste, Lock,
-  Type, Square, Circle, Minus, LayoutGrid, QrCode, Layers, MousePointer2
+  Type, Square, Circle, Minus, LayoutGrid, QrCode, Layers, MousePointer2, RotateCw, RotateCcw, Maximize
 } from 'lucide-react';
-import { addTemplate } from '../services/templateService';
+import { addTemplate, previewTemplate, getFieldNames } from '../services/templateService';
 import '../styles/editor.css';
 
 // Element types
@@ -27,6 +27,7 @@ export interface TemplateElement {
   borderColor: string;
   // Text specific
   text?: string;
+  fieldCode?: string;
   fontSize?: number;
   fontFamily?: string;
   fontWeight?: string;
@@ -39,11 +40,27 @@ const TemplateEditor: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
+  // Refs for calculating viewport center
+  const canvasAreaRef = useRef<HTMLDivElement>(null);
+  const canvasContainerRef = useRef<HTMLDivElement>(null);
+
   // Canvas State
   const [elements, setElements] = useState<TemplateElement[]>([]);
+  const [fields, setFields] = useState<any[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [zoom, setZoom] = useState<number>(100);
   const [isPublishing, setIsPublishing] = useState(false);
+  
+  // Preview State
+  const [previewImage, setPreviewImage] = useState<string | null>(null);
+  const [isPreviewing, setIsPreviewing] = useState(false);
+  const [previewError, setPreviewError] = useState<string | null>(null);
+  const [showFullScreenPreview, setShowFullScreenPreview] = useState(false);
+  const [fullScreenZoom, setFullScreenZoom] = useState(100);
+  const [fullScreenRotation, setFullScreenRotation] = useState(0);
+  
+  // Notification State
+  const [notification, setNotification] = useState<{ message: string; type: 'success' | 'error' | 'warning' } | null>(null);
   
   // Basic Template settings passed from previous page
   const passedConfig = location.state?.config || {};
@@ -64,13 +81,36 @@ const TemplateEditor: React.FC = () => {
   const selectedElement = elements.find(el => el.id === selectedId);
 
   const addElement = (type: ElementType) => {
+    let targetX = 50;
+    let targetY = 50;
+    const width = type === 'text' || type === 'barcode' ? 100 : 50;
+    const height = type === 'text' || type === 'line' ? 30 : 50;
+
+    if (canvasAreaRef.current && canvasContainerRef.current) {
+      const areaRect = canvasAreaRef.current.getBoundingClientRect();
+      const canvasRect = canvasContainerRef.current.getBoundingClientRect();
+      
+      const viewportCenterX = areaRect.left + areaRect.width / 2;
+      const viewportCenterY = areaRect.top + areaRect.height / 2;
+      
+      let relativeX = (viewportCenterX - canvasRect.left) / (zoom / 100);
+      let relativeY = (viewportCenterY - canvasRect.top) / (zoom / 100);
+      
+      targetX = relativeX - (width / 2);
+      targetY = relativeY - (height / 2);
+      
+      // Clamp to bounds
+      targetX = Math.max(0, Math.min(targetX, templateConfig.width - width));
+      targetY = Math.max(0, Math.min(targetY, templateConfig.height - height));
+    }
+
     const newEl: TemplateElement = {
       id: uuidv4(),
       type,
-      x: 50,
-      y: 50,
-      width: type === 'text' || type === 'barcode' ? 100 : 50,
-      height: type === 'text' || type === 'line' ? 30 : 50,
+      x: targetX,
+      y: targetY,
+      width,
+      height,
       color: '#000000',
       backgroundColor: type === 'text' ? 'transparent' : '#ffffff',
       borderWidth: type === 'rect' || type === 'ellipse' ? 1 : 0,
@@ -97,6 +137,57 @@ const TemplateEditor: React.FC = () => {
   };
 
   useEffect(() => {
+    // English translation fallback for DragonESL field codes
+    const fieldTranslations: Record<string, string> = {
+      'itemTitle': 'Product name',
+      'shortTitle': 'Product abbreviation',
+      'productCode': 'Commodity code',
+      'barCode': 'Product barcode',
+      'productSku': 'Self-code',
+      'unit': 'Unit',
+      'price': 'Price',
+      'originalPrice': 'Original price',
+      'memberPrice': 'Member price',
+      'qrCode': 'QR code',
+      'nfcUrl': 'NFC URL',
+      'proStartTime': 'Promotion start time',
+      'proEndTime': 'Promotion end time',
+      'updateTime': 'Update time',
+      'custFeature1': 'Custom feature 1',
+      'custFeature2': 'Custom feature 2',
+      'custFeature3': 'Custom feature 3',
+      'custFeature4': 'Custom feature 4',
+      'custFeature5': 'Custom feature 5',
+      'pricetagBarcode': 'Price tag barcode'
+    };
+
+    getFieldNames('1').then((res: any) => {
+      let dataObj = Array.isArray(res) ? res : (res?.data || res);
+      let allFields: any[] = [];
+      if (dataObj && typeof dataObj === 'object' && !Array.isArray(dataObj)) {
+        Object.values(dataObj).forEach((arr: any) => {
+          if (Array.isArray(arr)) allFields = [...allFields, ...arr];
+        });
+      } else if (Array.isArray(dataObj)) {
+        allFields = dataObj;
+      }
+      
+      const mappedFields = allFields.map((f: any) => {
+        if (typeof f === 'string') return { fieldCode: f, fieldName: fieldTranslations[f] || f };
+        
+        const code = f.fieldCode || f.name || f.code;
+        return {
+          fieldCode: code,
+          // Use translation if fieldName is null, otherwise fallback to code
+          fieldName: f.fieldName || fieldTranslations[code] || f.label || f.name || code
+        };
+      }).filter((f: any) => f.fieldCode);
+      
+      setFields(mappedFields);
+    }).catch(console.error);
+  }, []);
+
+  useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Delete' || e.key === 'Backspace') {
         // Only delete if we aren't typing in an input
@@ -114,29 +205,166 @@ const TemplateEditor: React.FC = () => {
     setZoom(Number(e.target.value));
   };
 
+  // Helper to map React frontend payload to DragonESL payload
+  const buildDragonEslPayload = (config: any, items: TemplateElement[]) => {
+    let payload = { ...config };
+
+    if (payload.storeId && typeof payload.storeId === 'string') {
+      payload.storeId = parseInt(payload.storeId, 10);
+    }
+
+    if (payload.resolution) {
+      const dimensions = payload.resolution.split('*');
+      if (dimensions.length === 2) {
+        payload.width = parseInt(dimensions[0], 10);
+        payload.height = parseInt(dimensions[1], 10);
+      }
+    }
+
+    if (payload.screenType === 'single') {
+      payload.screenType = 0;
+    }
+
+    if (!payload.modelId) {
+      payload.modelId = '[65]';
+    }
+
+    payload.status = payload.status !== undefined ? payload.status : 1;
+    payload.color = payload.color !== undefined ? payload.color : 1;
+    payload.type = payload.type !== undefined ? payload.type : 1;
+    payload.drawLayout = payload.drawLayout !== undefined ? payload.drawLayout : 1;
+    payload.itemNum = payload.itemNum !== undefined ? payload.itemNum : 1;
+    payload.templateType = payload.templateType !== undefined ? payload.templateType : 1;
+    payload.templateSize = payload.templateSize !== undefined ? payload.templateSize : 1;
+    payload.hardwareType = payload.hardwareType !== undefined ? payload.hardwareType : 1;
+    payload.templateNumber = payload.templateNumber !== undefined ? payload.templateNumber : ' ';
+    payload.templateVersion = payload.templateVersion !== undefined ? payload.templateVersion : '1.0';
+    payload.agencyId = payload.agencyId !== undefined ? payload.agencyId : 1694577214130;
+    payload.sceneNumber = payload.sceneNumber !== undefined ? payload.sceneNumber : 1;
+    payload.attrCategory = payload.attrCategory !== undefined ? payload.attrCategory : 'default';
+    payload.attrName = payload.attrName !== undefined ? payload.attrName : 'default';
+    
+    // Fallback if we don't have merchantId yet
+    payload.merchantId = payload.merchantId !== undefined ? payload.merchantId : 1775639851383;
+
+    let layerCount = 0;
+    const templateElements = items.map(source => {
+      let typeInt = 1;
+      if (source.type === 'text') typeInt = 1;
+      else if (source.type === 'barcode') typeInt = 2;
+      else if (source.type === 'qrcode') typeInt = 3;
+      else if (source.type === 'line') typeInt = 4;
+      else if (source.type === 'rect') typeInt = 5;
+
+      let align = 0;
+      if (source.textAlign === 'center') align = 1;
+      else if (source.textAlign === 'right') align = 2;
+
+      let fontFam = source.fontFamily || 'Arial';
+      if (fontFam === 'Inter' || fontFam === 'Roboto') {
+        fontFam = 'Arial';
+      }
+
+      const el = {
+        type: typeInt,
+        marginLeft: source.x,
+        marginTop: source.y,
+        width: source.width,
+        height: source.height,
+        content: source.text || '',
+        horizontalAlign: align,
+        fontSize: source.fontSize || 14,
+        fontType: fontFam,
+        color: source.color || '#000000',
+        borderColor: source.borderColor || '#000000',
+        fillColor: '',
+        fillinColor: '',
+        stroke: '#000000',
+        id: null,
+        angle: 0,
+        barcodeType: 10,
+        borderType: 1,
+        conRealResult: 1,
+        dateFormat: 'YYYY-MM-dd HH:mm:ss',
+        decimalSeparator: 'point',
+        fieldCode: source.fieldCode || '',
+        icon: null,
+        ifBold: 0,
+        ifCondition: 0,
+        ifItalic: 0,
+        ifStrikeThrough: 0,
+        ifUnderline: 0,
+        itemOrder: layerCount + 1,
+        itemPictureNameId: null,
+        layer: layerCount++,
+        lineBreak: '',
+        lineWeight: source.borderWidth || 0,
+        maxLines: 3,
+        minFontSize: 12,
+        noResourceHide: 0,
+        omitStyle: 0,
+        postfix: '',
+        prefix: '',
+        scaleX: 0,
+        scaleY: 0,
+        screenIndex: 0,
+        strokeWidth: 0,
+        textAdvanceProperty: 0,
+        thousandSeparator: 'comma',
+        verticalAlign: 0,
+        verticalSpace: 0
+      };
+      return el;
+    });
+
+    return {
+      templateBase: payload,
+      templateElementAdvancedAttributes: null,
+      templateElements: templateElements
+    };
+  };
+
   const handlePublish = async () => {
     setIsPublishing(true);
     try {
-      const payload = {
-        ...templateConfig,
-        type: 1, // Basic template
-        items: elements // Send the elements as the items array
-      };
-      
-      // If we don't have a templateName, we shouldn't publish
-      if (!payload.templateName) {
-        alert("Template name is missing. Please create the template from the templates page.");
-        return;
+      if (templateConfig) {
+        const payload = buildDragonEslPayload(templateConfig, elements);
+        console.log("Publishing payload:", payload);
+        await addTemplate(payload as any);
+        setNotification({ message: 'Template published successfully!', type: 'success' });
+        
+        setTimeout(() => {
+          navigate('/templates');
+        }, 1500);
       }
-
-      await addTemplate(payload);
-      alert("Template successfully published to ZKong cloud!");
-      navigate('/templates');
     } catch (err) {
       console.error("Failed to publish template:", err);
-      alert("Failed to publish template. Please check logs.");
-    } finally {
+      setNotification({ message: 'Failed to publish template. Please check logs.', type: 'error' });
       setIsPublishing(false);
+    }
+  };
+
+  const handlePreview = async () => {
+    setIsPreviewing(true);
+    setPreviewError(null);
+    try {
+      if (templateConfig) {
+        const payload = buildDragonEslPayload(templateConfig, elements);
+        console.log("Previewing payload:", payload);
+        const response = await previewTemplate(payload as any);
+        if (response && typeof response === 'string') {
+           setPreviewImage(`data:image/png;base64,${response}`);
+        } else if (response && response.data) {
+           setPreviewImage(`data:image/png;base64,${response.data}`);
+        } else {
+           setPreviewError("Failed to generate preview image. Invalid response format.");
+        }
+      }
+    } catch (err) {
+      console.error("Failed to preview template:", err);
+      setPreviewError("Failed to generate preview. Check console for details.");
+    } finally {
+      setIsPreviewing(false);
     }
   };
 
@@ -159,7 +387,7 @@ const TemplateEditor: React.FC = () => {
             whiteSpace: 'pre-wrap',
             padding: '2px',
           }}>
-            {el.text}
+            {el.fieldCode ? `[${el.fieldCode}]` : el.text}
           </div>
         );
       case 'rect':
@@ -199,7 +427,7 @@ const TemplateEditor: React.FC = () => {
             background: '#fff'
           }}>
             <div style={{ width: '80%', height: '60%', background: 'repeating-linear-gradient(90deg, #000, #000 2px, #fff 2px, #fff 4px)' }}></div>
-            <span style={{ fontSize: '10px' }}>{el.text}</span>
+            <span style={{ fontSize: '10px' }}>{el.fieldCode ? `[${el.fieldCode}]` : el.text}</span>
           </div>
         );
       case 'qrcode':
@@ -243,7 +471,9 @@ const TemplateEditor: React.FC = () => {
           <div style={{ width: '1px', height: '24px', background: '#cbd5e1', margin: '0 4px' }} />
           
           {/* Zoom Controls */}
-          <ZoomOut size={16} color="#64748b" />
+          <button className="toolbar-btn" style={{ padding: '4px' }} onClick={() => setZoom(z => Math.max(50, z - 10))} title="Zoom Out">
+            <ZoomOut size={16} color="#64748b" />
+          </button>
           <input 
             type="range" 
             min="50" max="300" 
@@ -252,11 +482,15 @@ const TemplateEditor: React.FC = () => {
             className="zoom-slider"
           />
           <span style={{ fontSize: '13px', color: '#64748b', minWidth: '40px' }}>{zoom}%</span>
-          <ZoomIn size={16} color="#64748b" />
+          <button className="toolbar-btn" style={{ padding: '4px' }} onClick={() => setZoom(z => Math.min(300, z + 10))} title="Zoom In">
+            <ZoomIn size={16} color="#64748b" />
+          </button>
         </div>
 
         <div className="toolbar-group">
-          <button className="toolbar-btn" style={{ padding: '6px 12px', fontSize: '14px' }}>Preview</button>
+          <button className="toolbar-btn" style={{ padding: '6px 12px', fontSize: '14px' }} onClick={handlePreview} disabled={isPreviewing}>
+            {isPreviewing ? 'Generating...' : 'Preview'}
+          </button>
           <button className="publish-btn" onClick={handlePublish} disabled={isPublishing}>
             {isPublishing ? 'Publishing...' : 'Publish'}
           </button>
@@ -337,24 +571,38 @@ const TemplateEditor: React.FC = () => {
         </div>
 
         {/* CENTER CANVAS */}
-        <div className="editor-canvas-area" onClick={() => setSelectedId(null)}>
+        <div className="editor-canvas-area" ref={canvasAreaRef} onClick={() => setSelectedId(null)}>
           <div className="ruler-corner"></div>
           <div className="ruler-h"></div>
           <div className="ruler-v"></div>
           
           <div 
-            className="canvas-container"
-            style={{
-              width: templateConfig.width,
-              height: templateConfig.height,
-              transform: `scale(${zoom / 100})`,
+            style={{ 
+              width: templateConfig.width * (zoom / 100), 
+              height: templateConfig.height * (zoom / 100),
+              position: 'relative',
+              transition: 'width 0.1s, height 0.1s'
             }}
-            onClick={(e) => e.stopPropagation()} // Prevent unselecting when clicking canvas bg
           >
+            <div 
+              className="canvas-container"
+              ref={canvasContainerRef}
+              style={{
+                width: templateConfig.width,
+                height: templateConfig.height,
+                transform: `scale(${zoom / 100})`,
+                transformOrigin: 'top left',
+                position: 'absolute',
+                top: 0,
+                left: 0
+              }}
+              onClick={(e) => e.stopPropagation()} // Prevent unselecting when clicking canvas bg
+            >
             {elements.map((el) => (
               <Rnd
                 key={el.id}
                 bounds="parent"
+                scale={zoom / 100}
                 size={{ width: el.width, height: el.height }}
                 position={{ x: el.x, y: el.y }}
                 onDragStart={() => setSelectedId(el.id)}
@@ -375,6 +623,7 @@ const TemplateEditor: React.FC = () => {
                 {renderElementContent(el)}
               </Rnd>
             ))}
+            </div>
           </div>
         </div>
 
@@ -384,32 +633,25 @@ const TemplateEditor: React.FC = () => {
           
           {selectedElement ? (
             <div style={{ flex: 1, overflowY: 'auto' }}>
-              <div className="property-group">
-                <div style={{ fontSize: '12px', fontWeight: 600, color: '#94a3b8', marginBottom: '12px', textTransform: 'uppercase' }}>Position & Size</div>
-                
-                <div className="property-row">
-                  <span className="property-label">X</span>
-                  <input type="number" className="property-input" value={Math.round(selectedElement.x)} onChange={(e) => updateElement(selectedElement.id, { x: Number(e.target.value) })} />
-                </div>
-                <div className="property-row">
-                  <span className="property-label">Y</span>
-                  <input type="number" className="property-input" value={Math.round(selectedElement.y)} onChange={(e) => updateElement(selectedElement.id, { y: Number(e.target.value) })} />
-                </div>
-                <div className="property-row">
-                  <span className="property-label">Width</span>
-                  <input type="number" className="property-input" value={Math.round(selectedElement.width)} onChange={(e) => updateElement(selectedElement.id, { width: Number(e.target.value) })} />
-                </div>
-                <div className="property-row">
-                  <span className="property-label">Height</span>
-                  <input type="number" className="property-input" value={Math.round(selectedElement.height)} onChange={(e) => updateElement(selectedElement.id, { height: Number(e.target.value) })} />
-                </div>
-              </div>
-
               {(selectedElement.type === 'text' || selectedElement.type === 'barcode') && (
                 <div className="property-group">
                   <div style={{ fontSize: '12px', fontWeight: 600, color: '#94a3b8', marginBottom: '12px', textTransform: 'uppercase' }}>Content</div>
+                  <div style={{ marginBottom: '12px' }}>
+                    <span className="property-label" style={{ display: 'block', marginBottom: '4px' }}>Fetch field</span>
+                    <select 
+                      className="property-select"
+                      style={{ width: '100%', padding: '6px', borderRadius: '4px', border: '1px solid #cbd5e1' }}
+                      value={selectedElement.fieldCode || ''}
+                      onChange={(e) => updateElement(selectedElement.id, { fieldCode: e.target.value })}
+                    >
+                      <option value="">Static Content</option>
+                      {fields.map((f, i) => (
+                        <option key={i} value={f.fieldCode}>{f.fieldName}</option>
+                      ))}
+                    </select>
+                  </div>
                   <div style={{ marginBottom: '8px' }}>
-                    <span className="property-label" style={{ display: 'block', marginBottom: '4px' }}>Value</span>
+                    <span className="property-label" style={{ display: 'block', marginBottom: '4px' }}>Value (Static/Preview)</span>
                     <input 
                       type="text" 
                       className="property-input" 
@@ -433,6 +675,27 @@ const TemplateEditor: React.FC = () => {
                   )}
                 </div>
               )}
+
+              <div className="property-group">
+                <div style={{ fontSize: '12px', fontWeight: 600, color: '#94a3b8', marginBottom: '12px', textTransform: 'uppercase' }}>Position & Size</div>
+                
+                <div className="property-row">
+                  <span className="property-label">X</span>
+                  <input type="number" className="property-input" value={Math.round(selectedElement.x)} onChange={(e) => updateElement(selectedElement.id, { x: Number(e.target.value) })} />
+                </div>
+                <div className="property-row">
+                  <span className="property-label">Y</span>
+                  <input type="number" className="property-input" value={Math.round(selectedElement.y)} onChange={(e) => updateElement(selectedElement.id, { y: Number(e.target.value) })} />
+                </div>
+                <div className="property-row">
+                  <span className="property-label">Width</span>
+                  <input type="number" className="property-input" value={Math.round(selectedElement.width)} onChange={(e) => updateElement(selectedElement.id, { width: Number(e.target.value) })} />
+                </div>
+                <div className="property-row">
+                  <span className="property-label">Height</span>
+                  <input type="number" className="property-input" value={Math.round(selectedElement.height)} onChange={(e) => updateElement(selectedElement.id, { height: Number(e.target.value) })} />
+                </div>
+              </div>
 
               {selectedElement.type === 'text' && (
                 <div className="property-group">
@@ -489,6 +752,104 @@ const TemplateEditor: React.FC = () => {
           )}
         </div>
       </div>
+
+      {/* Toast Notification */}
+      {notification && (
+        <div className={`toast-notification ${notification.type} glass-card`} style={{ position: 'fixed', top: '24px', left: '50%', transform: 'translateX(-50%)', zIndex: 10000, padding: '12px 24px', borderRadius: '8px', background: notification.type === 'success' ? '#10b981' : '#ef4444', color: 'white', display: 'flex', alignItems: 'center', gap: '8px', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }}>
+          {notification.message}
+        </div>
+      )}
+
+      {/* Preview Modal */}
+      {(previewImage || previewError) && (
+        <div className="modal-overlay" onClick={() => { setPreviewImage(null); setPreviewError(null); }}>
+          <div className="modal-content" style={{ width: '600px', padding: 0, overflow: 'hidden' }} onClick={e => e.stopPropagation()}>
+            {/* Header */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 24px', borderBottom: '1px solid #e2e8f0' }}>
+              <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 400 }}>Preview</h3>
+              <button onClick={() => { setPreviewImage(null); setPreviewError(null); }} style={{ background: 'none', border: 'none', fontSize: '20px', cursor: 'pointer', color: '#94a3b8' }}>&times;</button>
+            </div>
+            
+            {/* Sub-header toolbar */}
+            <div style={{ display: 'flex', alignItems: 'center', padding: '12px 24px', borderBottom: '1px solid #e2e8f0', gap: '12px' }}>
+              <span style={{ fontSize: '14px' }}>Current view:</span>
+              <input type="text" placeholder="Please enter product barcode" style={{ padding: '6px 12px', border: '1px solid #cbd5e1', borderRadius: '4px', flex: 1 }} />
+              <button style={{ padding: '6px 16px', background: '#3b82f6', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>Application</button>
+              <button onClick={() => { setShowFullScreenPreview(true); setFullScreenZoom(100); setFullScreenRotation(0); }} style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center' }} title="Zoom In">
+                <ZoomIn size={20} color="#333" />
+              </button>
+              <button onClick={handlePreview} style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center' }} title="Refresh">
+                <RotateCw size={20} color="#333" />
+              </button>
+            </div>
+
+            {/* Canvas Area */}
+            <div style={{ background: '#f1f5f9', padding: '40px', minHeight: '300px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              {previewError ? (
+                <div style={{ color: '#ef4444' }}>{previewError}</div>
+              ) : (
+                <div style={{ background: 'white', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)', padding: '20px' }}>
+                  <img src={previewImage!} alt="Template Preview" style={{ maxWidth: '100%', maxHeight: '400px', objectFit: 'contain' }} />
+                </div>
+              )}
+            </div>
+
+            {/* Footer */}
+            <div style={{ padding: '16px', borderTop: '1px solid #e2e8f0', textAlign: 'center' }}>
+              <button onClick={() => { setPreviewImage(null); setPreviewError(null); }} style={{ padding: '8px 32px', background: 'transparent', border: 'none', cursor: 'pointer', fontSize: '16px' }}>Close</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Full Screen Image Preview Overlay */}
+      {showFullScreenPreview && previewImage && (
+        <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', background: 'rgba(0,0,0,0.85)', zIndex: 10000, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+          
+          {/* Close Button Top Right */}
+          <button onClick={() => setShowFullScreenPreview(false)} style={{ position: 'absolute', top: '24px', right: '24px', background: 'none', border: 'none', color: 'white', cursor: 'pointer' }}>
+            <span style={{ fontSize: '32px' }}>&times;</span>
+          </button>
+
+          {/* Image Container */}
+          <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', width: '100%', padding: '40px' }}>
+            <img 
+              src={previewImage} 
+              alt="Full Screen Preview" 
+              style={{ 
+                transform: `scale(${fullScreenZoom / 100}) rotate(${fullScreenRotation}deg)`,
+                transition: 'transform 0.2s ease-in-out',
+                maxWidth: '90%',
+                maxHeight: '80vh',
+                objectFit: 'contain',
+                background: 'white',
+                padding: '20px'
+              }} 
+            />
+          </div>
+
+          {/* Floating Toolbar Bottom */}
+          <div style={{ position: 'absolute', bottom: '40px', background: '#334155', borderRadius: '8px', padding: '12px 24px', display: 'flex', gap: '24px', alignItems: 'center', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.5)' }}>
+            <button onClick={() => setFullScreenZoom(z => Math.max(50, z - 20))} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'white' }} title="Zoom Out">
+              <ZoomOut size={24} />
+            </button>
+            <button onClick={() => setFullScreenZoom(z => Math.min(300, z + 20))} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'white' }} title="Zoom In">
+              <ZoomIn size={24} />
+            </button>
+            <button onClick={() => { setFullScreenZoom(100); setFullScreenRotation(0); }} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'white' }} title="Reset / Full Screen">
+              <Maximize size={24} />
+            </button>
+            <button onClick={() => setFullScreenRotation(r => r - 90)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'white' }} title="Rotate Left">
+              <RotateCcw size={24} />
+            </button>
+            <button onClick={() => setFullScreenRotation(r => r + 90)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'white' }} title="Rotate Right">
+              <RotateCw size={24} />
+            </button>
+          </div>
+
+        </div>
+      )}
+
     </div>
   );
 };

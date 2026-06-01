@@ -155,6 +155,15 @@ const Templates: React.FC = () => {
     fetchLookups();
   }, []);
 
+  // Check for navigation toast messages
+  useEffect(() => {
+    if (location.state && location.state.toastMessage) {
+      showNotification(location.state.toastMessage, location.state.toastType || 'success');
+      // Clear state so refresh doesn't trigger it again
+      window.history.replaceState({}, document.title);
+    }
+  }, [location.state]);
+
   useEffect(() => {
     const handler = setTimeout(() => {
       setDebouncedSearchQuery(searchQuery);

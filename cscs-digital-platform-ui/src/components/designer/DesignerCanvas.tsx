@@ -61,39 +61,51 @@ export const DesignerCanvas: React.FC<DesignerCanvasProps> = ({
   }, [selectedId, elements, onUpdate]);
 
   const renderElementContent = (el: DesignerElement) => {
+    const commonStyles: React.CSSProperties = {
+      width: '100%',
+      height: '100%',
+      transform: `rotate(${el.rotation || 0}deg)`,
+      border: el.borderThickness ? `${el.borderThickness}px solid ${el.borderColor || '#000'}` : 'none',
+      backgroundColor: el.backgroundColor === 'transparent' ? 'transparent' : (el.backgroundColor || 'transparent'),
+      boxSizing: 'border-box'
+    };
+
     switch (el.type) {
       case 'text':
         return (
           <div style={{
-            width: '100%', height: '100%',
-            fontSize: `${el.fontSize}px`, color: el.color,
+            ...commonStyles,
+            fontSize: `${el.fontSize}px`, 
+            fontFamily: el.fontFamily || 'Arial',
+            color: el.color,
             display: 'flex', alignItems: 'center', justifyContent: el.align || 'flex-start',
-            overflow: 'hidden', whiteSpace: 'nowrap'
+            overflow: 'hidden', whiteSpace: 'nowrap',
+            padding: '0 4px'
           }}>
             {el.businessAttribute ? `[${el.businessAttribute}]` : el.content}
           </div>
         );
       case 'rect':
-        return <div style={{ width: '100%', height: '100%', border: `2px solid ${el.color || '#000'}` }} />;
+        return <div style={{ ...commonStyles, border: el.borderThickness ? commonStyles.border : `2px solid ${el.color || '#000'}` }} />;
       case 'rounded_rect':
-        return <div style={{ width: '100%', height: '100%', border: `2px solid ${el.color || '#000'}`, borderRadius: '12px' }} />;
+        return <div style={{ ...commonStyles, border: el.borderThickness ? commonStyles.border : `2px solid ${el.color || '#000'}`, borderRadius: '12px' }} />;
       case 'ellipse':
-        return <div style={{ width: '100%', height: '100%', border: `2px solid ${el.color || '#000'}`, borderRadius: '50%' }} />;
+        return <div style={{ ...commonStyles, border: el.borderThickness ? commonStyles.border : `2px solid ${el.color || '#000'}`, borderRadius: '50%' }} />;
       case 'barcode':
         return (
-          <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', border: '1px dashed #ccc', background: '#f8f9fa' }}>
+          <div style={{ ...commonStyles, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: el.backgroundColor !== 'transparent' ? el.backgroundColor : '#f8f9fa' }}>
             <div style={{ flex: 1, width: '80%', borderLeft: '2px solid #000', borderRight: '4px solid #000', margin: '4px 0' }}></div>
             <span style={{ fontSize: '10px' }}>{el.businessAttribute ? `[${el.businessAttribute}]` : '123456789'}</span>
           </div>
         );
       case 'qrcode':
         return (
-          <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px dashed #ccc', background: '#f8f9fa' }}>
+          <div style={{ ...commonStyles, display: 'flex', alignItems: 'center', justifyContent: 'center', background: el.backgroundColor !== 'transparent' ? el.backgroundColor : '#f8f9fa' }}>
             <div style={{ width: '60%', height: '60%', background: 'repeating-linear-gradient(45deg, #000, #000 2px, #fff 2px, #fff 4px)' }}></div>
           </div>
         );
       case 'image':
-        return <div style={{ width: '100%', height: '100%', background: '#e5e7eb', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#9ca3af', fontSize: '12px' }}>Image Area</div>;
+        return <div style={{ ...commonStyles, background: el.backgroundColor !== 'transparent' ? el.backgroundColor : '#e5e7eb', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#9ca3af', fontSize: '12px' }}>Image Area</div>;
       default:
         return null;
     }

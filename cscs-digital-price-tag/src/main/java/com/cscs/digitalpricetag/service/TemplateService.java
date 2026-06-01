@@ -178,154 +178,14 @@ public class TemplateService {
         return performGet("/zk/sys/getFieldNames/" + type);
     }
 
+
     public Object addTemplate(Map<String, Object> request) {
         try {
-            Map<String, Object> payload = new HashMap<>();
-            payload.putAll(request);
-
-            if (payload.containsKey("storeId") && payload.get("storeId") instanceof String) {
-                payload.put("storeId", Long.parseLong(payload.get("storeId").toString()));
-            }
-
-            if (payload.containsKey("resolution")) {
-                String resolution = payload.get("resolution").toString();
-                String[] dimensions = resolution.split("\\*");
-                if (dimensions.length == 2) {
-                    payload.put("width", Integer.parseInt(dimensions[0]));
-                    payload.put("height", Integer.parseInt(dimensions[1]));
-                }
-            }
-
-            // Fix screenType: string "single" -> int 0
-            if (payload.containsKey("screenType") && "single".equals(payload.get("screenType"))) {
-                payload.put("screenType", 0);
-            }
-
-            // Mock modelId if missing
-            if (!payload.containsKey("modelId")) {
-                payload.put("modelId", "[65]"); // Default modelId format
-            }
-
-            payload.putIfAbsent("status", 1);
-            payload.putIfAbsent("color", 1);
-            payload.putIfAbsent("type", 1);
-            payload.putIfAbsent("drawLayout", 1);
-            payload.putIfAbsent("itemNum", 1);
-            payload.putIfAbsent("templateType", 1);
-            payload.putIfAbsent("templateSize", 1);
-            payload.putIfAbsent("hardwareType", 1);
-            payload.putIfAbsent("templateNumber", " ");
-            payload.putIfAbsent("templateVersion", "1.0");
-            payload.putIfAbsent("agencyId", 1694577214130L); // Default from user payload
-            payload.putIfAbsent("sceneNumber", 1);
-            payload.putIfAbsent("attrCategory", "default");
-            payload.putIfAbsent("attrName", "default");
-
-            Long merchantId = properties != null && properties.getMerchantId() != null
-                    ? properties.getMerchantId()
-                    : 1775639851383L;
-            payload.putIfAbsent("merchantId", merchantId);
-            
-            // Extract items array for templateElements
-            Object itemsObj = payload.remove("items");
-            java.util.List<Map<String, Object>> mappedElements = new java.util.ArrayList<>();
-            if (itemsObj instanceof java.util.List) {
-                java.util.List<?> itemsList = (java.util.List<?>) itemsObj;
-                int layerCount = 0;
-                for (Object item : itemsList) {
-                    if (item instanceof Map) {
-                        Map<String, Object> source = (Map<String, Object>) item;
-                        Map<String, Object> element = new HashMap<>();
-                        
-                        // Map type string to DragonESL type int
-                        Object typeStr = source.get("type");
-                        if ("text".equals(typeStr)) element.put("type", 1);
-                        else if ("barcode".equals(typeStr)) element.put("type", 2);
-                        else if ("qrcode".equals(typeStr)) element.put("type", 3);
-                        else if ("line".equals(typeStr)) element.put("type", 4);
-                        else if ("rect".equals(typeStr)) element.put("type", 5);
-                        else element.put("type", 1);
-                        
-                        // Map coordinates
-                        element.put("marginLeft", source.get("x"));
-                        element.put("marginTop", source.get("y"));
-                        element.put("width", source.get("width"));
-                        element.put("height", source.get("height"));
-                        
-                        // Map text to content
-                        element.put("content", source.containsKey("text") ? source.get("text") : "");
-                        
-                        // Map alignment
-                        int align = 0;
-                        if ("center".equals(source.get("textAlign"))) align = 1;
-                        else if ("right".equals(source.get("textAlign"))) align = 2;
-                        element.put("horizontalAlign", align);
-                        
-                        // Map font
-                        element.put("fontSize", source.getOrDefault("fontSize", 14));
-                        String fontFam = (String) source.getOrDefault("fontFamily", "Arial");
-                        if ("Inter".equals(fontFam) || "Roboto".equals(fontFam)) {
-                            fontFam = "Arial"; // Zkong backend crashes if font is not installed on their server
-                        }
-                        element.put("fontType", fontFam);
-                        
-                        // Map colors
-                        element.put("color", source.getOrDefault("color", "#000000"));
-                        element.put("borderColor", source.getOrDefault("borderColor", "#000000"));
-                        element.put("fillColor", "");
-                        element.put("fillinColor", "");
-                        element.put("stroke", "#000000");
-
-                        // Add exact DragonESL defaults
-                        element.put("id", null);
-                        element.put("angle", 0);
-                        element.put("barcodeType", 10);
-                        element.put("borderType", 1);
-                        element.put("conRealResult", 1);
-                        element.put("dateFormat", "YYYY-MM-dd HH:mm:ss");
-                        element.put("decimalSeparator", "point");
-                        element.put("fieldCode", "");
-                        element.put("icon", null);
-                        element.put("ifBold", 0);
-                        element.put("ifCondition", 0);
-                        element.put("ifItalic", 0);
-                        element.put("ifStrikeThrough", 0);
-                        element.put("ifUnderline", 0);
-                        element.put("itemOrder", layerCount + 1);
-                        element.put("itemPictureNameId", null);
-                        element.put("layer", layerCount++);
-                        element.put("lineBreak", "");
-                        element.put("lineWeight", source.getOrDefault("borderWidth", 0));
-                        element.put("maxLines", 3);
-                        element.put("minFontSize", 12);
-                        element.put("noResourceHide", 0);
-                        element.put("omitStyle", 0);
-                        element.put("postfix", "");
-                        element.put("prefix", "");
-                        element.put("scaleX", 0);
-                        element.put("scaleY", 0);
-                        element.put("screenIndex", 0);
-                        element.put("strokeWidth", 0);
-                        element.put("textAdvanceProperty", 0);
-                        element.put("thousandSeparator", "comma");
-                        element.put("verticalAlign", 0);
-                        element.put("verticalSpace", 0);
-
-                        mappedElements.add(element);
-                    }
-                }
-            }
-            
-            Map<String, Object> finalPayload = new HashMap<>();
-            finalPayload.put("templateBase", payload);
-            finalPayload.put("templateElementAdvancedAttributes", null);
-            finalPayload.put("templateElements", mappedElements);
-
-            log.info("Creating template with final payload: {}", finalPayload);
+            log.info("Creating template with final payload: {}", request);
 
             DragonTemplateGenericResponse response = dragonEslApiClient.post(
                     "/zk/template/addTemplateAllRefactor",
-                    finalPayload,
+                    request, // publish requires it unwrapped (templateBase at root)
                     DragonTemplateGenericResponse.class
             );
 
@@ -343,6 +203,36 @@ public class TemplateService {
         } catch (Exception e) {
             log.error("Error creating template: {}", e.getMessage(), e);
             throw new DragonEslException("Template creation failed: " + e.getMessage(), HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    public Object previewTemplate(Map<String, Object> request) {
+        try {
+            // Preview endpoint expects the payload wrapped in "templateAllRefactor"
+            Map<String, Object> finalPayload = new HashMap<>();
+            finalPayload.put("templateAllRefactor", request);
+
+            log.info("Previewing template with payload: {}", finalPayload);
+
+            DragonTemplateGenericResponse response = dragonEslApiClient.post(
+                    "/zk/template/specifyCommodityPreviewTemplate",
+                    finalPayload,
+                    DragonTemplateGenericResponse.class
+            );
+
+            if (response == null || !response.isSuccess()) {
+                String msg = response != null ? response.getMessage() : "No response";
+                log.error("Template preview failed: {}", msg);
+                throw new DragonEslException("Failed to preview template: " + msg, HttpStatus.BAD_REQUEST);
+            }
+
+            return response.getData() != null ? response.getData() : response;
+
+        } catch (DragonEslException e) {
+            throw e;
+        } catch (Exception e) {
+            log.error("Error previewing template: {}", e.getMessage(), e);
+            throw new DragonEslException("Template preview failed: " + e.getMessage(), HttpStatus.BAD_REQUEST);
         }
     }
 
