@@ -29,7 +29,7 @@ WORKDIR /app
 COPY --from=build /app/build/libs/cscs-digital-price-tag-1.0.0.jar app.jar
 
 # Expose port
-EXPOSE 8080
+EXPOSE 7165
 
 # Run the app
 ENTRYPOINT ["java", "-jar", "app.jar"]

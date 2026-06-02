@@ -28,7 +28,7 @@ COPY --from=build /app/dist .
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
 # Expose port 80
-EXPOSE 80
+EXPOSE 5140
 
 # Start nginx
 ENTRYPOINT ["nginx", "-g", "daemon off;"]

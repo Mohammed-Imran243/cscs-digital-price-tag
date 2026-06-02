@@ -18,7 +18,7 @@ services:
       DRAGON_ESL_MERCHANT_ID: 1775639851383
 
     ports:
-      - "8080:8080"
+      - "7165:7165"
 
     networks:
       - cscs-network
@@ -34,7 +34,7 @@ services:
       - backend
 
     ports:
-      - "5173:80"
+      - "5140:5140"
 
     networks:
       - cscs-network
