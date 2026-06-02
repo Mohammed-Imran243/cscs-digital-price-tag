@@ -19,6 +19,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 @Service
@@ -30,6 +33,11 @@ public class DashboardService {
     private final TemplateService templateService;
     private final ProductService productService;
     private final DeviceService deviceService;
+
+    private final ExecutorService executor = Executors.newFixedThreadPool(20);
+    private final AtomicReference<DashboardSummary> cachedSummary = new AtomicReference<>(null);
+    private final AtomicReference<Instant> lastFetchTime = new AtomicReference<>(Instant.MIN);
+    private static final int CACHE_TTL_MINUTES = 3;
 
     public DashboardService(StoreService storeService,
                             MerchantService merchantService,
@@ -44,15 +52,20 @@ public class DashboardService {
     }
 
     public DashboardSummary getSummary() {
+        Instant now = Instant.now();
+        if (cachedSummary.get() != null && lastFetchTime.get().plusSeconds(CACHE_TTL_MINUTES * 60L).isAfter(now)) {
+            return cachedSummary.get();
+        }
+
         DashboardSummary summary = new DashboardSummary();
-        summary.setLastUpdated(DateTimeFormatter.ISO_INSTANT.format(Instant.now()));
+        summary.setLastUpdated(DateTimeFormatter.ISO_INSTANT.format(now));
 
         // 1. Fetch Independent base data
-        CompletableFuture<Map<String, Object>> merchantFuture = CompletableFuture.supplyAsync(() -> merchantService.getMerchantInfo());
-        CompletableFuture<List<StoreResponse>> storesFuture = CompletableFuture.supplyAsync(() -> storeService.getAllStores());
-        CompletableFuture<Long> activeStoreCountFuture = CompletableFuture.supplyAsync(() -> storeService.getActiveStoreCount());
-        CompletableFuture<DragonTemplateListResponse> templatesFuture = CompletableFuture.supplyAsync(() -> templateService.getTemplates(0, 1, new HashMap<>()));
-        CompletableFuture<List<String>> categoriesFuture = CompletableFuture.supplyAsync(() -> templateService.getCategories());
+        CompletableFuture<Map<String, Object>> merchantFuture = CompletableFuture.supplyAsync(() -> merchantService.getMerchantInfo(), executor);
+        CompletableFuture<List<StoreResponse>> storesFuture = CompletableFuture.supplyAsync(() -> storeService.getAllStores(), executor);
+        CompletableFuture<Long> activeStoreCountFuture = CompletableFuture.supplyAsync(() -> storeService.getActiveStoreCount(), executor);
+        CompletableFuture<DragonTemplateListResponse> templatesFuture = CompletableFuture.supplyAsync(() -> templateService.getTemplates(0, 1, new HashMap<>()), executor);
+        CompletableFuture<List<String>> categoriesFuture = CompletableFuture.supplyAsync(() -> templateService.getCategories(), executor);
 
         CompletableFuture.allOf(merchantFuture, storesFuture, activeStoreCountFuture, templatesFuture, categoriesFuture).join();
 
@@ -128,8 +141,8 @@ public class DashboardService {
                         if (esl != null) eslTotal = esl.getTotalElements();
                     } catch (Exception e) { log.warn("Dashboard ESL fetch error for store {}", store.getStoreId()); }
 
-                    return new DashboardSummary.StoreBreakdown(store.getStoreId(), store.getStoreName(), productCount, apTotal, apOnline);
-                }))
+                    return new DashboardSummary.StoreBreakdown(store.getStoreId(), store.getStoreName(), productCount, apTotal, apOnline, eslTotal);
+                }, executor))
                 .toList();
 
             CompletableFuture.allOf(storeFutures.toArray(new CompletableFuture[0])).join();
@@ -139,37 +152,19 @@ public class DashboardService {
                     breakdowns.add(future.get());
                 } catch (Exception e) { }
             }
-
-            long totalProducts = breakdowns.stream().mapToLong(DashboardSummary.StoreBreakdown::getProductCount).sum();
-            long totalAps = breakdowns.stream().mapToLong(DashboardSummary.StoreBreakdown::getApTotalCount).sum();
-            long totalEsls = 0; // We still need the sum of ESLs from futures or directly
-            
-            // Wait, I mapped ESL inside the store future but didn't store it in breakdown because UI doesn't need ESL breakdown. 
-            // I'll recalculate ESL total by making ESL a separate concurrent map or just fetch it in the same future.
-            // Let me adjust the ESL sum.
         }
 
-        // recalculating ESL since it's not in breakdown DTO
-        long totalEsls = 0;
-        if (stores != null && !stores.isEmpty()) {
-             List<CompletableFuture<Long>> eslFutures = stores.stream()
-                .map(store -> CompletableFuture.supplyAsync(() -> {
-                    try {
-                        PagedResponse<EslResponse> esl = deviceService.getEslDevices(0, 1, store.getStoreId(), null);
-                        return esl != null ? esl.getTotalElements() : 0L;
-                    } catch (Exception e) { return 0L; }
-                }))
-                .toList();
-             totalEsls = eslFutures.stream().map(CompletableFuture::join).mapToLong(Long::longValue).sum();
-        }
-        
         long totalProducts = breakdowns.stream().mapToLong(DashboardSummary.StoreBreakdown::getProductCount).sum();
         long totalAps = breakdowns.stream().mapToLong(DashboardSummary.StoreBreakdown::getApTotalCount).sum();
+        long totalEsls = breakdowns.stream().mapToLong(DashboardSummary.StoreBreakdown::getEslTotalCount).sum();
 
         summary.setStoreBreakdowns(breakdowns);
         summary.setProductCount(totalProducts);
         summary.setApCount(totalAps);
         summary.setEslCount(totalEsls);
+
+        cachedSummary.set(summary);
+        lastFetchTime.set(now);
 
         return summary;
     }

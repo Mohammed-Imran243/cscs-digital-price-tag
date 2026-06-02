@@ -21,15 +21,17 @@ public class DashboardSummary {
         private long productCount;
         private long apTotalCount;
         private long apOnlineCount;
+        private long eslTotalCount;
 
         public StoreBreakdown() {}
 
-        public StoreBreakdown(String storeId, String storeName, long productCount, long apTotalCount, long apOnlineCount) {
+        public StoreBreakdown(String storeId, String storeName, long productCount, long apTotalCount, long apOnlineCount, long eslTotalCount) {
             this.storeId = storeId;
             this.storeName = storeName;
             this.productCount = productCount;
             this.apTotalCount = apTotalCount;
             this.apOnlineCount = apOnlineCount;
+            this.eslTotalCount = eslTotalCount;
         }
 
         public String getStoreId() { return storeId; }
@@ -42,6 +44,8 @@ public class DashboardSummary {
         public void setApTotalCount(long apTotalCount) { this.apTotalCount = apTotalCount; }
         public long getApOnlineCount() { return apOnlineCount; }
         public void setApOnlineCount(long apOnlineCount) { this.apOnlineCount = apOnlineCount; }
+        public long getEslTotalCount() { return eslTotalCount; }
+        public void setEslTotalCount(long eslTotalCount) { this.eslTotalCount = eslTotalCount; }
     }
 
     public DashboardSummary() {}

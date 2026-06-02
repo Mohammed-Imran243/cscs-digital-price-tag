@@ -18,10 +18,10 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(DragonEslException.class)
     public ResponseEntity<ApiResponse<Void>> handleDragonEslException(DragonEslException ex) {
-        int status = ex.getHttpStatus();
+        int originalStatus = ex.getHttpStatus();
         return ResponseEntity
-                .status(status)
-                .body(ApiResponse.error(ex.getMessage(), status));
+                .status(originalStatus)
+                .body(ApiResponse.error(ex.getMessage(), originalStatus));
     }
 
     // ── RSA Encryption Errors ─────────────────────────────────────────────────
@@ -57,6 +57,25 @@ public class GlobalExceptionHandler {
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
                 .body(ApiResponse.error(ex.getMessage(), 400));
+    }
+
+    // ── Timeout & Connectivity Errors ─────────────────────────────────────────
+
+    @ExceptionHandler({
+            java.util.concurrent.TimeoutException.class,
+            java.net.SocketTimeoutException.class
+    })
+    public ResponseEntity<ApiResponse<Void>> handleTimeoutException(Exception ex) {
+        return ResponseEntity
+                .status(HttpStatus.GATEWAY_TIMEOUT)
+                .body(ApiResponse.error("Request to downstream service timed out: " + ex.getMessage(), 504));
+    }
+
+    @ExceptionHandler(org.springframework.web.reactive.function.client.WebClientRequestException.class)
+    public ResponseEntity<ApiResponse<Void>> handleWebClientException(org.springframework.web.reactive.function.client.WebClientRequestException ex) {
+        return ResponseEntity
+                .status(HttpStatus.SERVICE_UNAVAILABLE)
+                .body(ApiResponse.error("Downstream service is unreachable: " + ex.getMessage(), 503));
     }
 
     // ── Catch-all ─────────────────────────────────────────────────────────────

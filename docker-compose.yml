@@ -23,6 +23,9 @@ services:
     networks:
       - cscs-network
 
+    volumes:
+      - ./data:/app/data
+
   frontend:
     build:
       context: ./cscs-digital-platform-ui

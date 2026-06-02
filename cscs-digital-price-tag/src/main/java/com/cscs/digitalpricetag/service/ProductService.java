@@ -21,9 +21,11 @@ public class ProductService {
     private static final Logger log = LoggerFactory.getLogger(ProductService.class);
 
     private final DragonEslApiClient dragonEslApiClient;
+    private final PriceHistoryService priceHistoryService;
 
-    public ProductService(DragonEslApiClient dragonEslApiClient) {
+    public ProductService(DragonEslApiClient dragonEslApiClient, PriceHistoryService priceHistoryService) {
         this.dragonEslApiClient = dragonEslApiClient;
+        this.priceHistoryService = priceHistoryService;
     }
 
     @SuppressWarnings("unchecked")
@@ -284,6 +286,13 @@ public class ProductService {
         String priceStr         = request.getPriceAsString();
         String originalPriceStr = request.getOriginalPriceAsString();
 
+        ProductResponse oldProduct = null;
+        try {
+            oldProduct = mapFromRawMap(getRawProductFromZkong(itemId));
+        } catch (Exception e) {
+            log.warn("Failed to fetch old product state before price update for itemId: {}", itemId, e);
+        }
+
         // Build clean whitelist body — mirrors exactly what Dragon ESL UI sends on PUT
         // DO NOT dump the full GET response back — Dragon ESL rejects its own read-only fields
         Map<String, Object> body = new LinkedHashMap<>();
@@ -420,6 +429,10 @@ public class ProductService {
             }
 
             log.info("Price updated for item {} in store {} to {}", itemId, storeId, priceStr);
+
+            if (oldProduct != null && oldProduct.getPrice() != null) {
+                priceHistoryService.recordPriceChange(oldProduct, oldProduct.getPrice(), priceStr, storeId);
+            }
 
         } catch (DragonEslException e) {
             throw e;
