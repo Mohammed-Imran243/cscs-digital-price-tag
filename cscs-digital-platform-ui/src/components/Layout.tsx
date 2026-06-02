@@ -278,19 +278,13 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
       <aside className={`sidebar glass-card ${isMobileMenuOpen ? 'mobile-open' : ''} ${isSidebarCollapsed ? 'collapsed' : ''}`}>
         <div className="sidebar-header antigravity-wrapper">
           <div className="logo-expanded">
-            <svg viewBox="0 0 32 32" className="antigravity-monogram" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="butt" strokeLinejoin="miter" xmlns="http://www.w3.org/2000/svg">
-              <path d="M 26 10 A 4 4 0 0 0 22 6 L 10 6 A 4 4 0 0 0 6 10 L 6 22 A 4 4 0 0 0 10 26 L 22 26 A 4 4 0 0 0 26 22 L 26 16 L 16 16 L 16 6" />
-            </svg>
-            <div className="logo-divider"></div>
-            <span className="logo-text-bold">CSCS</span>
+            <img src="/cscs-logo.svg" alt="CSCS Logo" className="brand-asset-expanded" />
           </div>
           <div className="logo-collapsed">
-            <svg viewBox="0 0 32 32" className="antigravity-monogram" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="butt" strokeLinejoin="miter" xmlns="http://www.w3.org/2000/svg">
-              <path d="M 26 10 A 4 4 0 0 0 22 6 L 10 6 A 4 4 0 0 0 6 10 L 6 22 A 4 4 0 0 0 10 26 L 22 26 A 4 4 0 0 0 26 22 L 26 16 L 16 16 L 16 6" />
-            </svg>
+            <img src="/cscs-logo.svg" alt="CSCS Logo" className="brand-asset-collapsed" />
           </div>
           <button className="sidebar-toggle-btn" onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}>
-            <Menu size={20} />
+            <Menu size={20} strokeWidth={1.25} />
           </button>
         </div>
         
@@ -663,33 +657,32 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
           align-items: center;
           justify-content: flex-start;
           flex-shrink: 0;
-          gap: 14px;
-          color: var(--text-primary);
+          width: 100%;
         }
 
-        .logo-divider {
-          width: 1px;
-          height: 28px;
-          background-color: var(--text-primary);
-          opacity: 0.25;
-        }
-
-        .logo-text-bold {
-          font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", "Noto Sans", sans-serif;
-          font-size: 24px;
-          font-weight: 800;
-          letter-spacing: -0.5px;
-          white-space: nowrap;
-          text-transform: uppercase;
-          color: var(--text-primary);
-          line-height: 1;
-        }
-
-        .antigravity-monogram {
+        .brand-asset-expanded {
           height: 38px;
-          width: 38px;
-          flex-shrink: 0;
-          color: var(--text-primary);
+          width: auto;
+          max-width: 100%;
+          object-fit: contain;
+          object-position: left center;
+          mix-blend-mode: multiply;
+          transition: filter 0.3s ease;
+        }
+
+        .brand-asset-collapsed {
+          height: 32px;
+          width: 32px;
+          object-fit: cover;
+          object-position: left center;
+          mix-blend-mode: multiply;
+          transition: filter 0.3s ease;
+        }
+
+        [data-theme='dark'] .brand-asset-expanded,
+        [data-theme='dark'] .brand-asset-collapsed {
+          filter: invert(1) hue-rotate(180deg) brightness(2) contrast(1.2);
+          mix-blend-mode: screen;
         }
 
         .logo-collapsed {
@@ -715,18 +708,20 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
           background: transparent;
           border: none;
           color: var(--text-secondary);
+          opacity: 0.6;
           cursor: pointer;
           display: flex;
           align-items: center;
           justify-content: center;
           padding: 6px;
           border-radius: 8px;
-          transition: background 0.2s;
+          transition: all 0.2s;
         }
 
         .sidebar-toggle-btn:hover {
-          background: rgba(255, 255, 255, 0.1);
+          background: rgba(255, 255, 255, 0.08);
           color: var(--primary-color);
+          opacity: 1;
         }
 
         .sidebar.collapsed .sidebar-header.antigravity-wrapper {
