@@ -645,7 +645,7 @@ const Users: React.FC = () => {
       {loading ? (
         <div className="users-loading">
           <Loader2 className="animate-spin" size={40} />
-          <p>Connecting to Dragon ESL Cloud... / جاري الاتصال بسحابة Dragon ESL...</p>
+          <p>Connecting to CSCS ESL Connect App... / جاري الاتصال بـ CSCS ESL Connect App...</p>
         </div>
       ) : error ? (
         <div className="users-error glass-card">

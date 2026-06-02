@@ -127,9 +127,9 @@ const Merchant: React.FC = () => {
       </div>
 
       {loading ? (
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '64px 0', color: 'var(--text-muted)' }}>
+        <div className="merchant-loading-state" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '64px 0', color: 'var(--text-muted)' }}>
           <Loader2 className="animate-spin" size={40} style={{ color: 'var(--primary-color)', marginBottom: '16px' }} />
-          <p>Fetching merchant details from Dragon ESL... / جاري جلب بيانات التاجر...</p>
+          <p>Fetching merchant details from CSCS ESL Connect App... / جاري جلب بيانات التاجر...</p>
         </div>
       ) : error ? (
         <div className="glass-card" style={{ padding: '32px', textAlign: 'center', border: '1px solid rgba(239, 68, 68, 0.2)', background: 'rgba(239, 68, 68, 0.05)' }}>

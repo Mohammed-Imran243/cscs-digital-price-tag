@@ -240,7 +240,7 @@ const Stores: React.FC = () => {
       {loading ? (
         <div className="stores-loading-state">
           <Loader2 className="animate-spin" size={40} />
-          <p>Fetching store data from Dragon ESL... / جاري جلب بيانات المتاجر من Dragon ESL...</p>
+          <p>Fetching store data from CSCS ESL Connect App... / جاري جلب بيانات المتاجر من CSCS ESL Connect App...</p>
         </div>
       ) : error ? (
         <div className="stores-error-state glass-card">

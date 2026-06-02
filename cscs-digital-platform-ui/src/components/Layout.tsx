@@ -391,7 +391,6 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                   <span className="divider">/</span>
                   <span className="ar-text" dir="rtl">منصة بطاقات الأسعار الرقمية</span>
                 </div>
-                <h1 className="page-title">{getPageTitle(location.pathname)}</h1>
               </div>
             )}
           </div>

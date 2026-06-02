@@ -108,7 +108,8 @@ const Dashboard: React.FC = () => {
   };
 
   const productBreakdown = getStoreBreakdowns(productPage);
-  const apBreakdown = getStoreBreakdowns(apPage);
+  const apStores = summary?.storeBreakdowns?.filter(s => s.apTotalCount && s.apTotalCount > 0) || [];
+  const apBreakdown = apStores.slice((apPage - 1) * ITEMS_PER_PAGE, apPage * ITEMS_PER_PAGE);
 
   return (
     <div className="dashboard-page">
@@ -266,7 +267,7 @@ const Dashboard: React.FC = () => {
             </div>
             <PaginationControls 
               currentPage={apPage} 
-              totalItems={summary?.storeBreakdowns?.length || 0} 
+              totalItems={apStores.length} 
               itemsPerPage={ITEMS_PER_PAGE} 
               onPageChange={setApPage} 
             />
@@ -351,7 +352,7 @@ const Dashboard: React.FC = () => {
 
             <div className="status-item">
               <span>Failed Updates / التحديثات الفاشلة</span>
-              <div className="status-badge-live success">
+              <div className="status-badge-live danger">
                 {loading ? '—' : '0 failed / 0 فاشل'}
               </div>
             </div>
