@@ -1613,6 +1613,7 @@ const Templates: React.FC = () => {
 
         .op-buttons {
           display: flex;
+          justify-content: center;
           gap: 12px;
         }
 
@@ -1691,6 +1692,7 @@ const Templates: React.FC = () => {
 
         .properties-cat-btn {
           transition: all 0.2s ease;
+          border: 1px solid var(--glass-border);
           border-left: 3px solid transparent;
           border-radius: 8px;
           padding: 10px 14px;
@@ -1700,6 +1702,10 @@ const Templates: React.FC = () => {
           cursor: pointer;
           font-size: 14px;
           font-weight: 500;
+          display: flex;
+          align-items: center;
+          justify-content: flex-start;
+          min-height: 44px;
         }
 
         .properties-cat-btn.active {
