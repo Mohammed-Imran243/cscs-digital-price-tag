@@ -97,6 +97,18 @@ const SidebarItem: React.FC<{
   );
 };
 
+const getPageTitle = (pathname: string) => {
+  if (pathname === '/') return 'Dashboard / لوحة التحكم';
+  if (pathname.startsWith('/merchants')) return 'Merchants / التجار';
+  if (pathname.startsWith('/stores')) return 'Stores / المتاجر';
+  if (pathname.startsWith('/products')) return 'Products / المنتجات';
+  if (pathname.startsWith('/templates')) return 'Templates / القوالب';
+  if (pathname.startsWith('/devices')) return 'Devices / الأجهزة';
+  if (pathname.startsWith('/audit-logs')) return 'Audit Logs / سجلات المراجعة';
+  if (pathname.startsWith('/users')) return 'Staff Users / الموظفين';
+  return 'Dashboard / لوحة التحكم';
+};
+
 const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { theme, toggleTheme } = useTheme();
   const { user, logout } = useAuth();
@@ -264,40 +276,18 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
       )}
 
       <aside className={`sidebar glass-card ${isMobileMenuOpen ? 'mobile-open' : ''} ${isSidebarCollapsed ? 'collapsed' : ''}`}>
-        <div 
-          className="sidebar-header" 
-          style={{ 
-            background: theme === 'dark' ? '#0f172a' : 'transparent',
-            padding: theme === 'dark' ? '8px' : '0',
-            borderRadius: theme === 'dark' ? '8px' : '0',
-            marginBottom: '32px',
-            borderBottom: 'none'
-          }}
-        >
-          <div className="logo-container">
-            <div className="logo-full" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <img 
-                src={theme === 'dark' ? '/cscs-logo-square-white.png' : '/cscs-logo-square-dark.png'} 
-                alt="CSCS Logo" 
-                style={{ 
-                  width: '32px', 
-                  height: '32px', 
-                  objectFit: 'contain', 
-                  flexShrink: 0,
-                  mixBlendMode: theme === 'dark' ? 'screen' : 'multiply'
-                }} 
-              />
-              <span className="logo-text-override" style={{ fontSize: '13px', fontWeight: 'bold', color: theme === 'dark' ? 'white' : '#1e293b', lineHeight: '1.2', display: 'flex', flexDirection: 'column', letterSpacing: '-0.2px' }}>
-                <span style={{ whiteSpace: 'nowrap' }}>CSCS ESL</span>
-                <span style={{fontSize: '11px', opacity: 0.8, whiteSpace: 'nowrap'}}>CONNECT APP</span>
-              </span>
-            </div>
-            <img 
-              src={theme === 'dark' ? '/cscs-logo-square-white.png' : '/cscs-logo-square-dark.png'} 
-              alt="CSCS Logo" 
-              className="logo-small"
-              style={{ mixBlendMode: theme === 'dark' ? 'screen' : 'multiply' }}
-            />
+        <div className="sidebar-header antigravity-wrapper">
+          <div className="logo-expanded">
+            <svg viewBox="0 0 32 32" className="antigravity-monogram" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="butt" strokeLinejoin="miter" xmlns="http://www.w3.org/2000/svg">
+              <path d="M 26 10 A 4 4 0 0 0 22 6 L 10 6 A 4 4 0 0 0 6 10 L 6 22 A 4 4 0 0 0 10 26 L 22 26 A 4 4 0 0 0 26 22 L 26 16 L 16 16 L 16 6" />
+            </svg>
+            <div className="logo-divider"></div>
+            <span className="logo-text-bold">CSCS</span>
+          </div>
+          <div className="logo-collapsed">
+            <svg viewBox="0 0 32 32" className="antigravity-monogram" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="butt" strokeLinejoin="miter" xmlns="http://www.w3.org/2000/svg">
+              <path d="M 26 10 A 4 4 0 0 0 22 6 L 10 6 A 4 4 0 0 0 6 10 L 6 22 A 4 4 0 0 0 10 26 L 22 26 A 4 4 0 0 0 26 22 L 26 16 L 16 16 L 16 6" />
+            </svg>
           </div>
           <button className="sidebar-toggle-btn" onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}>
             <Menu size={20} />
@@ -388,7 +378,28 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
             <button className="mobile-menu-btn" onClick={() => setIsMobileMenuOpen(true)}>
               <Menu size={24} />
             </button>
-            <h1 className="page-title">CSCS ESL CONNECT APP / منصة بطاقات الأسعار الرقمية</h1>
+            {isMobile ? (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <img 
+                  src={theme === 'dark' ? '/cscs-logo-square-white.png' : '/cscs-logo-square-dark.png'} 
+                  alt="CSCS Icon" 
+                  style={{ 
+                    width: '24px', 
+                    height: '24px', 
+                    flexShrink: 0
+                  }} 
+                />
+              </div>
+            ) : (
+              <div className="header-titles">
+                <div className="app-title-banner">
+                  <span className="en-text">CSCS ESL CONNECT APP</span>
+                  <span className="divider">/</span>
+                  <span className="ar-text" dir="rtl">منصة بطاقات الأسعار الرقمية</span>
+                </div>
+                <h1 className="page-title">{getPageTitle(location.pathname)}</h1>
+              </div>
+            )}
           </div>
           <div className="header-right">
             <div className="user-profile">
@@ -626,7 +637,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
           margin: 16px;
           display: flex;
           flex-direction: column;
-          padding: 24px 16px;
+          padding: 0 16px 24px;
           z-index: 10;
           transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
           overflow-x: hidden;
@@ -636,44 +647,67 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
           width: 84px;
         }
 
-        .sidebar-header {
-          margin-bottom: 32px;
-          padding: 0;
+        .sidebar-header.antigravity-wrapper {
+          margin-bottom: 24px;
+          padding: 0 12px;
+          height: 64px;
           display: flex;
-          justify-content: space-between;
+          flex-direction: row;
           align-items: center;
-          gap: 8px;
+          justify-content: space-between;
+          background: transparent;
         }
 
-        .logo-container {
+        .logo-expanded {
           display: flex;
           align-items: center;
           justify-content: flex-start;
-          flex: 1;
-          padding: 8px 0;
-          overflow: hidden;
+          flex-shrink: 0;
+          gap: 14px;
+          color: var(--text-primary);
         }
 
-        .logo-full {
-          display: flex;
+        .logo-divider {
+          width: 1px;
+          height: 28px;
+          background-color: var(--text-primary);
+          opacity: 0.25;
+        }
+
+        .logo-text-bold {
+          font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", "Noto Sans", sans-serif;
+          font-size: 24px;
+          font-weight: 800;
+          letter-spacing: -0.5px;
+          white-space: nowrap;
+          text-transform: uppercase;
+          color: var(--text-primary);
+          line-height: 1;
+        }
+
+        .antigravity-monogram {
+          height: 38px;
+          width: 38px;
+          flex-shrink: 0;
+          color: var(--text-primary);
+        }
+
+        .logo-collapsed {
+          display: none;
           align-items: center;
-          gap: 12px;
-          transition: opacity 0.2s;
+          justify-content: center;
+          width: 100%;
+          color: var(--text-primary);
         }
 
-        .logo-small {
-          display: none;
-          width: 32px;
-          height: 32px;
-          object-fit: contain;
-        }
 
-        .sidebar.collapsed .logo-full {
+
+        .sidebar.collapsed .logo-expanded {
           display: none;
         }
 
-        .sidebar.collapsed .logo-small {
-          display: block;
+        .sidebar.collapsed .logo-collapsed {
+          display: flex;
           margin: 0 auto;
         }
 
@@ -695,36 +729,14 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
           color: var(--primary-color);
         }
 
-        .sidebar.collapsed .sidebar-header {
+        .sidebar.collapsed .sidebar-header.antigravity-wrapper {
           flex-direction: column;
           gap: 16px;
-          justify-content: center;
-        }
-
-        .sidebar.collapsed .logo-container {
-          padding: 0;
-          justify-content: center;
-        }
-
-        .logo-text {
-          font-size: 24px;
-          font-weight: 800;
-          color: var(--primary-color);
-          letter-spacing: -0.5px;
-          white-space: nowrap;
-        }
-
-        .logo-subtext {
-          display: block;
-          font-size: 12px;
-          font-weight: 600;
-          text-transform: uppercase;
-          color: var(--text-muted);
-          margin-top: -4px;
-          white-space: nowrap;
-        }
-
-        .sidebar-nav {
+          justify-content: flex-start;
+          align-items: center;
+          height: auto;
+          padding-top: 16px;
+        }        .sidebar-nav {
           flex: 1;
           display: flex;
           flex-direction: column;
@@ -875,18 +887,48 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
         }
 
         .main-header {
-          height: 70px;
+          min-height: 70px;
+          height: auto;
           display: flex;
           align-items: center;
           justify-content: space-between;
-          padding: 0 24px;
+          padding: 12px 24px;
           margin-bottom: 16px;
         }
 
-        .page-title {
-          font-size: 18px;
-          font-weight: 600;
+        .header-left {
+          display: flex;
+          align-items: center;
+          gap: 16px;
+        }
+
+        .header-titles {
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+          gap: 4px;
+        }
+
+        .app-title-banner {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+          font-weight: 800;
+          font-size: 14px;
           color: var(--text-primary);
+          letter-spacing: -0.2px;
+        }
+
+        .app-title-banner .divider {
+          opacity: 0.5;
+          font-weight: 400;
+        }
+
+        .page-title {
+          font-size: 16px;
+          font-weight: 500;
+          color: var(--text-secondary);
         }
 
         .user-profile {

@@ -549,23 +549,22 @@ const Devices: React.FC = () => {
         </div>
       </div>
 
-      <div className="devices-tabs-wrapper">
-        <div className="devices-tabs glass-card">
-          <button 
-            className={`tab-btn ${activeTab === 'esl' ? 'active' : ''}`}
-            onClick={() => setActiveTab('esl')}
-          >
-            <Smartphone size={18} />
-            <span>ESL Tags / شاشات الأسعار</span>
-          </button>
-          <button 
-            className={`tab-btn ${activeTab === 'ap' ? 'active' : ''}`}
-            onClick={() => setActiveTab('ap')}
-          >
-            <Cpu size={18} />
-            <span>AP Stations / محطات البث</span>
-          </button>
-        </div>
+      {/* Navigation Tabs */}
+      <div className="nav-tabs-container" style={{ marginTop: '8px' }}>
+        <button 
+          className={`nav-tab ${activeTab === 'esl' ? 'active' : ''}`}
+          onClick={() => setActiveTab('esl')}
+        >
+          <Smartphone size={16} />
+          <span>ESL Tags / شاشات الأسعار</span>
+        </button>
+        <button 
+          className={`nav-tab ${activeTab === 'ap' ? 'active' : ''}`}
+          onClick={() => setActiveTab('ap')}
+        >
+          <Cpu size={16} />
+          <span>AP Stations / محطات البث</span>
+        </button>
       </div>
 
       {/* Main Grid Content */}

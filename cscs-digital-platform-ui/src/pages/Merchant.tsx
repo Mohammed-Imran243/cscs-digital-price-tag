@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Building, Shield, Save, Loader2 } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { Building, Shield, Save, Loader2, ChevronDown } from 'lucide-react';
 import api, { unwrapResponse } from '../services/api';
 
 const Merchant: React.FC = () => {
@@ -12,6 +12,27 @@ const Merchant: React.FC = () => {
   // Form states for Settings card
   const [passwordExpiryTime, setPasswordExpiryTime] = useState('0');
   const [passwordWarmingDay, setPasswordWarmingDay] = useState(-1);
+
+  // Custom Dropdown states
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const expiryOptions = [
+    { value: '0', label: 'Long / طويل (No expiry / بدون انتهاء صلاحية)' },
+    { value: '90', label: '90 days / ٩٠ يومًا' },
+    { value: '180', label: '180 days / ١٨٠ يومًا' },
+    { value: '360', label: '360 days / ٣٦٠ يومًا' },
+  ];
 
   // Notification state
   const [notification, setNotification] = useState<{
@@ -192,17 +213,32 @@ const Merchant: React.FC = () => {
                 <label style={{ fontSize: '13px', color: 'var(--text-muted)', fontWeight: '600' }}>
                   Default Password Validity / صلاحية كلمة المرور الافتراضية
                 </label>
-                <select
-                  value={passwordExpiryTime}
-                  onChange={(e) => setPasswordExpiryTime(e.target.value)}
-                  className="glass-input"
-                  style={{ width: '100%', cursor: 'pointer' }}
-                >
-                  <option value="0">Long / طويل (No expiry / بدون انتهاء صلاحية)</option>
-                  <option value="90">90 days / ٩٠ يومًا</option>
-                  <option value="180">180 days / ١٨٠ يومًا</option>
-                  <option value="360">360 days / ٣٦٠ يومًا</option>
-                </select>
+                <div className="custom-dropdown-container" ref={dropdownRef} style={{ position: 'relative' }}>
+                  <div 
+                    className="glass-input custom-dropdown-trigger"
+                    onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                    style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer', width: '100%' }}
+                  >
+                    <span>{expiryOptions.find(o => o.value === String(passwordExpiryTime))?.label || 'Select / اختر'}</span>
+                    <ChevronDown size={16} className="text-muted" style={{ transform: isDropdownOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }} />
+                  </div>
+                  {isDropdownOpen && (
+                    <div className="custom-dropdown-list glass-card">
+                      {expiryOptions.map(opt => (
+                        <div
+                          key={opt.value}
+                          className={`custom-dropdown-item ${String(passwordExpiryTime) === opt.value ? 'selected' : ''}`}
+                          onClick={() => {
+                            setPasswordExpiryTime(opt.value);
+                            setIsDropdownOpen(false);
+                          }}
+                        >
+                          {opt.label}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
 
               <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
@@ -282,6 +318,66 @@ const Merchant: React.FC = () => {
         @keyframes slideIn {
           from { transform: translateX(100%); opacity: 0; }
           to { transform: translateX(0); opacity: 1; }
+        }
+
+        .glass-input {
+          background-color: var(--bg-primary);
+          border: 1px solid var(--border-color);
+          padding: 10px 12px;
+          border-radius: 8px;
+          color: var(--text-primary);
+          font-size: 14px;
+          width: 100%;
+          box-sizing: border-box;
+          transition: border-color 0.2s;
+        }
+
+        .glass-input:focus {
+          outline: none;
+          border-color: var(--primary-color);
+        }
+
+        .custom-dropdown-list {
+          position: absolute;
+          top: calc(100% + 4px);
+          left: 0;
+          right: 0;
+          z-index: 50;
+          max-height: 200px;
+          overflow-y: auto;
+          padding: 6px;
+          border-radius: 8px;
+          background: var(--glass-bg);
+          backdrop-filter: blur(12px);
+          -webkit-backdrop-filter: blur(12px);
+          border: 1px solid var(--glass-border);
+          box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+          animation: slideDown 0.2s ease-out;
+        }
+
+        @keyframes slideDown {
+          from { opacity: 0; transform: translateY(-5px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+
+        .custom-dropdown-item {
+          padding: 10px 12px;
+          border-radius: 6px;
+          cursor: pointer;
+          font-size: 13px;
+          transition: all 0.2s ease;
+          color: var(--text-primary);
+        }
+
+        .custom-dropdown-item:hover {
+          background: rgba(59, 130, 246, 0.1);
+          color: var(--primary-color);
+        }
+
+        .custom-dropdown-item.selected {
+          background: rgba(59, 130, 246, 0.15);
+          color: var(--primary-color);
+          font-weight: 600;
         }
       `}</style>
     </div>

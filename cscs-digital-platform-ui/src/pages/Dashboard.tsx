@@ -2,40 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { Store, Package, FileText, RefreshCw, Wifi, WifiOff, AlertTriangle, CheckCircle, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { apiCache } from '../services/apiCache';
-import { storeService } from '../services/storeService';
-import type { Store as StoreType } from '../services/storeService';
-import { getProducts } from '../services/productService';
-import { getTemplates, getCategories } from '../services/templateService';
-import { deviceService } from '../services/deviceService';
+import { dashboardService } from '../services/dashboardService';
+import type { DashboardSummary, StoreBreakdown } from '../services/dashboardService';
 import PriceChangeMonitor from '../components/dashboard/PriceChangeMonitor';
-
-// ──────────────────────────────────────────────────
-// Types
-// ──────────────────────────────────────────────────
-interface DashboardStats {
-  storeCount: number | null;
-  productCount: number | null;
-  templateCount: number | null;
-  categoryCount: number | null;
-  eslOnline: boolean | null;
-  activeStoreCount: number | null;
-  merchantCount: number | null;
-  eslTagCount: number | null;
-  eslBoundCount: number | null;
-}
-
-interface StoreProductStat {
-  store: StoreType;
-  productCount: number | null;
-  loading: boolean;
-}
-
-interface StoreApStat {
-  store: StoreType;
-  apTotalCount: number | null;
-  apOnlineCount: number | null;
-  loading: boolean;
-}
 
 // ──────────────────────────────────────────────────
 // StatCard Component
@@ -104,138 +73,42 @@ const PaginationControls: React.FC<{
 // ──────────────────────────────────────────────────
 const Dashboard: React.FC = () => {
   const { user } = useAuth();
-  const [stats, setStats] = useState<DashboardStats>({
-    storeCount: null,
-    productCount: null,
-    templateCount: null,
-    categoryCount: null,
-    eslOnline: null,
-    activeStoreCount: null,
-    merchantCount: null,
-    eslTagCount: null,
-    eslBoundCount: null,
-  });
+  const [summary, setSummary] = useState<DashboardSummary | null>(null);
   const [loading, setLoading] = useState(true);
-  
-  const [allStores, setAllStores] = useState<StoreType[]>([]);
-  const [lastRefreshed, setLastRefreshed] = useState<Date>(new Date());
+  const [error, setError] = useState(false);
 
   const ITEMS_PER_PAGE = 5;
   const [productPage, setProductPage] = useState(1);
   const [apPage, setApPage] = useState(1);
-  
-  const [productBreakdown, setProductBreakdown] = useState<StoreProductStat[]>([]);
-  const [apBreakdown, setApBreakdown] = useState<StoreApStat[]>([]);
 
   const fetchGlobalStats = async () => {
     setLoading(true);
-
-    let stores: StoreType[] = [];
-    let eslOnline = false;
+    setError(false);
     try {
-      const response = await storeService.getAllStores();
-      if (response && response.length > 0) {
-        stores = response;
-        eslOnline = true;
-      }
+      const data = await dashboardService.getSummary();
+      setSummary(data);
     } catch {
-      eslOnline = false;
+      setError(true);
+    } finally {
+      setLoading(false);
     }
-
-    setAllStores(stores);
-    setStats(prev => ({
-      ...prev,
-      storeCount: stores.length,
-      eslOnline,
-    }));
-
-    const [tmplResult, catsResult, activeCountResult, merchantResult, eslResult] =
-      await Promise.allSettled([
-        getTemplates(0, 1),
-        getCategories(),
-        storeService.getActiveStoreCount(),
-        user?.permissions?.includes('staffManager') ? storeService.getMerchantInfo() : Promise.resolve(null),
-        stores.length > 0
-          ? deviceService.getEslDevices(0, 500, stores[0].storeId)
-          : Promise.resolve(null),
-      ]);
-
-    const templateCount = tmplResult.status === 'fulfilled' ? (tmplResult.value?.totalElements ?? 0) : null;
-    const categoryCount = catsResult.status === 'fulfilled' ? (catsResult.value?.length ?? 0) : null;
-    const activeStoreCount = activeCountResult.status === 'fulfilled' ? activeCountResult.value : null;
-    const merchantCount = (merchantResult.status === 'fulfilled' && merchantResult.value != null) ? (merchantResult.value?.merchantCount ?? (merchantResult.value?.merchantName ? 1 : null)) : null;
-    const eslAll = eslResult.status === 'fulfilled' ? eslResult.value : null;
-    const eslTagCount = eslAll?.totalElements ?? null;
-    const eslBoundCount = eslAll?.content?.filter((esl: any) => esl.bindState === 1).length ?? null;
-
-    setStats(prev => ({
-      ...prev,
-      templateCount,
-      categoryCount,
-      activeStoreCount,
-      merchantCount,
-      eslTagCount,
-      eslBoundCount
-    }));
-
-    setLoading(false);
-    setLastRefreshed(new Date());
   };
 
   useEffect(() => {
     fetchGlobalStats();
   }, []);
 
-  useEffect(() => {
-    const loadProducts = async () => {
-      if (allStores.length === 0) return;
-      const startIndex = (productPage - 1) * ITEMS_PER_PAGE;
-      const targetStores = allStores.slice(startIndex, startIndex + ITEMS_PER_PAGE);
-      
-      setProductBreakdown(targetStores.map(s => ({ store: s, productCount: null, loading: true })));
-      
-      const fetches = targetStores.map(async (store) => {
-        try {
-          const data = await getProducts(store.storeId, 0, 1);
-          const count = data?.totalElements ?? (data?.content?.length ?? 0);
-          setProductBreakdown(prev => prev.map(item => item.store.storeId === store.storeId ? { ...item, productCount: count, loading: false } : item));
-        } catch {
-          setProductBreakdown(prev => prev.map(item => item.store.storeId === store.storeId ? { ...item, productCount: null, loading: false } : item));
-        }
-      });
-      await Promise.allSettled(fetches);
-    };
-    loadProducts();
-  }, [allStores, productPage]);
+  const formatCount = (n: number | null | undefined) =>
+    (n === null || n === undefined) ? '—' : n.toLocaleString();
 
-  useEffect(() => {
-    const loadAps = async () => {
-      if (allStores.length === 0) return;
-      const startIndex = (apPage - 1) * ITEMS_PER_PAGE;
-      const targetStores = allStores.slice(startIndex, startIndex + ITEMS_PER_PAGE);
-      
-      setApBreakdown(targetStores.map(s => ({ store: s, apTotalCount: null, apOnlineCount: null, loading: true })));
-      
-      const fetches = targetStores.map(async (store) => {
-        try {
-          const apData = await deviceService.getApDevices(0, 100, store.storeId);
-          const total = apData?.totalElements || 0;
-          const onlineCount = apData?.content?.filter(ap => ap.online === 'ONLINE')?.length || 0;
-          setApBreakdown(prev => prev.map(item => item.store.storeId === store.storeId ? { ...item, apTotalCount: total, apOnlineCount: onlineCount, loading: false } : item));
-        } catch {
-          setApBreakdown(prev => prev.map(item => item.store.storeId === store.storeId ? { ...item, apTotalCount: 0, apOnlineCount: 0, loading: false } : item));
-        }
-      });
-      await Promise.allSettled(fetches);
-    };
-    loadAps();
-  }, [allStores, apPage]);
+  const getStoreBreakdowns = (page: number) => {
+    if (!summary?.storeBreakdowns) return [];
+    const startIndex = (page - 1) * ITEMS_PER_PAGE;
+    return summary.storeBreakdowns.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+  };
 
-  const formatCount = (n: number | null) =>
-    n === null ? '—' : n.toLocaleString();
-
-  // Compute sum for total products roughly based on all loaded product break downs or we just leave product stats loading
-  const currentTotalAP = apBreakdown.reduce((sum, i) => sum + (i.apOnlineCount ?? 0), 0);
+  const productBreakdown = getStoreBreakdowns(productPage);
+  const apBreakdown = getStoreBreakdowns(apPage);
 
   return (
     <div className="dashboard-page">
@@ -268,62 +141,62 @@ const Dashboard: React.FC = () => {
         <StatCard
           icon={<Store size={24} />}
           label="Merchants / التجار"
-          value={formatCount(stats.merchantCount)}
-          trend={stats.merchantCount !== null ? `${formatCount(stats.merchantCount)} active merchants / تاجر نشط` : undefined}
+          value={formatCount(summary?.activeMerchantCount)}
+          trend={summary?.activeMerchantCount !== undefined ? `${formatCount(summary.activeMerchantCount)} Active Merchant(s) / تاجر نشط` : undefined}
           loading={loading}
           color="#6366f1"
           bgColor="rgba(99,102,241,0.15)"
-          error={!loading && stats.merchantCount === null}
+          error={!loading && !summary}
         />
         <StatCard
           icon={<Store size={24} />}
           label="Stores / المتاجر"
-          value={formatCount(stats.storeCount)}
-          trend={stats.activeStoreCount !== null ? `${formatCount(stats.activeStoreCount)} active stores / متاجر نشطة` : undefined}
+          value={formatCount(summary?.storeCount)}
+          trend={summary?.activeStoreCount !== undefined ? `${formatCount(summary.activeStoreCount)} active stores / متاجر نشطة` : undefined}
           loading={loading}
           color="#0ea5e9"
           bgColor="rgba(14,165,233,0.15)"
-          error={!loading && stats.storeCount === null}
+          error={!loading && !summary}
         />
         <StatCard
           icon={<Wifi size={24} />}
           label="Access Points / نقاط الوصول"
-          value={String(currentTotalAP)}
-          trend={`${currentTotalAP} active AP (visible) / نقاط وصول نشطة`}
+          value={formatCount(summary?.apCount)}
+          trend={summary?.apCount !== undefined ? `Total APs in network / إجمالي نقاط الوصول` : undefined}
           loading={loading}
           color="#8b5cf6"
           bgColor="rgba(139,92,246,0.15)"
-          error={!loading && apBreakdown.length === 0}
+          error={!loading && !summary}
         />
         <StatCard
           icon={<FileText size={24} />}
           label="Templates / القوالب"
-          value={formatCount(stats.templateCount)}
-          trend={stats.templateCount !== null ? `${formatCount(stats.templateCount)} active templates / قوالب نشطة` : undefined}
+          value={formatCount(summary?.templateCount)}
+          trend={summary?.templateCount !== undefined ? `${formatCount(summary.templateCount)} active templates / قوالب نشطة` : undefined}
           loading={loading}
           color="#f59e0b"
           bgColor="rgba(245,158,11,0.15)"
-          error={!loading && stats.templateCount === null}
+          error={!loading && !summary}
         />
         <StatCard
           icon={<Package size={24} />}
           label="Products / المنتجات"
-          value={formatCount(productBreakdown.reduce((s, i) => s + (i.productCount ?? 0), 0))}
-          trend={`Products in visible stores / إجمالي المنتجات`}
+          value={formatCount(summary?.productCount)}
+          trend={`Total Products / إجمالي المنتجات`}
           loading={loading}
           color="#f97316"
           bgColor="rgba(249,115,22,0.15)"
-          error={!loading && productBreakdown.length === 0}
+          error={!loading && !summary}
         />
         <StatCard
           icon={<Wifi size={24} />}
           label="ESL Tags / علامات ESL"
-          value={formatCount(stats.eslTagCount)}
-          trend={stats.eslBoundCount !== null ? `${formatCount(stats.eslBoundCount)} bound tags / بطاقات مرتبطة` : undefined}
+          value={formatCount(summary?.eslCount)}
+          trend={summary?.eslCount !== undefined ? `Total ESL tags / إجمالي علامات ESL` : undefined}
           loading={loading}
           color="#10b981"
           bgColor="rgba(16,185,129,0.15)"
-          error={!loading && stats.eslTagCount === null}
+          error={!loading && !summary}
         />
       </div>
 
@@ -339,7 +212,7 @@ const Dashboard: React.FC = () => {
             </div>
             <PaginationControls 
               currentPage={productPage} 
-              totalItems={allStores.length} 
+              totalItems={summary?.storeBreakdowns?.length || 0} 
               itemsPerPage={ITEMS_PER_PAGE} 
               onPageChange={setProductPage} 
             />
@@ -352,16 +225,16 @@ const Dashboard: React.FC = () => {
               </div>
             )}
             {productBreakdown.map((item, idx) => (
-              <div key={item.store.storeId} className="breakdown-row">
+              <div key={item.storeId} className="breakdown-row">
                 <div className="breakdown-store-info">
                   <span className="breakdown-index">{(productPage - 1) * ITEMS_PER_PAGE + idx + 1}</span>
                   <div>
-                    <span className="breakdown-name">{item.store.storeName}</span>
-                    <span className="breakdown-id">ID / المعرف: {item.store.storeId}</span>
+                    <span className="breakdown-name">{item.storeName}</span>
+                    <span className="breakdown-id">ID / المعرف: {item.storeId}</span>
                   </div>
                 </div>
                 <div className="breakdown-count-wrap">
-                  {item.loading ? (
+                  {loading ? (
                     <div className="shimmer-line" style={{ width: '48px', height: '20px' }} />
                   ) : item.productCount === null ? (
                     <span className="breakdown-count error">Err / خطأ</span>
@@ -374,7 +247,7 @@ const Dashboard: React.FC = () => {
                   <div
                     className="breakdown-bar"
                     style={{
-                      width: item.loading || item.productCount === null ? '0%' :
+                      width: loading || item.productCount === null ? '0%' :
                         `${Math.min(100, ((item.productCount ?? 0) / Math.max(1, ...productBreakdown.map(s => s.productCount ?? 0))) * 100)}%`
                     }}
                   />
@@ -393,7 +266,7 @@ const Dashboard: React.FC = () => {
             </div>
             <PaginationControls 
               currentPage={apPage} 
-              totalItems={allStores.length} 
+              totalItems={summary?.storeBreakdowns?.length || 0} 
               itemsPerPage={ITEMS_PER_PAGE} 
               onPageChange={setApPage} 
             />
@@ -406,18 +279,18 @@ const Dashboard: React.FC = () => {
               </div>
             )}
             {apBreakdown.map((item, idx) => (
-              <div key={item.store.storeId} className="breakdown-row">
+              <div key={item.storeId} className="breakdown-row">
                 <div className="breakdown-store-info">
                   <span className="breakdown-index">{(apPage - 1) * ITEMS_PER_PAGE + idx + 1}</span>
                   <div>
-                    <span className="breakdown-name">{item.store.storeName}</span>
+                    <span className="breakdown-name">{item.storeName}</span>
                     <span className="breakdown-id">
-                      {item.loading ? 'Loading...' : `AP: ${item.apTotalCount} Total, ${item.apOnlineCount} Active`}
+                      {loading ? 'Loading...' : `AP: ${item.apTotalCount} Total, ${item.apOnlineCount} Active`}
                     </span>
                   </div>
                 </div>
                 <div className="breakdown-count-wrap">
-                  {item.loading ? (
+                  {loading ? (
                     <div className="shimmer-line" style={{ width: '48px', height: '20px' }} />
                   ) : item.apTotalCount === null ? (
                     <span className="breakdown-count error">Err / خطأ</span>
@@ -432,7 +305,7 @@ const Dashboard: React.FC = () => {
                     className="breakdown-bar"
                     style={{
                       background: item.apOnlineCount && item.apOnlineCount > 0 ? 'linear-gradient(90deg, #10b981, #34d399)' : 'linear-gradient(90deg, #94a3b8, #cbd5e1)',
-                      width: item.loading || item.apTotalCount === null || item.apTotalCount === 0 ? '0%' :
+                      width: loading || item.apTotalCount === null || item.apTotalCount === 0 ? '0%' :
                         `${Math.min(100, ((item.apOnlineCount ?? 0) / item.apTotalCount) * 100)}%`
                     }}
                   />
@@ -449,10 +322,10 @@ const Dashboard: React.FC = () => {
           </div>
           <div className="status-grid">
             <div className="status-item">
-              <span>Dragon ESL Cloud / سحابة Dragon ESL</span>
+              <span>CSCS ESL Connect / سحابة CSCS ESL Connect</span>
               {loading ? (
                 <div className="shimmer-line" style={{ width: '64px', height: '22px' }} />
-              ) : stats.eslOnline ? (
+              ) : summary?.storeCount ? (
                 <div className="status-badge-live success">
                   <CheckCircle size={12} /> Online / متصل
                 </div>
@@ -465,7 +338,7 @@ const Dashboard: React.FC = () => {
             <div className="status-item">
               <span>Last Sync Time / آخر وقت مزامنة</span>
               <div className="status-badge-live neutral">
-                {loading ? '—' : lastRefreshed ? `Last Sync: ${lastRefreshed.toLocaleString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true }).replace(',', '')}` : 'No recent sync'}
+                {loading ? '—' : summary?.lastUpdated ? `Last Sync: ${new Date(summary.lastUpdated).toLocaleString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true }).replace(',', '')}` : 'No recent sync'}
               </div>
             </div>
             

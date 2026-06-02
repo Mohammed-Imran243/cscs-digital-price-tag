@@ -138,11 +138,14 @@ const Users: React.FC = () => {
   const [editingRoleId, setEditingRoleId] = useState<string | number | null>(null);
   const [roleFormData, setRoleFormData] = useState<{
     roleName: string;
+    remark?: string;
     menuIdList: number[];
   }>({
     roleName: '',
+    remark: '',
     menuIdList: [],
   });
+  const [permSearchTerm, setPermSearchTerm] = useState('');
   const [availablePermissions, setAvailablePermissions] = useState<PermissionMenu[]>([]);
   const [permissionsLoading, setPermissionsLoading] = useState(false);
   const [expandedMenuIds, setExpandedMenuIds] = useState<Record<number, boolean>>({});
@@ -240,6 +243,22 @@ const Users: React.FC = () => {
       setExpandedMenuIds(initialExpanded);
     }
   }, [availablePermissions]);
+
+  // Auto-expand search matches
+  useEffect(() => {
+    if (permSearchTerm && availablePermissions.length > 0) {
+      setExpandedMenuIds(prev => {
+        const newExpanded = { ...prev };
+        availablePermissions.forEach(perm => {
+          if (perm.menuName.toLowerCase().includes(permSearchTerm.toLowerCase())) {
+            const ancestors = getAncestorIds(perm.id, availablePermissions);
+            ancestors.forEach(a => { newExpanded[a] = true; });
+          }
+        });
+        return newExpanded;
+      });
+    }
+  }, [permSearchTerm, availablePermissions]);
 
   const fetchData = async () => {
     setLoading(true);
@@ -420,7 +439,8 @@ const Users: React.FC = () => {
   const handleOpenCreateRole = async () => {
     setIsEditingRole(false);
     setEditingRoleId(null);
-    setRoleFormData({ roleName: '', menuIdList: [] });
+    setRoleFormData({ roleName: '', remark: '', menuIdList: [] });
+    setPermSearchTerm('');
     await loadPermissions(3);
     setIsRoleModalOpen(true);
   };
@@ -428,7 +448,8 @@ const Users: React.FC = () => {
   const handleOpenEditRole = async (role: Role) => {
     setIsEditingRole(true);
     setEditingRoleId(role.id || null);
-    setRoleFormData({ roleName: role.roleName || '', menuIdList: [] });
+    setRoleFormData({ roleName: role.roleName || '', remark: role.remark || '', menuIdList: [] });
+    setPermSearchTerm('');
     const basePermissions = await loadPermissions(3);
 
     try {
@@ -436,12 +457,14 @@ const Users: React.FC = () => {
       const existingIds = normalizePermissionItems(permissionsData).map((m: any) => m.id);
       setRoleFormData({
         roleName: role.roleName || '',
+        remark: role.remark || '',
         menuIdList: existingIds,
       });
     } catch (err) {
       console.error('Failed to load selected permissions for role', err);
       setRoleFormData({
         roleName: role.roleName || '',
+        remark: role.remark || '',
         menuIdList: role.menuIdList || [],
       });
     }
@@ -464,7 +487,7 @@ const Users: React.FC = () => {
           menuIdList: prev.menuIdList.filter(permId => !toRemove.includes(permId)),
         };
       } else {
-        // Checking: check this item and all its ancestors
+        // Checking: check this item and all its ancestors (do NOT automatically check descendants)
         const ancestors = getAncestorIds(id, availablePermissions);
         return {
           ...prev,
@@ -473,6 +496,15 @@ const Users: React.FC = () => {
       }
     });
   };
+
+  const handleSelectAll = () => setRoleFormData(prev => ({ ...prev, menuIdList: availablePermissions.map(p => p.id) }));
+  const handleClearAll = () => setRoleFormData(prev => ({ ...prev, menuIdList: [] }));
+  const handleExpandAll = () => {
+    const allExpanded: Record<number, boolean> = {};
+    availablePermissions.forEach(p => { allExpanded[p.id] = true; });
+    setExpandedMenuIds(allExpanded);
+  };
+  const handleCollapseAll = () => setExpandedMenuIds({});
 
   const handleRoleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -585,30 +617,28 @@ const Users: React.FC = () => {
         </div>
       </div>
 
-      {/* Search Filter Bar */}
-      <div className="users-tabs-navigation glass-card" style={{ justifyContent: 'flex-start' }}>
-        <div className="tabs-list">
-          <button
-            className={`tab-trigger ${activeTab === 'users' ? 'active' : ''}`}
-            onClick={() => {
-              setActiveTab('users');
-              setSearchTerm('');
-            }}
-          >
-            <UserIcon size={16} />
-            <span>Staff Users / الموظفين</span>
-          </button>
-          <button
-            className={`tab-trigger ${activeTab === 'roles' ? 'active' : ''}`}
-            onClick={() => {
-              setActiveTab('roles');
-              setSearchTerm('');
-            }}
-          >
-            <Shield size={16} />
-            <span>Security Roles / أدوار الأمان</span>
-          </button>
-        </div>
+      {/* Navigation Tabs */}
+      <div className="nav-tabs-container" style={{ margin: '0 24px' }}>
+        <button
+          className={`nav-tab ${activeTab === 'users' ? 'active' : ''}`}
+          onClick={() => {
+            setActiveTab('users');
+            setSearchTerm('');
+          }}
+        >
+          <UserIcon size={16} />
+          <span>Staff Users / الموظفين</span>
+        </button>
+        <button
+          className={`nav-tab ${activeTab === 'roles' ? 'active' : ''}`}
+          onClick={() => {
+            setActiveTab('roles');
+            setSearchTerm('');
+          }}
+        >
+          <Shield size={16} />
+          <span>Security Roles / أدوار الأمان</span>
+        </button>
       </div>
 
       {/* Content */}
@@ -637,25 +667,29 @@ const Users: React.FC = () => {
             <table className="users-table">
               <thead>
                 <tr>
-                  <th>Staff Name / اسم الموظف</th>
+                  <th style={{ textAlign: 'left', paddingLeft: '24px' }}>Staff Name / اسم الموظف</th>
                   <th>Account / الحساب</th>
                   <th>Role Name / اسم الدور</th>
                   <th>Created Date / تاريخ الإنشاء</th>
                   <th>Status / الحالة</th>
-                  <th style={{ textAlign: 'right' }}>Actions / الإجراءات</th>
+                  <th style={{ textAlign: 'right', paddingRight: '24px' }}>Actions / الإجراءات</th>
                 </tr>
               </thead>
               <tbody>
                 {paginatedUsers.map(user => (
                   <tr key={user.id}>
-                    <td>
-                      <div className="user-name-col">
-                        <div className="user-avatar-circle">
+                    <td style={{ textAlign: 'left', paddingLeft: '24px' }}>
+                      <div className="user-name-col" style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                        <div className="user-avatar-circle" style={{ flexShrink: 0 }}>
                           {user.staffName ? user.staffName.substring(0, 2).toUpperCase() : 'ST'}
                         </div>
-                        <div>
-                          <div className="font-semibold">{user.staffName || 'Unnamed Staff / موظف غير مسمى'}</div>
-                          <div className="text-muted text-xs">ID: {user.id}</div>
+                        <div style={{ textAlign: 'left', display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                          <div className="font-semibold" style={{ fontSize: '15px', color: 'var(--text-primary)', lineHeight: '1.2' }}>
+                            {user.staffName || 'Unnamed Staff / موظف غير مسمى'}
+                          </div>
+                          <div className="text-muted" style={{ fontSize: '12px', fontWeight: '500' }}>
+                            ID: {user.id}
+                          </div>
                         </div>
                       </div>
                     </td>
@@ -679,7 +713,7 @@ const Users: React.FC = () => {
                         {user.status || 'Normal / طبيعي'}
                       </span>
                     </td>
-                    <td>
+                    <td style={{ paddingRight: '24px' }}>
                       <div className="table-actions">
                         <button className="icon-action" onClick={() => handleOpenEditUser(user)} title="Edit User / تعديل المستخدم">
                           <Edit2 size={16} />
@@ -1108,106 +1142,197 @@ const Users: React.FC = () => {
               <button className="close-btn" onClick={() => setIsRoleModalOpen(false)}><X size={20} /></button>
             </div>
             
-            <form onSubmit={handleRoleSubmit} className="modal-form">
-              <div className="form-group">
-                <label>Role Name <span className="required-asterisk">*</span> / اسم الدور <span className="required-asterisk">*</span></label>
-                <input 
-                  required 
-                  type="text" 
-                  value={roleFormData.roleName}
-                  onChange={e => setRoleFormData({ ...roleFormData, roleName: e.target.value })}
-                  className="glass-input" 
-                  placeholder="e.g. Inventory Manager / مثال: مدير المخزون" 
-                />
+            <form onSubmit={handleRoleSubmit} className="modal-form" style={{ display: 'flex', flexDirection: 'column', height: '100%', padding: 0 }}>
+              <div style={{ padding: '24px 24px 0 24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                <div className="form-group" style={{ marginBottom: 0 }}>
+                  <label>Role Name <span className="required-asterisk">*</span> / اسم الدور <span className="required-asterisk">*</span></label>
+                  <input 
+                    required 
+                    type="text" 
+                    value={roleFormData.roleName}
+                    onChange={e => setRoleFormData({ ...roleFormData, roleName: e.target.value })}
+                    className="glass-input" 
+                    placeholder="e.g. Inventory Manager / مثال: مدير المخزون" 
+                  />
+                </div>
+                <div className="form-group" style={{ marginBottom: 0 }}>
+                  <label>Role Description (Optional) / وصف الدور (اختياري)</label>
+                  <p className="text-xs text-muted" style={{ marginBottom: '8px' }}>Describe the purpose of this role and who should use it.</p>
+                  <input 
+                    type="text" 
+                    value={roleFormData.remark || ''}
+                    onChange={e => setRoleFormData({ ...roleFormData, remark: e.target.value })}
+                    className="glass-input" 
+                    placeholder="e.g. Users who manage stock levels / مثال: المستخدمون الذين يديرون مستويات المخزون" 
+                  />
+                </div>
               </div>
 
-              <div className="form-group permissions-box">
-                <label>Functional Authority (Menu Access Permissions) / الصلاحية الوظيفية (صلاحيات الوصول للقائمة)</label>
-                <p className="permissions-help text-xs text-muted">Select the specific pages and features that users with this role can access. / اختر الصفحات والميزات المحددة التي يمكن للمستخدمين الذين يمتلكون هذا الدور الوصول إليها.</p>
-                
-                {permissionsLoading ? (
-                  <div className="permissions-loading">Loading permission tree from Dragon ESL...</div>
-                ) : (
-                  <div className="permissions-grid">
-                    {getSortedTreeList(availablePermissions).map(perm => {
-                      const isChecked = roleFormData.menuIdList.includes(perm.id);
-                      const hasChildren = availablePermissions.some(child => child.parentId === perm.id);
-                      const isExpanded = expandedMenuIds[perm.id];
-                      
-                      const isIndeterminate = (() => {
-                        if (!isChecked) return false;
-                        const descendants = getDescendantIds(perm.id, availablePermissions);
-                        if (descendants.length === 0) return false;
-                        const allChecked = descendants.every(childId => roleFormData.menuIdList.includes(childId));
-                        return !allChecked;
-                      })();
+              <div style={{ padding: '24px', flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+                <div className="permissions-container">
+                  {/* Sticky Toolbar */}
+                  <div className="permissions-toolbar">
+                    <div className="permissions-toolbar-top">
+                      <div className="permission-search-bar">
+                        <Search size={16} className="text-muted" />
+                        <input 
+                          type="text" 
+                          placeholder="Search permissions... / ابحث في الصلاحيات..." 
+                          value={permSearchTerm}
+                          onChange={e => setPermSearchTerm(e.target.value)}
+                        />
+                      </div>
+                      <div className="permission-stats">
+                        <span className="permission-stat-badge highlight">Permissions Selected: {roleFormData.menuIdList.length}</span>
+                        <span className="permission-stat-badge">Available Permissions: {availablePermissions.length}</span>
+                      </div>
+                    </div>
+                    <div className="permissions-toolbar-bottom">
+                      <button type="button" className="btn-link" onClick={handleSelectAll}>Select All</button>
+                      <button type="button" className="btn-link" onClick={handleClearAll} style={{ color: 'var(--text-muted)' }}>Clear All</button>
+                      <div style={{ width: '1px', background: 'var(--border-color)', margin: '0 8px' }} />
+                      <button type="button" className="btn-link" onClick={handleExpandAll} style={{ color: 'var(--text-muted)' }}>Expand All</button>
+                      <button type="button" className="btn-link" onClick={handleCollapseAll} style={{ color: 'var(--text-muted)' }}>Collapse All</button>
+                    </div>
+                  </div>
 
-                      return (
-                        <div 
-                          key={perm.id} 
-                          className={`permission-item glass-card ${isChecked ? 'selected' : ''}`}
-                          onClick={() => handleTogglePermission(perm.id)}
-                          style={{ 
-                            paddingLeft: `${(perm.level || 0) * 16 + 8}px`,
-                            display: isMenuVisible(perm) ? 'flex' : 'none',
-                            alignItems: 'center',
-                            gap: '8px',
-                            cursor: 'pointer'
-                          }}
-                        >
-                          {hasChildren ? (
-                            <button
-                              type="button"
-                              className="tree-expand-btn"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setExpandedMenuIds(prev => ({ ...prev, [perm.id]: !prev[perm.id] }));
-                              }}
+                  {/* Tree Area */}
+                  <div style={{ overflowY: 'auto', flex: 1, paddingBottom: '24px' }}>
+                    {permissionsLoading ? (
+                      <div style={{ padding: '40px', textAlign: 'center', color: 'var(--text-muted)' }}>Loading permission tree...</div>
+                    ) : (
+                      (() => {
+                        const sortedList = getSortedTreeList(availablePermissions);
+                        const filteredList = sortedList.filter(perm => {
+                          if (!permSearchTerm) return true;
+                          const matches = perm.menuName.toLowerCase().includes(permSearchTerm.toLowerCase());
+                          if (matches) return true;
+                          // If search matches a child, show parent
+                          const descendants = getDescendantIds(perm.id, availablePermissions);
+                          return descendants.some(childId => {
+                            const child = availablePermissions.find(p => p.id === childId);
+                            return child && child.menuName.toLowerCase().includes(permSearchTerm.toLowerCase());
+                          });
+                        });
+
+                        if (filteredList.length === 0 && permSearchTerm) {
+                          return (
+                            <div className="empty-permissions-state">
+                              <Search size={32} style={{ marginBottom: '16px', opacity: 0.5 }} />
+                              <div style={{ fontWeight: 600, marginBottom: '8px' }}>No permissions match your search.</div>
+                              <div>Try a different term or clear the search field.</div>
+                            </div>
+                          );
+                        }
+
+                        const emptyStateMessage = (roleFormData.menuIdList.length === 0 && !permSearchTerm) ? (
+                          <div style={{ padding: '12px 16px', background: 'rgba(59, 130, 246, 0.05)', color: 'var(--primary-color)', fontSize: '13px', fontWeight: 500, borderBottom: '1px solid var(--border-color)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <Shield size={16} /> No permissions selected yet. Choose permissions from the list below.
+                          </div>
+                        ) : null;
+
+                        return (
+                          <>
+                            {emptyStateMessage}
+                            {filteredList.map(perm => {
+                          const isChecked = roleFormData.menuIdList.includes(perm.id);
+                          const hasChildren = availablePermissions.some(child => child.parentId === perm.id);
+                          const isExpanded = expandedMenuIds[perm.id];
+                          const isTopLevel = !perm.parentId || perm.parentId === 0;
+                          
+                          const isIndeterminate = (() => {
+                            if (!isChecked) return false;
+                            const descendants = getDescendantIds(perm.id, availablePermissions);
+                            if (descendants.length === 0) return false;
+                            const allChecked = descendants.every(childId => roleFormData.menuIdList.includes(childId));
+                            return !allChecked;
+                          })();
+
+                          // Highlighting logic
+                          const renderHighlightedText = (text: string, highlight: string) => {
+                            if (!highlight.trim()) return <span>{text}</span>;
+                            const regex = new RegExp(`(${highlight})`, 'gi');
+                            const parts = text.split(regex);
+                            return (
+                              <span>
+                                {parts.map((part, i) => 
+                                  regex.test(part) ? <mark key={i}>{part}</mark> : <span key={i}>{part}</span>
+                                )}
+                              </span>
+                            );
+                          };
+
+                          if (isTopLevel) {
+                            return (
+                              <div key={perm.id} style={{ display: isMenuVisible(perm) || permSearchTerm ? 'block' : 'none' }}>
+                                <div className="tree-section-header">
+                                  {renderHighlightedText(perm.menuName, permSearchTerm)}
+                                </div>
+                              </div>
+                            );
+                          }
+
+                          return (
+                            <div 
+                              key={perm.id} 
+                              className="tree-node-compact"
+                              onClick={() => handleTogglePermission(perm.id)}
                               style={{ 
-                                background: 'none', 
-                                border: 'none', 
-                                cursor: 'pointer', 
-                                padding: '4px',
-                                display: 'flex', 
-                                alignItems: 'center',
-                                color: 'var(--text-muted)'
+                                paddingLeft: `${((perm.level || 1) - 1) * 24 + 16}px`,
+                                display: isMenuVisible(perm) || permSearchTerm ? 'flex' : 'none',
                               }}
                             >
-                              {isExpanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
-                            </button>
-                          ) : (
-                            <div style={{ width: '22px' }} />
-                          )}
-                          <div 
-                            className="perm-checkbox" 
-                            style={{ display: 'flex', alignItems: 'center' }}
-                          >
-                            {isIndeterminate ? (
-                              <MinusSquare size={18} className="text-primary-semi" style={{ color: 'var(--text-muted)' }} />
-                            ) : isChecked ? (
-                              <CheckSquare size={18} className="text-primary" />
-                            ) : (
-                              <Square size={18} />
-                            )}
-                          </div>
-                          <div className="perm-details">
-                            <span className="font-semibold text-sm">{perm.menuName}</span>
-                            <span className="text-xs text-muted" style={{ marginLeft: '6px' }}>ID: {perm.id}{perm.zkUrl ? ` • ${perm.zkUrl}` : ''}</span>
-                          </div>
-                        </div>
-                      );
-                    })}
-                    {availablePermissions.length === 0 && !permissionsLoading && (
-                      <div className="text-muted">No permission tree available. Please refresh or check Dragon ESL connectivity.</div>
+                              {hasChildren ? (
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setExpandedMenuIds(prev => ({ ...prev, [perm.id]: !prev[perm.id] }));
+                                  }}
+                                  style={{ 
+                                    background: 'none', border: 'none', cursor: 'pointer', padding: '2px', 
+                                    display: 'flex', alignItems: 'center', color: 'var(--text-muted)' 
+                                  }}
+                                >
+                                  {isExpanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+                                </button>
+                              ) : (
+                                <div style={{ width: '18px' }} />
+                              )}
+                              
+                              <div className={`perm-checkbox ${isChecked ? 'checked' : ''}`}>
+                                {isIndeterminate ? (
+                                  <MinusSquare size={16} />
+                                ) : isChecked ? (
+                                  <CheckSquare size={16} />
+                                ) : (
+                                  <Square size={16} />
+                                )}
+                              </div>
+                              
+                              <div className="tree-node-text">
+                                {renderHighlightedText(perm.menuName, permSearchTerm)}
+                              </div>
+                            </div>
+                          );
+                        })}
+                        </>
+                        );
+                      })()
                     )}
                   </div>
-                )}
+                </div>
               </div>
 
-              <div className="modal-actions">
+              <div className="modal-actions-sticky" style={{ padding: '16px 24px', background: 'var(--bg-secondary)' }}>
                 <button type="button" className="btn-secondary" onClick={() => setIsRoleModalOpen(false)}>Cancel / إلغاء</button>
-                <button type="submit" className="btn-primary" disabled={formLoading}>
-                  {formLoading ? <Loader2 className="animate-spin" size={18} /> : isEditingRole ? 'Save Changes / حفظ التغييرات' : 'Create Role / إنشاء الدور'}
+                <button 
+                  type="submit" 
+                  className="btn-primary" 
+                  disabled={formLoading || !roleFormData.roleName.trim() || roleFormData.menuIdList.length === 0}
+                  title={roleFormData.menuIdList.length === 0 ? "Select at least one permission to create a role" : ""}
+                >
+                  {formLoading ? <Loader2 className="animate-spin" size={18} /> : isEditingRole ? 'Save Changes' : 'Create Role'}
                 </button>
               </div>
             </form>

@@ -15,6 +15,7 @@ export interface User {
 export interface Role {
   id?: string | number;
   roleName: string;
+  remark?: string;
   merchantId?: string;
   createTime?: string;
   menuIdList?: number[];

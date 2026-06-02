@@ -352,7 +352,8 @@ const AuditLogs: React.FC = () => {
                   <th>Timestamp / الطابع الزمني</th>
                   <th>Operator / القائم بالإجراء</th>
                   <th>Operation / العملية</th>
-                  <th>Barcode & ESL / الباركود والشاشة</th>
+                  <th>Barcode / الباركود</th>
+                  <th>ESL Tag / الشاشة</th>
                   <th>Item Details / تفاصيل الصنف</th>
                   <th>Price / السعر</th>
                   <th>Status / الحالة</th>
@@ -388,21 +389,11 @@ const AuditLogs: React.FC = () => {
                     <td className="col-operation">
                       <span className="operation-text">{getOperationTranslation(logItem.operation, logItem.operationText)}</span>
                     </td>
-                    <td className="col-barcodes">
-                      <div className="barcode-pair">
-                        {logItem.itemBarCode && (
-                          <div className="barcode-item">
-                            <span className="label">Item / صنف:</span>
-                            <span className="value">{logItem.itemBarCode}</span>
-                          </div>
-                        )}
-                        {logItem.priceTagBarCode && (
-                          <div className="barcode-item">
-                            <span className="label">ESL / شاشة:</span>
-                            <span className="value tag-value">{logItem.priceTagBarCode}</span>
-                          </div>
-                        )}
-                      </div>
+                    <td className="col-barcode">
+                      <div className="monospace-id" title={logItem.itemBarCode || ''}>{logItem.itemBarCode || '-'}</div>
+                    </td>
+                    <td className="col-esl-tag">
+                      <div className="monospace-id tag-value" title={logItem.priceTagBarCode || ''}>{logItem.priceTagBarCode || '-'}</div>
                     </td>
                     <td className="col-item-details">
                       <div className="item-title" title={logItem.itemName || ''}>
@@ -643,30 +634,17 @@ const AuditLogs: React.FC = () => {
           display: inline-block;
         }
 
-        .col-barcodes .barcode-pair {
-          display: flex;
-          flex-direction: column;
-          gap: 4px;
+        .monospace-id {
+          font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+          font-size: 13px;
+          color: var(--text-primary);
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          max-width: 120px;
         }
 
-        .col-barcodes .barcode-item {
-          display: flex;
-          align-items: center;
-          gap: 6px;
-          font-family: monospace;
-          font-size: 12px;
-        }
-
-        .col-barcodes .barcode-item .label {
-          color: var(--text-muted);
-          width: 32px;
-        }
-
-        .col-barcodes .barcode-item .value {
-          color: var(--text-secondary);
-        }
-
-        .col-barcodes .barcode-item .tag-value {
+        .monospace-id.tag-value {
           color: #60a5fa;
         }
 
