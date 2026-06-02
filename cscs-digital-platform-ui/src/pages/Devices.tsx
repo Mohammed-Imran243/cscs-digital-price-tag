@@ -94,6 +94,7 @@ const Devices: React.FC = () => {
 
   // ── ESL Bind Workflow State ─────────────────────────────────────────────
   const [bindModalOpen, setBindModalOpen] = useState(false);
+  const [bindModalTab, setBindModalTab] = useState<'bind' | 'unbind'>('bind');
   const [bindLoading, setBindLoading] = useState(false);
   const [bindFormStoreId, setBindFormStoreId] = useState('');
   const [bindFormItemBarCode, setBindFormItemBarCode] = useState('');
@@ -427,9 +428,10 @@ const Devices: React.FC = () => {
   // ── ESL Bind / Unbind Handlers ────────────────────────────────────────────
 
   /** Open the Bind modal and pre-load AP list and available ESLs for the selected store */
-  const openBindModal = async () => {
+  const openBindModal = async (targetTab: 'bind' | 'unbind' = 'bind') => {
     setBindModalOpen(true);
-    setBindTab('bind');
+    setBindTab(targetTab);
+    setBindModalTab(targetTab);
     setBindFormStoreId(selectedStoreId);
     setBindFormItemBarCode('');
     setBindFormEslBarcode('');
@@ -538,9 +540,22 @@ const Devices: React.FC = () => {
           </div>
 
           {activeTab === 'esl' && (
-            <button className="btn-primary" onClick={openBindModal} disabled={!selectedStoreId || storesLoading}>
-              <Link2 size={18} /> Bind / ربط
-            </button>
+            <div style={{ display: 'flex', gap: '12px' }}>
+              <button 
+                className="btn-primary" 
+                onClick={() => { setBindModalTab('bind'); openBindModal('bind'); }} 
+                disabled={!selectedStoreId || storesLoading}
+              >
+                <Link2 size={18} /> Bind / ربط
+              </button>
+              <button 
+                className="btn-primary" 
+                onClick={() => { setBindModalTab('unbind'); openBindModal('unbind'); }} 
+                disabled={!selectedStoreId || storesLoading}
+              >
+                <Link2 size={18} style={{ transform: 'rotate(90deg)' }} /> Unbind / إلغاء الربط
+              </button>
+            </div>
           )}
 
           <button className="btn-secondary" onClick={() => fetchDevices()} disabled={loading || storesLoading}>
@@ -639,6 +654,7 @@ const Devices: React.FC = () => {
       <BindModal
         bindModalOpen={bindModalOpen}
         setBindModalOpen={setBindModalOpen}
+        defaultTab={bindModalTab}
         stores={stores}
         bindLoading={bindLoading}
         bindFormStoreId={bindFormStoreId}

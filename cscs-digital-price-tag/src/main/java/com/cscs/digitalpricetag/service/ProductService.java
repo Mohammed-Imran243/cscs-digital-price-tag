@@ -312,7 +312,7 @@ public class ProductService {
         body.put("attrCategory",             request.getAttrCategory());
         body.put("attrName",                 request.getAttrName());
         body.put("isSpecs",                  "0");
-        body.put("storeId",                  "0");
+        body.put("storeId",                  storeId);
         body.put("custFeature1",             priceStr);
         body.put("custFeature2",             null);
         body.put("custFeature3",             null);
@@ -374,8 +374,16 @@ public class ProductService {
         body.put("itemSpecsSkuVoList",       Collections.emptyList());
         body.put("itemVideoList",            Collections.emptyList());
 
-        log.info("updatePrice body for itemId={} storeId={}: price={} custFeature1={}",
-                itemId, storeId, priceStr, priceStr);
+        log.info("=== DRAGON ESL PUT REQUEST INVESTIGATION ===");
+        log.info("itemId: {}", itemId);
+        log.info("itemCode: {}", request.getProductCode());
+        log.info("barcode: {}", request.getBarCode());
+        log.info("storeId: {}", storeId);
+        log.info("sellingPrice: {}", priceStr);
+        log.info("originalPrice: {}", originalPriceStr);
+        log.info("vipPrice: {}", request.getVipPrice());
+        log.info("complete request payload: {}", body);
+        log.info("============================================");
 
         try {
             Map<?, ?> response = dragonEslApiClient.put(
@@ -388,7 +396,9 @@ public class ProductService {
                 throw new DragonEslException("No response from Dragon ESL", HttpStatus.BAD_GATEWAY);
             }
 
-            log.info("Zkong updatePrice response: {}", response);
+            log.info("=== DRAGON ESL PUT RESPONSE RECEIVED ===");
+            log.info("Response Map: {}", response);
+            log.info("=========================================");
 
             Object successObj = response.get("success");
             boolean success   = Boolean.TRUE.equals(successObj);

@@ -25,6 +25,220 @@ public class AuditLogService {
         this.dragonEslApiClient = dragonEslApiClient;
     }
 
+    public PagedResponse<AuditLogResponse> getPriceChangeLogs(
+            String storeId,
+            String startDate,
+            String endDate,
+            int page,
+            int size) {
+
+        try {
+            java.util.Map<String, Object> requestBody = new java.util.HashMap<>();
+            if (storeId != null && !storeId.isBlank()) {
+                try {
+                    requestBody.put("storeId", Long.parseLong(storeId.trim()));
+                } catch (NumberFormatException e) {
+                    // skip invalid storeId
+                }
+            }
+
+            if (startDate != null && endDate != null && !startDate.isBlank() && !endDate.isBlank()) {
+                requestBody.put("createdTime", startDate.trim() + " 00:00:00," + endDate.trim() + " 23:59:59");
+            } else {
+                // Default to last 90 days — Dragon ESL requires createdTime,
+                // it cannot be null or omitted
+                java.time.LocalDate today = java.time.LocalDate.now();
+                java.time.LocalDate ninetyDaysAgo = today.minusDays(90);
+                requestBody.put("createdTime", ninetyDaysAgo.toString() + " 00:00:00," + today.toString() + " 23:59:59");
+            }
+
+            requestBody.put("operation", null);
+            requestBody.put("status", null);
+            requestBody.put("priceTagBarCode", null);
+            requestBody.put("itemBarCode", null);
+            requestBody.put("itemName", null);
+            requestBody.put("shelfNo", null);
+            requestBody.put("feedBackTimeOrder", "desc");
+            requestBody.put("timeCostOrder", null);
+
+            String url = String.format("/zk/erp/log/listLog?page=%d&size=%d", page, size);
+            log.info("Querying ZKong listLog for price changes: URL={}, body={}", url, requestBody);
+
+            java.util.Map response = dragonEslApiClient.post(url, requestBody, java.util.Map.class);
+            if (response == null) {
+                throw new DragonEslException("No response from Dragon ESL for logs", HttpStatus.BAD_GATEWAY);
+            }
+
+            Boolean success = (Boolean) response.get("success");
+            if (success == null || !success) {
+                throw new DragonEslException("Failed to fetch logs: " + response.get("message"), HttpStatus.BAD_GATEWAY);
+            }
+
+            List<AuditLogResponse> mappedLogs = new java.util.ArrayList<>();
+            long totalElements = 0;
+
+            java.util.Map data = (java.util.Map) response.get("data");
+            if (data != null) {
+                Object totalObj = data.get("totalElements");
+                if (totalObj == null) {
+                    totalObj = data.get("total");
+                }
+                if (totalObj instanceof Number) {
+                    totalElements = ((Number) totalObj).longValue();
+                }
+
+                List<java.util.Map> list = (List<java.util.Map>) data.get("list");
+                if (list != null) {
+                    for (java.util.Map item : list) {
+                        AuditLogResponse dto = new AuditLogResponse();
+                        
+                        Object idVal = item.get("id");
+                        if (idVal instanceof Number) {
+                            dto.setId(((Number) idVal).longValue());
+                        }
+                        
+                        dto.setItemBarCode((String) item.get("itemBarCode"));
+                        dto.setItemName((String) item.get("itemName"));
+                        
+                        Object priceVal = item.get("price");
+                        dto.setPrice(priceVal != null ? priceVal.toString() : null);
+                        
+                        dto.setPriceTagBarCode((String) item.get("priceTagBarCode"));
+                        dto.setModel((String) item.get("model"));
+                        dto.setOperator((String) item.get("operator"));
+                        
+                        Object pushTimeVal = item.get("pushTime");
+                        dto.setPushTime(pushTimeVal != null ? pushTimeVal.toString() : null);
+                        
+                        Object feedbackTimeVal = item.get("feedbackTime");
+                        dto.setFeedbackTime(feedbackTimeVal != null ? feedbackTimeVal.toString() : null);
+                        
+                        Object createdTimeVal = item.get("createdTime");
+                        dto.setCreatedTime(createdTimeVal != null ? createdTimeVal.toString() : null);
+
+                        Object storeIdVal = item.get("storeId");
+                        dto.setStoreId(storeIdVal != null ? storeIdVal.toString() : null);
+
+                        // Retrieve the product's original price to calculate the discount amount
+                        String barcode = dto.getItemBarCode();
+                        String logStoreId = dto.getStoreId() != null ? dto.getStoreId() : "0";
+                        String originalPrice = "0";
+                        
+                        if (barcode != null && !barcode.isBlank()) {
+                            try {
+                                java.util.Map<String, Object> queryBody = new java.util.HashMap<>();
+                                try {
+                                    queryBody.put("storeId", Long.parseLong(logStoreId));
+                                } catch (NumberFormatException e) {
+                                    queryBody.put("storeId", logStoreId);
+                                }
+                                queryBody.put("barCode", barcode);
+                                queryBody.put("pcBarCode", barcode);
+                                
+                                java.util.Map<?, ?> prodResp = dragonEslApiClient.post(
+                                    "/zk/item/list/1/0/1/" + logStoreId,
+                                    queryBody,
+                                    java.util.Map.class
+                                );
+                                
+                                if (prodResp != null && Boolean.TRUE.equals(prodResp.get("success"))) {
+                                    java.util.Map<?, ?> dataMap = (java.util.Map<?, ?>) prodResp.get("data");
+                                    if (dataMap != null) {
+                                        java.util.List<java.util.Map<String, Object>> prodList = (java.util.List<java.util.Map<String, Object>>) dataMap.get("list");
+                                        if (prodList == null) {
+                                            prodList = (java.util.List<java.util.Map<String, Object>>) dataMap.get("rows");
+                                        }
+                                        if (prodList != null && !prodList.isEmpty()) {
+                                            java.util.Map<String, Object> rawProduct = prodList.get(0);
+                                            Object origPriceVal = rawProduct.get("originalPrice");
+                                            if (origPriceVal == null) {
+                                                origPriceVal = rawProduct.get("custFeature2");
+                                            }
+                                            if (origPriceVal != null) {
+                                                originalPrice = origPriceVal.toString();
+                                            }
+                                        }
+                                    }
+                                }
+                            } catch (Exception e) {
+                                log.warn("Failed to fetch originalPrice for barcode: " + barcode, e);
+                            }
+                        }
+                        
+                        dto.setOriginalPrice(originalPrice);
+                        
+                        // Calculate discountAmount = originalPrice - price
+                        double price = 0.0;
+                        double orig = 0.0;
+                        try {
+                            if (dto.getPrice() != null) price = Double.parseDouble(dto.getPrice());
+                            if (originalPrice != null) orig = Double.parseDouble(originalPrice);
+                        } catch (NumberFormatException e) {
+                            // ignore
+                        }
+                        
+                        double discount = Math.max(0.0, orig - price);
+                        dto.setDiscountAmount(String.format("%.2f", discount));
+
+                        Object opVal = item.get("operation");
+                        Integer operation = null;
+                        if (opVal instanceof Number) {
+                            operation = ((Number) opVal).intValue();
+                        }
+                        dto.setOperation(operation);
+                        
+                        // Map operation label
+                        String operationLabel = "Other";
+                        if (operation != null) {
+                            switch (operation) {
+                                case 1: operationLabel = "Bind"; break;
+                                case 2: operationLabel = "Unbind"; break;
+                                case 3: operationLabel = "Force Refresh"; break;
+                                case 4: operationLabel = "Product Change"; break;
+                                case 5: operationLabel = "Template Change"; break;
+                                case 13: operationLabel = "Import Bind"; break;
+                                default: operationLabel = "Other"; break;
+                            }
+                        }
+                        dto.setOperationLabel(operationLabel);
+                        dto.setOperationText(operationLabel);
+
+                        Object statusVal = item.get("status");
+                        Integer status = null;
+                        if (statusVal instanceof Number) {
+                            status = ((Number) statusVal).intValue();
+                        }
+                        dto.setStatus(status);
+
+                        // Map status label
+                        String statusLabel = "Failed";
+                        if (status != null) {
+                            switch (status) {
+                                case 2: statusLabel = "Success"; break;
+                                case 3: statusLabel = "Failed - Timeout"; break;
+                                case 9: statusLabel = "Failed - Tag Offline"; break;
+                                case 10: statusLabel = "Failed - No AP"; break;
+                                default: statusLabel = "Failed"; break;
+                            }
+                        }
+                        dto.setStatusLabel(statusLabel);
+                        dto.setStatusText(statusLabel);
+
+                        mappedLogs.add(dto);
+                    }
+                }
+            }
+
+            return new PagedResponse<>(mappedLogs, page, size, totalElements);
+
+        } catch (DragonEslException e) {
+            throw e;
+        } catch (Exception e) {
+            log.error("Error retrieving price change logs: {}", e.getMessage(), e);
+            throw new DragonEslException("Price change logs retrieval failed: " + e.getMessage(), HttpStatus.BAD_GATEWAY);
+        }
+    }
+
     public PagedResponse<AuditLogResponse> getAuditLogs(
             String storeId,
             String startDate,

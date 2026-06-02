@@ -9,6 +9,7 @@ import type { Product } from '../../services/productService';
 interface BindModalProps {
   bindModalOpen: boolean;
   setBindModalOpen: (open: boolean) => void;
+  defaultTab?: 'bind' | 'unbind';
   stores: Store[];
   bindLoading: boolean;
   bindFormStoreId: string;
@@ -35,6 +36,7 @@ interface BindModalProps {
 export const BindModal: React.FC<BindModalProps> = ({
   bindModalOpen,
   setBindModalOpen,
+  defaultTab,
   stores,
   bindLoading,
   bindFormStoreId,
@@ -68,6 +70,12 @@ export const BindModal: React.FC<BindModalProps> = ({
   const [isEslDropdownOpen, setIsEslDropdownOpen] = useState(false);
   const eslDropdownRef = useRef<HTMLDivElement>(null);
   const [hasTypedEsl, setHasTypedEsl] = useState(false);
+
+  useEffect(() => {
+    if (bindModalOpen && defaultTab) {
+      setBindTab(defaultTab);
+    }
+  }, [bindModalOpen, defaultTab, setBindTab]);
 
   useEffect(() => {
     if (bindModalOpen && bindFormStoreId) {

@@ -15,6 +15,9 @@ public class AuditLogResponse {
     private String pushTime;
     private String feedbackTime;
     private String createdTime;
+    private String operationLabel;
+    private String statusLabel;
+    private String storeId;
 
     // Getters and Setters
     public Long getId() { return id; }
@@ -58,4 +61,22 @@ public class AuditLogResponse {
 
     public String getCreatedTime() { return createdTime; }
     public void setCreatedTime(String createdTime) { this.createdTime = createdTime; }
+
+    public String getOperationLabel() { return operationLabel; }
+    public void setOperationLabel(String operationLabel) { this.operationLabel = operationLabel; }
+
+    public String getStatusLabel() { return statusLabel; }
+    public void setStatusLabel(String statusLabel) { this.statusLabel = statusLabel; }
+
+    public String getStoreId() { return storeId; }
+    public void setStoreId(String storeId) { this.storeId = storeId; }
+
+    private String originalPrice;
+    private String discountAmount;
+
+    public String getOriginalPrice() { return originalPrice; }
+    public void setOriginalPrice(String originalPrice) { this.originalPrice = originalPrice; }
+
+    public String getDiscountAmount() { return discountAmount; }
+    public void setDiscountAmount(String discountAmount) { this.discountAmount = discountAmount; }
 }

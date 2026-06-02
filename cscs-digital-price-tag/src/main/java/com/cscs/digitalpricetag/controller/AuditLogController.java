@@ -20,14 +20,13 @@ public class AuditLogController {
 
     @GetMapping
     public ResponseEntity<ApiResponse<PagedResponse<AuditLogResponse>>> getAuditLogs(
-            @RequestParam String storeId,
-            @RequestParam String startDate,
-            @RequestParam String endDate,
+            @RequestParam(required = false) String storeId,
+            @RequestParam(required = false) String startDate,
+            @RequestParam(required = false) String endDate,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size,
-            @RequestParam(required = false) Integer operation) {
+            @RequestParam(defaultValue = "10") int size) {
 
-        PagedResponse<AuditLogResponse> logs = auditLogService.getAuditLogs(storeId, startDate, endDate, page, size, operation);
+        PagedResponse<AuditLogResponse> logs = auditLogService.getPriceChangeLogs(storeId, startDate, endDate, page, size);
         return ResponseEntity.ok(ApiResponse.success("Audit logs fetched successfully", logs));
     }
 }
