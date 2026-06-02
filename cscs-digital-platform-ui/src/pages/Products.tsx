@@ -733,7 +733,7 @@ const Products: React.FC = () => {
                 Delete Globally / حذف نهائي
               </button>
               <button className="op-btn info-btn" style={{ padding: '6px 12px', fontSize: '12px' }} onClick={() => handleDeleteStoreOnly(product)}>
-                Remove from Store / حذف من المتجر
+                Delete from Store / حذف من المتجر
               </button>
             </div>
           </div>

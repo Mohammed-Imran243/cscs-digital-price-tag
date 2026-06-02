@@ -504,8 +504,15 @@ public class ProductService {
         }
 
         try {
+            Object parsedStoreId = storeId;
+            try {
+                parsedStoreId = Long.parseLong(storeId.trim());
+            } catch (NumberFormatException e) {
+                // Keep as string if it cannot be parsed as a number
+            }
+
             Map<String, Object> body = new HashMap<>();
-            body.put("storeId", storeId);
+            body.put("storeId", parsedStoreId);
             body.put("list", Collections.singletonList(barcode));
 
             Map<?, ?> response = dragonEslApiClient.delete(
@@ -548,6 +555,54 @@ public class ProductService {
         }
 
         try {
+            // 1. Fetch all stores in the merchant account
+            List<Map<?, ?>> stores = new ArrayList<>();
+            try {
+                Map<?, ?> storeListResp = dragonEslApiClient.get("/zk/store/storeList", Map.class);
+                if (storeListResp != null && storeListResp.get("data") instanceof List) {
+                    List<?> dataList = (List<?>) storeListResp.get("data");
+                    for (Object obj : dataList) {
+                        if (obj instanceof Map) {
+                            stores.add((Map<?, ?>) obj);
+                        }
+                    }
+                }
+                log.info("Fetched {} stores for global delete of item {}", stores.size(), barcode);
+            } catch (Exception e) {
+                log.error("Failed to fetch stores during global delete: {}", e.getMessage());
+            }
+
+            // 2. Delete the item from each store individually in a robust loop
+            for (Map<?, ?> store : stores) {
+                Object storeIdObj = store.get("storeId");
+                if (storeIdObj != null) {
+                    String storeIdStr = storeIdObj.toString();
+                    try {
+                        Object parsedStoreId = storeIdStr;
+                        try {
+                            parsedStoreId = Long.parseLong(storeIdStr.trim());
+                        } catch (NumberFormatException e) {
+                            // Keep as string
+                        }
+
+                        log.info("Deleting item {} from store {} during global delete...", barcode, parsedStoreId);
+                        Map<String, Object> storeBody = new HashMap<>();
+                        storeBody.put("storeId", parsedStoreId);
+                        storeBody.put("list", Collections.singletonList(barcode));
+
+                        Map<?, ?> storeResponse = dragonEslApiClient.delete(
+                                "/zk/item/batchDeleteItem",
+                                storeBody,
+                                Map.class
+                        );
+                        log.info("Store {} delete response for item {}: {}", parsedStoreId, barcode, storeResponse);
+                    } catch (Exception e) {
+                        log.warn("Failed to delete item {} from store {} during global delete: {}", barcode, storeIdStr, e.getMessage());
+                    }
+                }
+            }
+
+            // 3. Perform final global/merchant deletion
             Map<String, Object> body = new HashMap<>();
             body.put("storeId", "");
             body.put("list", Collections.singletonList(barcode));
@@ -556,7 +611,7 @@ public class ProductService {
                     "/zk/item/batchDeleteItem",
                     body,
                     Map.class
-            );
+                );
 
             if (response != null) {
                 Object codeObj = response.get("code");
