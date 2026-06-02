@@ -37,8 +37,9 @@ public class SecurityConfig {
                 .exceptionHandling(e -> e
                         .authenticationEntryPoint(authenticationEntryPoint)
                         .accessDeniedHandler(accessDeniedHandler)
-                )                .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/auth/**", "/templates/**").permitAll()
+                )
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/auth/**", "/templates/**", "/actuator/**", "/ping").permitAll()
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);

@@ -5,7 +5,7 @@ import { Rnd } from 'react-rnd';
 import { 
   ChevronLeft, ZoomIn, ZoomOut, Undo, Redo, 
   Copy, ClipboardPaste, Lock,
-  Type, Square, Circle, Minus, LayoutGrid, QrCode, Layers, MousePointer2, RotateCw, RotateCcw, Maximize
+  Type, Square, Circle, Minus, LayoutGrid, QrCode, Layers, MousePointer2, RotateCw, RotateCcw, Maximize, Loader2
 } from 'lucide-react';
 import { addTemplate, previewTemplate, getFieldNames } from '../services/templateService';
 import '../styles/editor.css';
@@ -349,7 +349,6 @@ const TemplateEditor: React.FC = () => {
 
   const handlePreview = async () => {
     setIsPreviewing(true);
-    setShowPreviewModal(true);
     setPreviewError(null);
     try {
       if (templateConfig) {
@@ -366,11 +365,13 @@ const TemplateEditor: React.FC = () => {
         } else {
            setPreviewError("Failed to generate preview image. Invalid response format.");
         }
+        setShowPreviewModal(true);
       }
     } catch (err: any) {
       console.error("Failed to preview template:", err);
       const msg = err.response?.data?.message || err.message || "Failed to generate preview.";
       setPreviewError(`Preview Failed: ${msg}. If searching by barcode, ensure the commodity exists in this store.`);
+      setShowPreviewModal(true);
     } finally {
       setIsPreviewing(false);
     }
@@ -798,14 +799,19 @@ const TemplateEditor: React.FC = () => {
             </div>
 
             {/* Canvas Area */}
-            <div style={{ background: '#f1f5f9', padding: '40px', minHeight: '300px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              {previewError ? (
-                <div style={{ color: '#ef4444' }}>{previewError}</div>
-              ) : (
-                <div style={{ background: 'white', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)', padding: '20px' }}>
-                  <img src={previewImage!} alt="Template Preview" style={{ maxWidth: '100%', maxHeight: '400px', objectFit: 'contain' }} />
+            <div style={{ background: '#f1f5f9', padding: '40px', minHeight: '300px', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
+              {isPreviewing && (
+                <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(241, 245, 249, 0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10 }}>
+                  <Loader2 size={32} className="animate-spin" color="#3b82f6" />
                 </div>
               )}
+              {previewError ? (
+                <div style={{ color: '#ef4444', textAlign: 'center', maxWidth: '80%' }}>{previewError}</div>
+              ) : previewImage ? (
+                <div style={{ background: 'white', padding: '20px', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)', display: 'inline-block' }}>
+                  <img src={previewImage} alt="Preview" style={{ maxWidth: '100%', maxHeight: '400px' }} />
+                </div>
+              ) : null}
             </div>
 
             {/* Footer */}

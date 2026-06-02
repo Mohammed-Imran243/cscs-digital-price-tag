@@ -56,8 +56,8 @@ const Merchant: React.FC = () => {
         api.get('/merchant/settings'),
       ]);
 
-      const infoData = unwrapResponse<any>(infoRes);
-      const settingsData = unwrapResponse<any>(settingsRes);
+      const infoData = unwrapResponse(infoRes);
+      const settingsData = unwrapResponse(settingsRes) as any;
 
       setInfo(infoData);
       setSettings(settingsData);
