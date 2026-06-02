@@ -25,7 +25,8 @@ FROM eclipse-temurin:21-jre-jammy
 WORKDIR /app
 
 # Copy built jar from build stage
-COPY --from=build /app/build/libs/*.jar app.jar
+# COPY --from=build /app/build/libs/*.jar app.jar
+COPY --from=build /app/build/libs/cscs-digital-price-tag-1.0.0.jar app.jar
 
 # Expose port
 EXPOSE 8080

@@ -1,0 +1,44 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ./cscs-digital-price-tag
+      dockerfile: Dockerfile
+    container_name: cscs-backend
+    restart: unless-stopped
+    environment:
+      SPRING_PROFILES_ACTIVE: deployment
+
+      JWT_SECRET: cscs-digital-price-tag-secret-key-2026
+
+      DRAGON_ESL_BASE_URL: http://www.dragonesl.com
+      DRAGON_ESL_USERNAME: DG0358
+      DRAGON_ESL_PASSWORD: xzlongan@123
+      DRAGON_ESL_MERCHANT_ID: 1775639851383
+
+    ports:
+      - "8080:8080"
+
+    networks:
+      - cscs-network
+
+  frontend:
+    build:
+      context: ./cscs-digital-platform-ui
+      dockerfile: Dockerfile
+    container_name: cscs-frontend
+    restart: unless-stopped
+
+    depends_on:
+      - backend
+
+    ports:
+      - "5173:80"
+
+    networks:
+      - cscs-network
+
+networks:
+  cscs-network:
+    driver: bridge
