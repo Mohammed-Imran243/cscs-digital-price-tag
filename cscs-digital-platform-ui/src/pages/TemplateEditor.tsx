@@ -245,8 +245,9 @@ const TemplateEditor: React.FC = () => {
     payload.attrCategory = payload.attrCategory !== undefined ? payload.attrCategory : 'default';
     payload.attrName = payload.attrName !== undefined ? payload.attrName : 'default';
     
-    // Fallback if we don't have merchantId yet
+    // Fallback if we don't have merchantId or storeId yet
     payload.merchantId = payload.merchantId !== undefined ? payload.merchantId : 1775639851383;
+    payload.storeId = payload.storeId && payload.storeId !== '0' && payload.storeId !== 0 ? payload.storeId : 1694602327253;
 
     let layerCount = 0;
     const templateElements = items.map(source => {
@@ -281,7 +282,6 @@ const TemplateEditor: React.FC = () => {
         fillColor: '',
         fillinColor: '',
         stroke: '#000000',
-        id: null,
         angle: 0,
         barcodeType: 10,
         borderType: 1,
@@ -289,14 +289,12 @@ const TemplateEditor: React.FC = () => {
         dateFormat: 'YYYY-MM-dd HH:mm:ss',
         decimalSeparator: 'point',
         fieldCode: source.fieldCode || '',
-        icon: null,
         ifBold: 0,
         ifCondition: 0,
         ifItalic: 0,
         ifStrikeThrough: 0,
         ifUnderline: 0,
-        itemOrder: layerCount + 1,
-        itemPictureNameId: null,
+        itemOrder: 1, // Fix: Must be 1 to bind to the first (and only) commodity
         layer: layerCount++,
         lineBreak: '',
         lineWeight: source.borderWidth || 0,
