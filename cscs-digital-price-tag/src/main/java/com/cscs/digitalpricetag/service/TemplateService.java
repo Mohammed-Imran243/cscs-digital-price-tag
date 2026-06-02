@@ -212,13 +212,18 @@ public class TemplateService {
             Map<String, Object> finalPayload = new HashMap<>();
             finalPayload.put("templateAllRefactor", request);
 
-            // DragonESL requires itemBarcodeMap to process a commodity preview
+            // DragonESL requires itemBarcodeMap and storeId to process a commodity preview
             if (request.containsKey("templateBase")) {
                 Map<String, Object> templateBase = (Map<String, Object>) request.get("templateBase");
-                if (templateBase != null && templateBase.containsKey("barCode")) {
-                    Map<String, String> itemBarcodeMap = new HashMap<>();
-                    itemBarcodeMap.put("1", String.valueOf(templateBase.get("barCode")));
-                    finalPayload.put("itemBarcodeMap", itemBarcodeMap);
+                if (templateBase != null) {
+                    if (templateBase.containsKey("storeId")) {
+                        finalPayload.put("storeId", templateBase.get("storeId"));
+                    }
+                    if (templateBase.containsKey("barCode")) {
+                        Map<String, String> itemBarcodeMap = new HashMap<>();
+                        itemBarcodeMap.put("1", String.valueOf(templateBase.get("barCode")));
+                        finalPayload.put("itemBarcodeMap", itemBarcodeMap);
+                    }
                 }
             }
 
