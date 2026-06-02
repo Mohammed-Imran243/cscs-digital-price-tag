@@ -77,6 +77,10 @@ export const updateProductPrice = async (
     attrCategory?: string;
     attrName?: string;
     unit?: string;
+    vipPrice?: number | string;
+    spec?: string;
+    origin?: string;
+    productLabel?: string;
   }
 ): Promise<void> => {
   const params = new URLSearchParams({ storeId });

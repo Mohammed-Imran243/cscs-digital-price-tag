@@ -16,6 +16,11 @@ export interface AuditLog {
   pushTime: string;
   feedbackTime: string;
   createdTime: string;
+  operationLabel?: string;
+  statusLabel?: string;
+  storeId?: string;
+  originalPrice?: string;
+  discountAmount?: string;
 }
 
 export const getAuditLogs = async (

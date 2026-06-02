@@ -119,45 +119,9 @@ const SearchableDropdown: React.FC<SearchableDropdownProps> = ({
   );
 };
 
-import { useLocation, useNavigate } from 'react-router-dom';
-
 const Products: React.FC = () => {
   const [stores, setStores] = useState<Store[]>([]);
   const [selectedStore, setSelectedStore] = useState<string>('');
-  
-  const location = useLocation();
-  const navigate = useNavigate();
-  const searchParams = new URLSearchParams(location.search);
-  const tabParam = searchParams.get('tab');
-  
-  // Products tab state — matches DragonESL 3-tab structure
-  type ProductTab = 'merchant' | 'store' | 'store_operation';
-  const activeProductTab: ProductTab = 
-    (tabParam === 'store') ? 'store' : 
-    (tabParam === 'store_operation') ? 'store_operation' : 
-    'merchant';
-
-  const setActiveProductTab = (tab: ProductTab) => {
-    navigate(`/products?tab=${tab}`, { replace: true });
-  };
-
-// Store Operation sub-tab
-type StoreOpSubTab = 'by_item' | 'by_store';
-const [storeOpSubTab, setStoreOpSubTab] = useState<StoreOpSubTab>('by_item');
-
-// Store Operation — selected item on left panel
-const [selectedOpItem, setSelectedOpItem] = useState<any>(null);
-const [storeOpSelectedStore, setStoreOpSelectedStore] = useState<string>('');
-const [storeOpProducts, setStoreOpProducts] = useState<any[]>([]);
-const [storeOpFetching, setStoreOpFetching] = useState(false);
-
-// Merchant tab filter state
-const [merchantFilterCategory, setMerchantFilterCategory] = useState('');
-const [merchantFilterType, setMerchantFilterType] = useState('');
-
-// Store tab filter state
-const [storeFilterCategory, setStoreFilterCategory] = useState('');
-const [storeFilterType, setStoreFilterType] = useState('');
   
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(false);
@@ -363,9 +327,8 @@ const [storeFilterType, setStoreFilterType] = useState('');
     }
   };
 
-  const fetchProducts = async (tabOverride?: 'merchant' | 'store' | 'store_operation') => {
-    const currentTab = tabOverride ?? activeProductTab;
-    if (!selectedStore && currentTab !== 'merchant' && currentTab !== 'store_operation') return;
+  const fetchProducts = async () => {
+    if (!selectedStore) return;
     setLoading(true);
     try {
       const searchTerm = debouncedSearch.trim();
@@ -374,15 +337,8 @@ const [storeFilterType, setStoreFilterType] = useState('');
       const activePage = isSearchingNewTerm ? 0 : (currentPage - 1);
       if (isSearchingNewTerm) setCurrentPage(1);
 
-      // Merchant tab: DragonESL requires storeId '0' for merchant-level products
-      // Store tab: uses selectedStore
-      // Store Operation left panel: same as merchant (all products across stores)
-      const storeIdToUse = currentTab === 'merchant' || currentTab === 'store_operation'
-        ? '0'
-        : selectedStore;
-
       const data = await getProducts(
-        storeIdToUse,
+        selectedStore,
         activePage,
         pageSize,
         undefined,
@@ -408,28 +364,6 @@ const [storeFilterType, setStoreFilterType] = useState('');
       setLoading(false);
     }
   };
-
-  const fetchStoreOpProducts = async (storeId: string) => {
-    if (!storeId) return;
-    setStoreOpFetching(true);
-    try {
-      const data = await getProducts(storeId, 0, 50);
-      setStoreOpProducts(data.content || []);
-    } catch (err) {
-      console.error('Failed to fetch store operation products', err);
-      setStoreOpProducts([]);
-    } finally {
-      setStoreOpFetching(false);
-    }
-  };
-
-  // Sync storeOpSelectedStore with global selectedStore so it fetches automatically
-  useEffect(() => {
-    if (selectedStore && selectedStore !== storeOpSelectedStore) {
-      setStoreOpSelectedStore(selectedStore);
-      fetchStoreOpProducts(selectedStore);
-    }
-  }, [selectedStore]);
 
   useEffect(() => {
     fetchStores();
@@ -473,18 +407,11 @@ const [storeFilterType, setStoreFilterType] = useState('');
   }, []); // runs once on mount
 
   useEffect(() => {
-    if (activeProductTab === 'merchant') {
-      fetchProducts('merchant');
-    } else if (activeProductTab === 'store' && selectedStore) {
-      fetchProducts('store');
+    if (selectedStore) {
+      fetchProducts();
       setNewProduct(prev => ({ ...prev, storeId: selectedStore }));
-    } else if (activeProductTab === 'store_operation') {
-      // Store Operation uses merchant-level product list for left panel
-      fetchProducts('merchant');
-    } else {
-      setProducts([]);
     }
-  }, [activeProductTab, selectedStore, currentPage, pageSize, debouncedSearch]);
+  }, [selectedStore, currentPage, pageSize, debouncedSearch]);
 
   const handleCreateProduct = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -548,7 +475,8 @@ const [storeFilterType, setStoreFilterType] = useState('');
       showNotification('Product added successfully / تمت إضافة المنتج بنجاح', 'success');
     } catch (err: any) {
       console.error('Failed to create product', err);
-      showNotification('Failed to add product. Please try again. / فشل إضافة المنتج. يرجى المحاولة مرة أخرى.', 'error');
+      const msg = err.response?.data?.message || err.message || 'Unknown error';
+      showNotification(`Failed to add product: ${msg} / فشل إضافة المنتج: ${msg}`, 'error');
     } finally {
       setIsCreating(false);
     }
@@ -569,7 +497,8 @@ const [storeFilterType, setStoreFilterType] = useState('');
           setTimeout(() => fetchProducts(), 2000);
         } catch (err: any) {
           console.error('Failed to delete product', err);
-          showNotification('Failed to delete product from store. Please try again. / فشل حذف المنتج من المتجر. يرجى المحاولة مرة أخرى.', 'error');
+          const msg = err.response?.data?.message || err.message || 'Unknown error';
+          showNotification(`Failed to delete product from store: ${msg} / فشل حذف المنتج من المتجر: ${msg}`, 'error');
         }
       }
     });
@@ -590,7 +519,8 @@ const [storeFilterType, setStoreFilterType] = useState('');
           setTimeout(() => fetchProducts(), 2000);
         } catch (err: any) {
           console.error('Failed to delete product', err);
-          showNotification('Failed to delete product globally. Please try again. / فشل حذف المنتج نهائياً. يرجى المحاولة مرة أخرى.', 'error');
+          const msg = err.response?.data?.message || err.message || 'Unknown error';
+          showNotification(`Failed to delete product globally: ${msg} / فشل حذف المنتج نهائياً: ${msg}`, 'error');
         }
       }
     });
@@ -651,14 +581,19 @@ const [storeFilterType, setStoreFilterType] = useState('');
         originalPrice: editingProduct.originalPrice || 0,
         attrCategory: editingProduct.attrCategory,
         attrName: editingProduct.attrName,
-        unit: editingProduct.unit || '1PCS'
+        unit: editingProduct.unit || '1PCS',
+        vipPrice: editingProduct.vipPrice,
+        spec: editingProduct.spec,
+        origin: editingProduct.origin,
+        productLabel: editingProduct.productLabel
       });
       setIsEditModalOpen(false);
       fetchProducts();
       showNotification('Product updated successfully / تم تحديث المنتج بنجاح', 'success');
     } catch (err: any) {
       console.error('Failed to update product', err);
-      showNotification('Failed to update product. Please try again. / فشل تحديث المنتج. يرجى المحاولة مرة أخرى.', 'error');
+      const msg = err.response?.data?.message || err.message || 'Unknown error';
+      showNotification(`Failed to update product: ${msg} / فشل تحديث المنتج: ${msg}`, 'error');
     } finally {
       setIsUpdating(false);
     }
@@ -695,6 +630,21 @@ const [storeFilterType, setStoreFilterType] = useState('');
         <h2>Product Management / إدارة المنتجات</h2>
       </div>
       <div className="header-actions">
+        <div className="store-selector-wrapper">
+          <StoreIcon size={16} className="text-muted" />
+          <select 
+            value={selectedStore} 
+            onChange={(e) => setSelectedStore(e.target.value)}
+            className="glass-select"
+          >
+            <option value="">Select a Store... / اختر متجراً...</option>
+            {stores.map(store => (
+              <option key={store.storeId} value={store.storeId}>
+                {store.storeName} {store.externalStoreId ? `(${store.externalStoreId})` : ''}
+              </option>
+            ))}
+          </select>
+        </div>
         <div className="global-search-bar">
           <Search size={16} className="text-muted" />
           <input
@@ -704,425 +654,95 @@ const [storeFilterType, setStoreFilterType] = useState('');
             onChange={(e) => setSearch(e.target.value)}
           />
         </div>
-        {activeProductTab !== 'merchant' && (
-          <select
-            className="store-selector glass-input"
-            value={selectedStore}
-            onChange={(e) => setSelectedStore(e.target.value)}
-          >
-            <option value="">Select a Store... / اختر متجراً...</option>
-            {stores.map(store => (
-              <option key={store.storeId} value={store.storeId}>
-                {store.storeName} {store.externalStoreId ? `(${store.externalStoreId})` : ''}
-              </option>
-            ))}
-          </select>
-        )}
-        <button className="btn-secondary" onClick={() => fetchProducts(activeProductTab)} disabled={loading}>
+        <button className="btn-secondary" onClick={() => fetchProducts()} disabled={loading}>
           <RefreshCw size={18} className={loading ? 'animate-spin' : ''} /> Refresh / تحديث
         </button>
-        {activeProductTab === 'merchant' && (
-          <button className="btn-primary" onClick={() => setIsModalOpen(true)}>
-            <Plus size={18} /> Add / إضافة
-          </button>
-        )}
+        <button className="btn-primary" onClick={() => setIsModalOpen(true)}>
+          <Plus size={18} /> Add / إضافة
+        </button>
       </div>
     </div>
 
-    {/* 3-Tab Navigation */}
-    <div className="product-tabs-nav glass-card">
-      <button
-        className={`product-tab-btn ${activeProductTab === 'merchant' ? 'active' : ''}`}
-        onClick={() => { setActiveProductTab('merchant'); setCurrentPage(1); fetchProducts('merchant'); }}
-      >
-        <Package size={15} />
-        Merchant Merchandise / بضاعة التاجر
-      </button>
-      <button
-        className={`product-tab-btn ${activeProductTab === 'store' ? 'active' : ''}`}
-        onClick={() => { setActiveProductTab('store'); setCurrentPage(1); if (selectedStore) fetchProducts('store'); }}
-      >
-        <StoreIcon size={15} />
-        Store Merchandise / بضاعة المتجر
-      </button>
-      <button
-        className={`product-tab-btn ${activeProductTab === 'store_operation' ? 'active' : ''}`}
-        onClick={() => { setActiveProductTab('store_operation'); setCurrentPage(1); fetchProducts('merchant'); }}
-      >
-        <Settings size={15} />
-        Store Operation / عمليات المتجر
-      </button>
-    </div>
-
-    {/* ── TAB 1: MERCHANT MERCHANDISE ── */}
-    {activeProductTab === 'merchant' && (
-      <div className="zkong-table-container glass-card">
-        {/* Merchant Filters */}
-        <div className="product-filter-bar">
-          <div className="filter-item">
-            <label>Template Category / تصنيف القالب</label>
-            <select className="glass-input filter-select" value={merchantFilterCategory} onChange={e => setMerchantFilterCategory(e.target.value)}>
-              <option value="">Select All / الكل</option>
-              {apiCategories.map(c => <option key={c} value={c}>{c}</option>)}
-            </select>
-          </div>
-          <div className="filter-item">
-            <label>Template Type / نوع القالب</label>
-            <select className="glass-input filter-select" value={merchantFilterType} onChange={e => setMerchantFilterType(e.target.value)}>
-              <option value="">Select All / الكل</option>
-              {apiTemplateTypes.map(t => <option key={t} value={t}>{t}</option>)}
-            </select>
-          </div>
-        </div>
-
-        {/* Merchant Table */}
-        {loading ? (
-          <div className="zkong-no-data"><Loader2 size={40} className="animate-spin text-primary" /><p>Loading... / جاري التحميل...</p></div>
-        ) : products.length === 0 ? (
-          <div className="zkong-no-data"><AlertTriangle size={40} className="text-warning" /><p>No products found / لا توجد منتجات</p></div>
-        ) : (
-          <div className="zkong-table-wrapper">
-            <table className="zkong-table">
-            <thead>
-              <tr>
-                <th><input type="checkbox" /></th>
-                <th>Item Code / كود السلعة</th>
-                <th>Commodity Barcode / باركود السلعة</th>
-                <th>Item Name / اسم السلعة</th>
-                <th>Product Label / تصنيف المنتج</th>
-                <th>Selling Price / سعر البيع</th>
-                <th>Original Price / السعر الأصلي</th>
-                <th>Vip Price / سعر VIP</th>
-                <th>Selling Unit / وحدة البيع</th>
-                <th>Operation / الإجراءات</th>
-              </tr>
-            </thead>
-            <tbody>
-              {products
-                .filter(p => !merchantFilterCategory || (p.attrCategory || p.category || '') === merchantFilterCategory)
-                .filter(p => !merchantFilterType || (p.attrName || '') === merchantFilterType)
-                .map(product => (
-                  <tr key={product.id}>
-                    <td><input type="checkbox" /></td>
-                    <td>{product.barcode || '—'}</td>
-                    <td>{product.barcode || '—'}</td>
-                    <td>{product.itemName || '—'}</td>
-                    <td>{(product as any).productLabel || '—'}</td>
-                    <td>{product.price || '—'}</td>
-                    <td>{product.originalPrice && parseFloat(product.originalPrice) > 0 ? product.originalPrice : '—'}</td>
-                    <td>{(product as any).vipPrice || '—'}</td>
-                    <td>{product.unit || '—'}</td>
-                    <td>
-                      <div className="op-buttons">
-                        <button className="op-btn primary-btn" onClick={() => openEditProductModal(product)}>Edit / تعديل</button>
-                        <button className="op-btn danger-btn" onClick={() => handleDeleteGlobal(product)}>Delete / حذف</button>
-                        <button className="op-btn info-btn" onClick={() => handleDeleteStoreOnly(product)}>match material / مطابقة</button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-            </tbody>
-          </table>
-          </div>
-        )}
+    {/* Unified Product Cards Grid */}
+    {!selectedStore ? (
+      <div className="zkong-no-data">
+        <AlertTriangle size={40} className="text-warning" />
+        <p>Please select a store / يرجى اختيار متجر</p>
       </div>
-    )}
-
-    {/* ── TAB 2: STORE MERCHANDISE ── */}
-    {activeProductTab === 'store' && (
-      <div className="zkong-table-container glass-card">
-        {/* Store Filters */}
-        <div className="product-filter-bar">
-          <div className="filter-item">
-            <label>Template Category / تصنيف القالب</label>
-            <select className="glass-input filter-select" value={storeFilterCategory} onChange={e => setStoreFilterCategory(e.target.value)}>
-              <option value="">Select All / الكل</option>
-              {apiCategories.map(c => <option key={c} value={c}>{c}</option>)}
-            </select>
-          </div>
-          <div className="filter-item">
-            <label>Template Type / نوع القالب</label>
-            <select className="glass-input filter-select" value={storeFilterType} onChange={e => setStoreFilterType(e.target.value)}>
-              <option value="">Select All / الكل</option>
-              {apiTemplateTypes.map(t => <option key={t} value={t}>{t}</option>)}
-            </select>
-          </div>
-        </div>
-
-        {/* Store Table */}
-        {!selectedStore ? (
-          <div className="zkong-no-data"><AlertTriangle size={40} className="text-warning" /><p>Please select a store / يرجى اختيار متجر</p></div>
-        ) : loading ? (
-          <div className="zkong-no-data"><Loader2 size={40} className="animate-spin text-primary" /><p>Loading... / جاري التحميل...</p></div>
-        ) : products.length === 0 ? (
-          <div className="zkong-no-data"><AlertTriangle size={40} className="text-warning" /><p>No products found / لا توجد منتجات</p></div>
-        ) : (
-          <div className="zkong-table-wrapper">
-            <table className="zkong-table">
-            <thead>
-              <tr>
-                <th><input type="checkbox" /></th>
-                <th>Item Code / كود السلعة</th>
-                <th>Commodity Barcode / باركود السلعة</th>
-                <th>Item Name / اسم السلعة</th>
-                <th>Product Label / تصنيف المنتج</th>
-                <th>Selling Price / سعر البيع</th>
-                <th>Original Price / السعر الأصلي</th>
-                <th>Vip Price / سعر VIP</th>
-                <th>Selling Unit / وحدة البيع</th>
-                <th>Origin / المنشأ</th>
-                <th>Spec / المواصفات</th>
-                <th>Level / المستوى</th>
-                <th>Template Category / تصنيف القالب</th>
-                <th>Operation / الإجراءات</th>
-              </tr>
-            </thead>
-            <tbody>
-              {products
-                .filter(p => !storeFilterCategory || (p.attrCategory || p.category || '') === storeFilterCategory)
-                .filter(p => !storeFilterType || (p.attrName || '') === storeFilterType)
-                .map(product => (
-                  <tr key={product.id}>
-                    <td><input type="checkbox" /></td>
-                    <td>{product.barcode || '—'}</td>
-                    <td>{product.barcode || '—'}</td>
-                    <td>{product.itemName || '—'}</td>
-                    <td>{(product as any).productLabel || '—'}</td>
-                    <td>{product.price || '—'}</td>
-                    <td>{product.originalPrice && parseFloat(product.originalPrice) > 0 ? product.originalPrice : '—'}</td>
-                    <td>{(product as any).vipPrice || '—'}</td>
-                    <td>{product.unit || '—'}</td>
-                    <td>{(product as any).origin || '—'}</td>
-                    <td>{(product as any).spec || '—'}</td>
-                    <td>{(product as any).productLabel || '—'}</td>
-                    <td>{product.attrCategory || product.category || '—'}</td>
-                    <td>
-                      <div className="op-buttons">
-                        <button className="op-btn success-btn" onClick={() => openEditProductModal(product, true)}>View / عرض</button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-            </tbody>
-          </table>
-          </div>
-        )}
+    ) : loading ? (
+      <div className="zkong-no-data">
+        <Loader2 size={40} className="animate-spin text-primary" />
+        <p>Loading... / جاري التحميل...</p>
       </div>
-    )}
-
-    {/* ── TAB 3: STORE OPERATION ── */}
-    {activeProductTab === 'store_operation' && (
-      <div className="store-operation-layout glass-card">
-        {/* Sub-tabs */}
-        <div className="store-op-subtabs">
-          {(['by_item', 'by_store'] as const).map(sub => (
-            <button
-              key={sub}
-              className={`store-op-subtab-btn ${storeOpSubTab === sub ? 'active' : ''}`}
-              onClick={() => setStoreOpSubTab(sub)}
-            >
-              {sub === 'by_item' ? 'By Item / حسب المنتج' : 'By Store / حسب المتجر'}
-            </button>
-          ))}
-        </div>
-
-        {storeOpSubTab === 'by_item' && (
-          <div className="store-op-split">
-            {/* Left Panel — Item List */}
-            <div className="store-op-left-panel glass-card">
-              <div className="store-op-left-header">
-                <span>Item ({products.length}) / المنتجات</span>
-                <input type="text" className="glass-input" placeholder="Search... / بحث..." style={{ marginTop: '8px', fontSize: '13px' }} />
+    ) : products.length === 0 ? (
+      <div className="zkong-no-data">
+        <AlertTriangle size={40} className="text-warning" />
+        <p>No products found / لا توجد منتجات</p>
+      </div>
+    ) : (
+      <div className="products-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(285px, 1fr))', gap: '20px', width: '100%', marginBottom: '24px' }}>
+        {products.map(product => (
+          <div key={product.id} className="store-card glass-card" style={{ padding: '20px', borderRadius: '16px', border: '1px solid var(--glass-border)', display: 'flex', flexDirection: 'column', background: 'var(--glass-card)', transition: 'transform 0.2s, box-shadow 0.2s' }}>
+            <div className="store-card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+              <div className="store-icon-wrapper" style={{ width: '38px', height: '38px', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(135deg, var(--primary-color), #8b5cf6)', color: 'white' }}>
+                <Package size={20} />
               </div>
-              <div className="store-op-item-list">
-                {loading ? (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', padding: '8px 0' }}>
-                    {[1,2,3,4,5].map(i => (
-                      <div key={i} style={{ height: '48px', borderRadius: '6px', background: 'rgba(255,255,255,0.04)', animation: 'shimmer 1.4s infinite' }} />
-                    ))}
-                  </div>
-                ) : products.length === 0 ? (
-                  <div style={{ padding: '24px 0', textAlign: 'center', color: 'var(--text-muted)', fontSize: '13px' }}>
-                    No items / لا توجد منتجات
-                  </div>
-                ) : (
-                  products.map((p, idx) => (
-                    <div
-                      key={p.id}
-                      className={`store-op-item-row ${selectedOpItem?.id === p.id ? 'selected' : ''}`}
-                      onClick={() => setSelectedOpItem(p)}
-                    >
-                      <span className="item-index">{idx + 1}.</span>
-                      <div className="item-info">
-                        <span className="item-barcode">[{p.barcode}]</span>
-                        <span className="item-name">{p.itemName}</span>
-                      </div>
-                    </div>
-                  ))
-                )}
+              <div className="store-badge status-active" style={{ fontSize: '11px', fontWeight: '700', padding: '3px 10px', borderRadius: '20px', background: 'rgba(59, 130, 246, 0.15)', color: 'var(--primary-color)' }}>
+                {product.unit || '1PCS'}
               </div>
             </div>
 
-            {/* Right Panel — Store data for selected item */}
-            <div className="store-op-right-panel">
-              {!selectedOpItem ? (
-                <div className="zkong-no-data" style={{ minHeight: '300px' }}>
-                  <AlertTriangle size={40} className="text-warning" />
-                  <p>Select an item from the left / اختر منتجاً من اليسار</p>
+            <div className="store-card-body" style={{ flex: '1', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+              <h3 className="product-title-card" style={{ fontSize: '16px', fontWeight: '700', margin: '0 0 6px 0', color: 'var(--text-primary)', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', textOverflow: 'ellipsis', minHeight: '44px', lineHeight: '1.4' }}>
+                {product.itemName}
+              </h3>
+              <p className="store-id" style={{ fontSize: '11px', color: 'var(--text-muted)', fontFamily: 'monospace', margin: '0 0 6px 0' }}>
+                <span>Item Code: </span>
+                <strong style={{ color: 'var(--text-secondary)' }}>{product.barcode || '—'}</strong>
+              </p>
+              <p className="store-id" style={{ fontSize: '11px', color: 'var(--text-muted)', fontFamily: 'monospace', margin: '0 0 12px 0' }}>
+                <span>Barcode: </span>
+                <strong style={{ color: 'var(--text-secondary)' }}>{product.barcode || '—'}</strong>
+              </p>
+
+              <div className="store-info-list" style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginTop: '4px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', color: 'var(--text-secondary)' }}>
+                  <span>Selling Price:</span>
+                  <strong style={{ color: 'var(--primary-color)', fontWeight: '700' }}>{product.price ? `${product.price} SAR` : '—'}</strong>
                 </div>
-              ) : (
-                <>
-                  <div style={{ display: 'flex', gap: '12px', marginBottom: '16px' }}>
-                    <button className="btn-primary" style={{ fontSize: '13px', padding: '8px 16px' }}>
-                      <Plus size={14} /> Add store Item / إضافة متجر
-                    </button>
-                    <button className="btn-secondary" style={{ fontSize: '13px', padding: '8px 16px' }}>
-                      Delete store Item / حذف من المتجر
-                    </button>
-                  </div>
-                  <table className="zkong-table">
-                    <thead>
-                      <tr>
-                        <th><input type="checkbox" /></th>
-                        <th>Store ID / معرف المتجر</th>
-                        <th>Store Name / اسم المتجر</th>
-                        <th>Template Category / تصنيف القالب</th>
-                        <th>Template Type / نوع القالب</th>
-                        <th>Origin / المنشأ</th>
-                        <th>Original Price / السعر الأصلي</th>
-                        <th>Selling Price / سعر البيع</th>
-                        <th>Vip Price / سعر VIP</th>
-                        <th>Operation / الإجراءات</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {stores.map(store => (
-                        <tr key={store.storeId}>
-                          <td><input type="checkbox" /></td>
-                          <td>{store.storeId}</td>
-                          <td>{store.storeName}</td>
-                          <td>{selectedOpItem.attrCategory || selectedOpItem.category || '—'}</td>
-                          <td>{selectedOpItem.attrName || '—'}</td>
-                          <td>—</td>
-                          <td>{selectedOpItem.originalPrice || '0'}</td>
-                          <td>{selectedOpItem.price || '0'}</td>
-                          <td>—</td>
-                          <td>
-                            <div className="op-buttons">
-                              <button className="op-btn primary-btn" onClick={() => openEditProductModal(selectedOpItem)}>Edit / تعديل</button>
-                              <button className="op-btn danger-btn" onClick={() => handleDeleteStoreOnly(selectedOpItem)}>Delete / حذف</button>
-                            </div>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </>
-              )}
-            </div>
-          </div>
-        )}
-
-        {storeOpSubTab === 'by_store' && (
-          <div style={{ padding: '20px 24px' }}>
-            {/* Store Selector */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '20px', flexWrap: 'wrap' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <label style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)', whiteSpace: 'nowrap' }}>
-                  Store Select / اختيار المتجر
-                </label>
-                <select
-                  className="glass-input"
-                  style={{ padding: '8px 14px', fontSize: '13px', minWidth: '200px', borderRadius: '8px', border: '1px solid var(--glass-border)', background: 'rgba(255,255,255,0.04)', color: 'var(--text-primary)', cursor: 'pointer', outline: 'none' }}
-                  value={storeOpSelectedStore}
-                  onChange={e => {
-                    setStoreOpSelectedStore(e.target.value);
-                    fetchStoreOpProducts(e.target.value);
-                  }}
-                >
-                  <option value="">Select Store... / اختر متجراً...</option>
-                  {stores.map(s => (
-                    <option key={s.storeId} value={s.storeId}>{s.storeName}</option>
-                  ))}
-                </select>
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <label style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)', whiteSpace: 'nowrap' }}>
-                  Product Label / تصنيف المنتج
-                </label>
-                <select
-                  className="glass-input"
-                  style={{ padding: '8px 14px', fontSize: '13px', minWidth: '160px', borderRadius: '8px', border: '1px solid var(--glass-border)', background: 'rgba(255,255,255,0.04)', color: 'var(--text-primary)', cursor: 'pointer', outline: 'none' }}
-                >
-                  <option value="">Select All / الكل</option>
-                </select>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', color: 'var(--text-secondary)' }}>
+                  <span>Original Price:</span>
+                  <span style={{ fontWeight: '500' }}>{product.originalPrice && parseFloat(product.originalPrice) > 0 ? `${product.originalPrice} SAR` : '—'}</span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', color: 'var(--text-secondary)' }}>
+                  <span>VIP Price:</span>
+                  <span style={{ fontWeight: '500' }}>{(product as any).vipPrice ? `${(product as any).vipPrice} SAR` : '—'}</span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', color: 'var(--text-secondary)' }}>
+                  <span>Category:</span>
+                  <span style={{ fontWeight: '500' }}>{product.attrCategory || product.category || '—'}</span>
+                </div>
               </div>
             </div>
 
-            {/* Products Table */}
-            {!storeOpSelectedStore ? (
-              <div className="zkong-no-data" style={{ minHeight: '200px' }}>
-                <AlertTriangle size={36} className="text-warning" />
-                <p>Please select a store / يرجى اختيار متجر</p>
-              </div>
-            ) : storeOpFetching ? (
-              <div className="zkong-no-data" style={{ minHeight: '200px' }}>
-                <Loader2 size={36} className="animate-spin text-primary" />
-                <p>Loading... / جاري التحميل...</p>
-              </div>
-            ) : storeOpProducts.length === 0 ? (
-              <div className="zkong-no-data" style={{ minHeight: '200px' }}>
-                <AlertTriangle size={36} className="text-warning" />
-                <p>No products found / لا توجد منتجات</p>
-              </div>
-            ) : (
-              <div className="zkong-table-wrapper">
-                <table className="zkong-table">
-                  <thead>
-                    <tr>
-                      <th><input type="checkbox" /></th>
-                      <th>Commodity Barcode / باركود السلعة</th>
-                      <th>Item Name / اسم السلعة</th>
-                      <th>Template Category / تصنيف القالب</th>
-                      <th>Template Type / نوع القالب</th>
-                      <th>Origin / المنشأ</th>
-                      <th>Original Price / السعر الأصلي</th>
-                      <th>Selling Price / سعر البيع</th>
-                      <th>Vip Price / سعر VIP</th>
-                      <th>Operation / الإجراءات</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {storeOpProducts.map(product => (
-                      <tr key={product.id}>
-                        <td><input type="checkbox" /></td>
-                        <td>{product.barcode || '—'}</td>
-                        <td>{product.itemName || '—'}</td>
-                        <td>{product.attrCategory || product.category || '—'}</td>
-                        <td>{product.attrName || '—'}</td>
-                        <td>{product.origin || '—'}</td>
-                        <td>{product.originalPrice && parseFloat(product.originalPrice) > 0 ? product.originalPrice : '—'}</td>
-                        <td>{product.price || '—'}</td>
-                        <td>{product.vipPrice || '—'}</td>
-                        <td>
-                          <div className="op-buttons">
-                            <button className="op-btn primary-btn" onClick={() => openEditProductModal(product)}>Edit / تعديل</button>
-                            <button className="op-btn danger-btn" onClick={() => handleDeleteStoreOnly(product)}>Delete / حذف</button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
+            <div className="store-card-actions" style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', paddingTop: '14px', borderTop: '1px solid var(--glass-border)', marginTop: '14px' }}>
+              <button className="op-btn primary-btn" style={{ padding: '6px 12px', fontSize: '12px' }} onClick={() => openEditProductModal(product)}>
+                Edit / تعديل
+              </button>
+              <button className="op-btn danger-btn" style={{ padding: '6px 12px', fontSize: '12px' }} onClick={() => handleDeleteGlobal(product)}>
+                Delete Globally / حذف نهائي
+              </button>
+              <button className="op-btn info-btn" style={{ padding: '6px 12px', fontSize: '12px' }} onClick={() => handleDeleteStoreOnly(product)}>
+                Remove from Store / حذف من المتجر
+              </button>
+            </div>
           </div>
-        )}
+        ))}
       </div>
     )}
 
-    {/* Pagination — shown for tabs 1 and 2 only */}
-    {activeProductTab !== 'store_operation' && totalElements > 0 && (
+    {/* Pagination Bar */}
+    {totalElements > 0 && (
       <div className="dragonesl-pagination-bar glass-card">
         <div className="pagination-left">
           <span className="pagination-total">Total {totalElements} items / الإجمالي {totalElements} عناصر</span>
@@ -1478,6 +1098,33 @@ const [storeFilterType, setStoreFilterType] = useState('');
 
         .products-page {
           padding: 24px;
+        }
+
+        .store-selector-wrapper {
+          display: flex;
+          align-items: center;
+          padding: 8px 16px;
+          gap: 10px;
+          background: var(--glass-bg);
+          border: 1px solid var(--glass-border);
+          border-radius: 12px;
+          backdrop-filter: blur(10px);
+          box-shadow: var(--shadow-sm);
+        }
+
+        .store-selector-wrapper select {
+          background: transparent;
+          border: none;
+          color: var(--text-primary);
+          font-size: 14px;
+          font-weight: 600;
+          outline: none;
+          cursor: pointer;
+        }
+
+        .store-selector-wrapper select option {
+          background: var(--bg-primary);
+          color: var(--text-primary);
         }
 
         .toast-notification {

@@ -302,14 +302,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
               icon={<Package size={20} />} 
               label="Products / المنتجات" 
               collapsed={isSidebarCollapsed && !isMobile} 
-              onHover={handleHoverParent}
               onClickParent={handleClickParent}
-              activeFloatingParent={floatingMenu?.to}
-              subItems={[
-                { label: 'Merchant Merchandise / بضاعة التاجر', to: '/products?tab=merchant', icon: <Smartphone size={16} /> },
-                { label: 'Store Merchandise / بضاعة المتجر', to: '/products?tab=store', icon: <Store size={16} /> },
-                { label: 'Store Operation / عمليات المتجر', to: '/products?tab=store_operation', icon: <Settings size={16} /> }
-              ]}
             />
           )}
           {(user?.permissions?.includes('template') || false) && (
