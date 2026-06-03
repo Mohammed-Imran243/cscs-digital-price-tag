@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Store, Package, FileText, RefreshCw, Wifi, WifiOff, AlertTriangle, CheckCircle, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { apiCache } from '../services/apiCache';
@@ -18,8 +19,9 @@ const StatCard: React.FC<{
   color?: string;
   bgColor?: string;
   error?: boolean;
-}> = ({ icon, label, value, trend, loading, color = 'var(--primary-color)', bgColor = 'rgba(99,102,241,0.15)', error }) => (
-  <div className="stat-card glass-card">
+  onClick?: () => void;
+}> = ({ icon, label, value, trend, loading, color = 'var(--primary-color)', bgColor = 'rgba(99,102,241,0.15)', error, onClick }) => (
+  <div className={`stat-card glass-card ${onClick ? 'clickable' : ''}`} onClick={onClick} style={{ cursor: onClick ? 'pointer' : 'default' }}>
     <div className="stat-info">
       <span className="stat-label">{label}</span>
       {loading ? (
@@ -73,6 +75,7 @@ const PaginationControls: React.FC<{
 // ──────────────────────────────────────────────────
 const Dashboard: React.FC = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [summary, setSummary] = useState<DashboardSummary | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
@@ -148,6 +151,7 @@ const Dashboard: React.FC = () => {
           color="#6366f1"
           bgColor="rgba(99,102,241,0.15)"
           error={!loading && !summary}
+          onClick={() => navigate('/merchants')}
         />
         <StatCard
           icon={<Store size={24} />}
@@ -158,6 +162,7 @@ const Dashboard: React.FC = () => {
           color="#0ea5e9"
           bgColor="rgba(14,165,233,0.15)"
           error={!loading && !summary}
+          onClick={() => navigate('/stores')}
         />
         <StatCard
           icon={<Wifi size={24} />}
@@ -168,6 +173,7 @@ const Dashboard: React.FC = () => {
           color="#8b5cf6"
           bgColor="rgba(139,92,246,0.15)"
           error={!loading && !summary}
+          onClick={() => navigate('/devices?tab=ap')}
         />
         <StatCard
           icon={<FileText size={24} />}
@@ -178,6 +184,7 @@ const Dashboard: React.FC = () => {
           color="#f59e0b"
           bgColor="rgba(245,158,11,0.15)"
           error={!loading && !summary}
+          onClick={() => navigate('/templates')}
         />
         <StatCard
           icon={<Package size={24} />}
@@ -188,6 +195,7 @@ const Dashboard: React.FC = () => {
           color="#f97316"
           bgColor="rgba(249,115,22,0.15)"
           error={!loading && !summary}
+          onClick={() => navigate('/products')}
         />
         <StatCard
           icon={<Wifi size={24} />}
@@ -198,6 +206,7 @@ const Dashboard: React.FC = () => {
           color="#10b981"
           bgColor="rgba(16,185,129,0.15)"
           error={!loading && !summary}
+          onClick={() => navigate('/devices?tab=esl')}
         />
       </div>
 

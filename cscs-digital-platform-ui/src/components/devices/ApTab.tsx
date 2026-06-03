@@ -38,8 +38,8 @@ export const ApTab: React.FC<ApTabProps> = ({
         </button>
       </div>
 
-      <div className="table-wrapper">
-        <table>
+      <div className="table-responsive">
+        <table className="ap-table">
           <thead>
             <tr>
               <th>Base Station MAC / عنوان MAC للمحطة</th>
@@ -196,6 +196,48 @@ export const ApTab: React.FC<ApTabProps> = ({
           </div>
         </div>
       )}
+
+      <style>{`
+        .table-responsive {
+          width: 100%;
+          overflow-x: auto;
+        }
+        
+        .ap-table {
+          width: 100%;
+          table-layout: auto;
+          border-collapse: collapse;
+        }
+        
+        .ap-table th, .ap-table td {
+          text-align: center !important;
+          vertical-align: middle !important;
+          white-space: normal !important; /* Prevents long bilingual text from forcing horizontal scroll */
+          padding: 14px 12px !important;
+        }
+        
+        .ap-table th {
+          background-color: var(--bg-accent) !important;
+          color: var(--text-primary) !important;
+          font-size: 13px !important;
+          font-weight: 700 !important;
+          text-transform: uppercase;
+          border-bottom: 2px solid var(--border-color) !important;
+        }
+        
+        .ap-table td {
+          border-bottom: 1px solid var(--glass-border) !important;
+          font-size: 14px;
+        }
+        
+        .ap-table tbody tr {
+          transition: background-color 0.2s ease;
+        }
+        
+        .ap-table tbody tr:hover td {
+          background-color: rgba(255, 255, 255, 0.03) !important;
+        }
+      `}</style>
     </div>
   );
 };
