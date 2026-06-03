@@ -8,7 +8,8 @@ import {
   CheckCircle2, 
   AlertCircle,
   Link2,
-  Store as StoreIcon
+  Store as StoreIcon,
+  Upload
 } from 'lucide-react';
 import { deviceService } from '../services/deviceService';
 import type { EslDevice, ApDevice } from '../services/deviceService';
@@ -20,6 +21,8 @@ import { EslTab } from '../components/devices/EslTab';
 import { ApTab } from '../components/devices/ApTab';
 import { BindModal } from '../components/devices/BindModal';
 import { EslDetailModal } from '../components/devices/EslDetailModal';
+import ImportExportModal from '../components/ImportExportModal';
+import { importEslTags, exportEslTags, downloadEslTagImportTemplate } from '../services/importExportService';
 
 import { useLocation, useNavigate } from 'react-router-dom';
 
@@ -104,6 +107,7 @@ const Devices: React.FC = () => {
   const [availableAps, setAvailableAps] = useState<any[]>([]);
   const [bindTab, setBindTab] = useState<'bind' | 'unbind'>('bind');
   const [unbindBarcodes, setUnbindBarcodes] = useState<string>(''); // comma-separated input
+  const [showEslImportExport, setShowEslImportExport] = useState(false);
 
   // Fetch all stores on mount
   useEffect(() => {
@@ -555,6 +559,13 @@ const Devices: React.FC = () => {
               >
                 <Link2 size={18} style={{ transform: 'rotate(90deg)' }} /> Unbind / إلغاء الربط
               </button>
+              <button
+                className="btn-secondary"
+                onClick={() => setShowEslImportExport(true)}
+                disabled={!selectedStoreId || storesLoading}
+              >
+                <Upload size={18} /> Import / Export
+              </button>
             </div>
           )}
 
@@ -563,6 +574,17 @@ const Devices: React.FC = () => {
           </button>
         </div>
       </div>
+
+      <ImportExportModal
+        isOpen={showEslImportExport}
+        onClose={() => setShowEslImportExport(false)}
+        title="ESL Tags Import / Export"
+        entityName="ESL Tags"
+        storeId={selectedStoreId || undefined}
+        onImport={importEslTags}
+        onExport={exportEslTags}
+        onDownloadTemplate={downloadEslTagImportTemplate}
+      />
 
       {/* Navigation Tabs */}
       <div className="nav-tabs-container" style={{ marginTop: '8px' }}>

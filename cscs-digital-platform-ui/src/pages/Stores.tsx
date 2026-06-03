@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Search, Store as StoreIcon, Edit2, Trash2, MapPin, Phone, User, Mail, RefreshCw, Loader2, X, CheckCircle, Power } from 'lucide-react';
+import { Plus, Search, Store as StoreIcon, Edit2, Trash2, MapPin, Phone, User, Mail, RefreshCw, Loader2, X, CheckCircle, Power, Upload } from 'lucide-react';
 import { storeService } from '../services/storeService';
 import type { Store } from '../services/storeService';
 import { getPaginationRange } from '../utils/paginationUtils';
+import ImportExportModal from '../components/ImportExportModal';
+import { importStores, exportStores, downloadStoreImportTemplate } from '../services/importExportService';
 
 const Stores: React.FC = () => {
   const [stores, setStores] = useState<Store[]>([]);
@@ -40,6 +42,7 @@ const Stores: React.FC = () => {
 
   // Modal state
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [showImportExport, setShowImportExport] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [formLoading, setFormLoading] = useState(false);
@@ -231,11 +234,24 @@ const Stores: React.FC = () => {
           <button className="btn-secondary" onClick={fetchStores} disabled={loading}>
             <RefreshCw size={18} className={loading ? 'animate-spin' : ''} /> Refresh / تحديث
           </button>
+          <button className="btn-secondary" onClick={() => setShowImportExport(true)}>
+            <Upload size={18} /> Import / Export
+          </button>
           <button className="btn-primary" onClick={openCreateModal}>
             <Plus size={18} /> Add Store / إضافة متجر
           </button>
         </div>
       </div>
+
+      <ImportExportModal
+        isOpen={showImportExport}
+        onClose={() => setShowImportExport(false)}
+        title="Stores Import / Export"
+        entityName="Stores"
+        onImport={importStores}
+        onExport={exportStores}
+        onDownloadTemplate={downloadStoreImportTemplate}
+      />
 
       {loading ? (
         <div className="stores-loading-state">

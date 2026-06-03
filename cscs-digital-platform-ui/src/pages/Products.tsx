@@ -4,9 +4,11 @@ import { getProducts, createProduct, updateProductPrice, deleteProductFromStore,
 import type { Product, ProductCreateRequest } from '../services/productService';
 import { storeService } from '../services/storeService';
 import type { Store } from '../services/storeService';
-import { Search, Plus, Loader2, AlertTriangle, RefreshCw, Package, Store as StoreIcon, Settings } from 'lucide-react';
+import { Search, Plus, Loader2, AlertTriangle, RefreshCw, Package, Store as StoreIcon, Upload } from 'lucide-react';
 import { getPaginationRange } from '../utils/paginationUtils';
 import { getTemplates, getCategories, getTemplateTypes } from '../services/templateService';
+import ImportExportModal from '../components/ImportExportModal';
+import { importProducts, exportProducts, downloadProductImportTemplate } from '../services/importExportService';
 
 interface SearchableDropdownProps {
   label: React.ReactNode;
@@ -168,6 +170,7 @@ const Products: React.FC = () => {
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
+  const [showImportExport, setShowImportExport] = useState(false);
   
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<any>({
@@ -657,11 +660,25 @@ const Products: React.FC = () => {
         <button className="btn-secondary" onClick={() => fetchProducts()} disabled={loading}>
           <RefreshCw size={18} className={loading ? 'animate-spin' : ''} /> Refresh / تحديث
         </button>
+        <button className="btn-secondary" onClick={() => setShowImportExport(true)}>
+          <Upload size={18} /> Import / Export
+        </button>
         <button className="btn-primary" onClick={() => setIsModalOpen(true)}>
           <Plus size={18} /> Add / إضافة
         </button>
       </div>
     </div>
+
+    <ImportExportModal
+      isOpen={showImportExport}
+      onClose={() => setShowImportExport(false)}
+      title="Products Import / Export"
+      entityName="Products"
+      storeId={selectedStore || undefined}
+      onImport={importProducts}
+      onExport={exportProducts}
+      onDownloadTemplate={downloadProductImportTemplate}
+    />
 
     {/* Unified Product Cards Grid */}
     {!selectedStore ? (

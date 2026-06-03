@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Store, Package, FileText, RefreshCw, Wifi, WifiOff, AlertTriangle, CheckCircle, ChevronLeft, ChevronRight } from 'lucide-react';
-import { useAuth } from '../context/AuthContext';
 import { apiCache } from '../services/apiCache';
 import { dashboardService } from '../services/dashboardService';
-import type { DashboardSummary, StoreBreakdown } from '../services/dashboardService';
+import type { DashboardSummary } from '../services/dashboardService';
 import PriceChangeMonitor from '../components/dashboard/PriceChangeMonitor';
 
 // ──────────────────────────────────────────────────
@@ -74,11 +73,9 @@ const PaginationControls: React.FC<{
 // Dashboard Page
 // ──────────────────────────────────────────────────
 const Dashboard: React.FC = () => {
-  const { user } = useAuth();
   const navigate = useNavigate();
   const [summary, setSummary] = useState<DashboardSummary | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(false);
 
   const ITEMS_PER_PAGE = 5;
   const [productPage, setProductPage] = useState(1);
@@ -86,12 +83,11 @@ const Dashboard: React.FC = () => {
 
   const fetchGlobalStats = async () => {
     setLoading(true);
-    setError(false);
     try {
       const data = await dashboardService.getSummary();
       setSummary(data);
     } catch {
-      setError(true);
+      // Ignored
     } finally {
       setLoading(false);
     }

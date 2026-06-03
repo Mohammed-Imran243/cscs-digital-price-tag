@@ -29,8 +29,12 @@ import {
   Layers,
   Trash2,
   FolderOpen,
-  Edit
+  Edit,
+  Upload
 } from 'lucide-react';
+
+import ImportExportModal from '../components/ImportExportModal';
+import { importTemplate, exportTemplates } from '../services/importExportService';
 
 import { getEslModelSpecs, renderEinkLayout } from '../utils/eslModelUtils';
 import { getPaginationRange } from '../utils/paginationUtils';
@@ -151,6 +155,7 @@ const Templates: React.FC = () => {
 
   // Notification Toast Banner
   const [notification, setNotification] = useState<{ message: string; type: 'success' | 'error' | 'warning' } | null>(null);
+  const [showTemplateImportExport, setShowTemplateImportExport] = useState(false);
 
   // Fetch lookups on mount
   useEffect(() => {
@@ -563,8 +568,27 @@ const Templates: React.FC = () => {
           <button className="btn-secondary" onClick={fetchTemplatesList} disabled={loading}>
             <RefreshCw size={18} className={loading ? 'animate-spin' : ''} /> Refresh / تحديث
           </button>
+          <button className="btn-secondary" onClick={() => setShowTemplateImportExport(true)}>
+            <Upload size={18} /> Import / Export
+          </button>
         </div>
       </div>
+
+      <ImportExportModal
+        isOpen={showTemplateImportExport}
+        onClose={() => setShowTemplateImportExport(false)}
+        title="Template Import / Export"
+        entityName="Templates"
+        onImport={async (file) => {
+          await importTemplate(file, '1');
+          return { success: true, message: 'Template import successful', totalRecords: 1, successCount: 1, failedCount: 0, errors: [] };
+        }}
+        onExport={async () => {
+          await exportTemplates([], '1');
+        }}
+        onDownloadTemplate={async () => {}}
+        acceptFormat=".zip"
+      />
 
       <div className="layout-split">
 

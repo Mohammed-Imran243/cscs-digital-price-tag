@@ -10,6 +10,12 @@ import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import com.cscs.digitalpricetag.dto.ImportResponse;
+import java.io.IOException;
+import com.cscs.digitalpricetag.service.ImportExportService;
 
 @RestController
 @RequestMapping("/products")
@@ -17,9 +23,11 @@ import org.springframework.security.access.prepost.PreAuthorize;
 public class ProductController {
 
     private final ProductService productService;
+    private final ImportExportService importExportService;
 
-    public ProductController(ProductService productService) {
+    public ProductController(ProductService productService, ImportExportService importExportService) {
         this.productService = productService;
+        this.importExportService = importExportService;
     }
 
     @PostMapping
@@ -42,7 +50,37 @@ public class ProductController {
         return ResponseEntity.ok(ApiResponse.success("Products fetched successfully", products));
     }
 
-    @GetMapping("/{id}")
+    @PreAuthorize("isAuthenticated()")
+    @PostMapping(value = "/import", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<ImportResponse> importProducts(
+            @RequestParam(value = "storeId", required = false) String storeId,
+            @RequestParam("file") MultipartFile file) {
+        ImportResponse response = importExportService.importProducts(file, storeId);
+        return ResponseEntity.ok(response);
+    }
+
+    @PreAuthorize("isAuthenticated()")
+    @GetMapping("/export")
+    public ResponseEntity<byte[]> exportProducts(
+            @RequestParam(value = "storeId", required = false) String storeId) throws IOException {
+        byte[] excelData = importExportService.exportProducts(storeId);
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=products.xlsx")
+                .contentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
+                .body(excelData);
+    }
+
+    @PreAuthorize("isAuthenticated()")
+    @GetMapping("/import-template")
+    public ResponseEntity<byte[]> getImportTemplate() throws IOException {
+        byte[] templateData = importExportService.getProductImportTemplate();
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=product_import_template.xlsx")
+                .contentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
+                .body(templateData);
+    }
+
+    @GetMapping("/{id:^(?!export$|import-template$).+}")
     public ResponseEntity<ApiResponse<ProductResponse>> getProductById(
             @PathVariable String id,
             @RequestParam String storeId) {

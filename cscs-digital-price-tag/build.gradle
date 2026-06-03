@@ -45,6 +45,10 @@ dependencies {
     // Jackson (included transitively, but explicit for clarity)
     implementation 'com.fasterxml.jackson.core:jackson-databind'
 
+    // Excel and CSV Processing
+    implementation 'org.apache.poi:poi-ooxml:5.2.5'
+    implementation 'org.apache.commons:commons-csv:1.10.0'
+
     // Test
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.springframework.security:spring-security-test'

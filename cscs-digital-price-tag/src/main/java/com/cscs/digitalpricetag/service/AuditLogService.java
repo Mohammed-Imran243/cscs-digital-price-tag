@@ -52,14 +52,7 @@ public class AuditLogService {
                 requestBody.put("createdTime", ninetyDaysAgo.toString() + " 00:00:00," + today.toString() + " 23:59:59");
             }
 
-            requestBody.put("operation", null);
-            requestBody.put("status", null);
-            requestBody.put("priceTagBarCode", null);
-            requestBody.put("itemBarCode", null);
-            requestBody.put("itemName", null);
-            requestBody.put("shelfNo", null);
             requestBody.put("feedBackTimeOrder", "desc");
-            requestBody.put("timeCostOrder", null);
 
             String url = String.format("/zk/erp/log/listLog?page=%d&size=%d", page, size);
             log.info("Querying ZKong listLog for price changes: URL={}, body={}", url, requestBody);

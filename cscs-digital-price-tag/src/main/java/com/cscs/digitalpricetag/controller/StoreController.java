@@ -10,15 +10,24 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.security.access.prepost.PreAuthorize;
 
+import com.cscs.digitalpricetag.service.ImportExportService;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import com.cscs.digitalpricetag.dto.ImportResponse;
+import java.io.IOException;
+
 @RestController
 @RequestMapping("/stores")
 @PreAuthorize("hasAuthority('store')")
 public class StoreController {
 
     private final StoreService storeService;
+    private final ImportExportService importExportService;
 
-    public StoreController(StoreService storeService) {
+    public StoreController(StoreService storeService, ImportExportService importExportService) {
         this.storeService = storeService;
+        this.importExportService = importExportService;
     }
 
     /**
@@ -45,6 +54,33 @@ public class StoreController {
 
         PagedResponse<StoreResponse> stores = storeService.getStores(page, size, search);
         return ResponseEntity.ok(ApiResponse.success("Stores fetched successfully", stores));
+    }
+
+    @PreAuthorize("isAuthenticated()")
+    @PostMapping(value = "/import", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<ImportResponse> importStores(@RequestParam("file") MultipartFile file) {
+        ImportResponse response = importExportService.importStores(file);
+        return ResponseEntity.ok(response);
+    }
+
+    @PreAuthorize("isAuthenticated()")
+    @GetMapping("/export")
+    public ResponseEntity<byte[]> exportStores() throws IOException {
+        byte[] excelData = importExportService.exportStores();
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=stores.xlsx")
+                .contentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
+                .body(excelData);
+    }
+
+    @PreAuthorize("isAuthenticated()")
+    @GetMapping("/import-template")
+    public ResponseEntity<byte[]> getImportTemplate() throws IOException {
+        byte[] templateData = importExportService.getStoreImportTemplate();
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=store_import_template.xlsx")
+                .contentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
+                .body(templateData);
     }
 
     @PostMapping

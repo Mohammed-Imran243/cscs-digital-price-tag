@@ -9,7 +9,6 @@ import {
   Tag,
   Activity
 } from 'lucide-react';
-import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
 import '../styles/theme.css';
 
@@ -27,7 +26,6 @@ interface PriceHistoryEvent {
 }
 
 const PriceMonitor: React.FC = () => {
-  const { token } = useAuth();
   const [events, setEvents] = useState<PriceHistoryEvent[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
 

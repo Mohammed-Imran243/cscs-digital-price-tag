@@ -12,6 +12,12 @@ import org.springframework.web.reactive.function.client.WebClientResponseExcepti
 
 import java.time.Duration;
 import java.util.UUID;
+import org.springframework.core.io.Resource;
+import org.springframework.http.client.MultipartBodyBuilder;
+import org.springframework.web.reactive.function.BodyInserters;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.web.multipart.MultipartFile;
+import java.io.IOException;
 
 /**
  * Low-level Dragon ESL API client.
@@ -142,6 +148,52 @@ public class DragonEslApiClient {
             return response;
         } catch (Exception e) {
             throw translateException("DELETE", uri, requestId, e);
+        }
+    }
+
+    public <T> T postMultipart(String uri, String fileParamName, MultipartFile file, Class<T> responseType) {
+        String requestId = generateRequestId();
+        try {
+            log.info("[{}] POST (Multipart) {} — File: {}", requestId, uri, file.getOriginalFilename());
+            
+            MultipartBodyBuilder builder = new MultipartBodyBuilder();
+            builder.part(fileParamName, new ByteArrayResource(file.getBytes()) {
+                @Override
+                public String getFilename() {
+                    return file.getOriginalFilename();
+                }
+            });
+
+            T response = webClient.post()
+                    .uri(uri)
+                    .body(BodyInserters.fromMultipartData(builder.build()))
+                    .retrieve()
+                    .bodyToMono(responseType)
+                    .retryWhen(buildRetrySpec(requestId, "POST_MULTIPART", uri))
+                    .block();
+            log.info("[{}] POST (Multipart) {} — Response: {}", requestId, uri, response);
+            return response;
+        } catch (IOException e) {
+            throw new DragonEslException("Failed to read multipart file", HttpStatus.BAD_REQUEST);
+        } catch (Exception e) {
+            throw translateException("POST_MULTIPART", uri, requestId, e);
+        }
+    }
+
+    public byte[] download(String uri) {
+        String requestId = generateRequestId();
+        try {
+            log.info("[{}] DOWNLOAD {} — Sending request", requestId, uri);
+            byte[] response = webClient.get()
+                    .uri(uri)
+                    .retrieve()
+                    .bodyToMono(byte[].class)
+                    .retryWhen(buildRetrySpec(requestId, "DOWNLOAD", uri))
+                    .block();
+            log.info("[{}] DOWNLOAD {} — Downloaded {} bytes", requestId, uri, response != null ? response.length : 0);
+            return response;
+        } catch (Exception e) {
+            throw translateException("DOWNLOAD", uri, requestId, e);
         }
     }
 

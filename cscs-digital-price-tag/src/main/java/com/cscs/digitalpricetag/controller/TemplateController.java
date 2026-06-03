@@ -8,14 +8,21 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
 
+import com.cscs.digitalpricetag.service.ImportExportService;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+
 @RestController
 @RequestMapping("/templates")
 public class TemplateController {
 
     private final TemplateService templateService;
+    private final ImportExportService importExportService;
 
-    public TemplateController(TemplateService templateService) {
+    public TemplateController(TemplateService templateService, ImportExportService importExportService) {
         this.templateService = templateService;
+        this.importExportService = importExportService;
     }
 
     @GetMapping("/categories")
@@ -46,6 +53,24 @@ public class TemplateController {
         return ResponseEntity.ok(ApiResponse.success("Templates fetched successfully", templateService.getTemplates(page, size, searchParams)));
     }
 
+    @PostMapping(value = "/import", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<ApiResponse<Object>> importTemplate(
+            @RequestParam("file") MultipartFile file,
+            @RequestParam(defaultValue = "1") String sceneNumber) {
+        return ResponseEntity.ok(ApiResponse.success("Template imported successfully", importExportService.importTemplateZip(file, sceneNumber)));
+    }
+
+    @GetMapping("/export")
+    public ResponseEntity<byte[]> exportTemplate(
+            @RequestParam(defaultValue = "1") String sceneNumber,
+            @RequestParam(required = false) java.util.List<Long> templateBaseIds) {
+        byte[] zipData = importExportService.exportTemplateZip(sceneNumber, templateBaseIds);
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=templates.zip")
+                .contentType(MediaType.parseMediaType("application/zip"))
+                .body(zipData);
+    }
+
     @PostMapping("/icons/list")
     public ResponseEntity<ApiResponse<Object>> getStoreIcons(
             @RequestParam(defaultValue = "0") int page,
@@ -54,7 +79,7 @@ public class TemplateController {
         return ResponseEntity.ok(ApiResponse.success("Store icons fetched successfully", templateService.getStoreIcons(page, size, params)));
     }
 
-    @GetMapping("/{id}")
+    @GetMapping("/{id:^(?!categories$|types$|models$|import$|export$|icons$|check-name$|fonts$|maxSubNum$|itemPicName$|fieldNames$).+}")
     public ResponseEntity<ApiResponse<Object>> getTemplateById(@PathVariable String id) {
         return ResponseEntity.ok(ApiResponse.success("Template fetched successfully", templateService.getTemplateBaseById(id)));
     }
