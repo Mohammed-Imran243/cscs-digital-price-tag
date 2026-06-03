@@ -84,15 +84,40 @@ const Templates: React.FC = () => {
     let result = templates;
     if (debouncedSearchQuery) {
       const q = debouncedSearchQuery.toLowerCase();
-      result = result.filter(t => 
-        (t.templateName && t.templateName.toLowerCase().includes(q)) ||
-        (t.attrName && t.attrName.toLowerCase().includes(q)) ||
-        (t.templateNumber && t.templateNumber.toLowerCase().includes(q)) ||
-        (t.id && String(t.id).includes(q))
-      );
+      result = result.filter(t => {
+        const specificModelObj = (t as any).modelId ? models.find(m => m.id === parseInt((t as any).modelId, 10)) : null;
+        const displayModel = specificModelObj ? specificModelObj.model : (t.modelList?.join(', ') || 'ZKC29S');
+        const tColor = specificModelObj ? specificModelObj.color : t.color;
+        
+        let colorStr = 'bw black white';
+        if (tColor === 2 || tColor === 4) colorStr += ' red';
+        else if (tColor === 3 || tColor === 4) colorStr += ' yellow';
+        else if (tColor === 5) colorStr += ' multi-color multicolor multi red';
+        else if (!tColor) colorStr += ' red';
+
+        const statusStr = t.status === '1' ? 'normal enabled 1' : 'disabled 0';
+        
+        const rawCat = (t.attrCategory as any) && typeof t.attrCategory === 'object' 
+          ? ((t.attrCategory as any).categoryName || String(t.attrCategory)) 
+          : (t.attrCategory || 'General');
+
+        return (
+          (t.templateName && t.templateName.toLowerCase().includes(q)) ||
+          (t.attrName && t.attrName.toLowerCase().includes(q)) ||
+          (t.templateNumber && t.templateNumber.toLowerCase().includes(q)) ||
+          (t.id && String(t.id).includes(q)) ||
+          (t.size && String(t.size).toLowerCase().includes(q)) ||
+          (t.resolution && t.resolution.toLowerCase().includes(q)) ||
+          (displayModel && displayModel.toLowerCase().includes(q)) ||
+          (rawCat && rawCat.toLowerCase().includes(q)) ||
+          (t.updateTime && t.updateTime.toLowerCase().includes(q)) ||
+          statusStr.includes(q) ||
+          colorStr.includes(q)
+        );
+      });
     }
     return result;
-  }, [templates, debouncedSearchQuery]);
+  }, [templates, debouncedSearchQuery, models]);
   const [storeIcons, setStoreIcons] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [page, setPage] = useState(0);
@@ -177,10 +202,57 @@ const Templates: React.FC = () => {
   useEffect(() => {
     if (activeMenuTab === 'merchant' || activeMenuTab === 'store') {
       fetchTemplatesList();
-    } else if (activeMenuTab === 'store_icon') {
+    }
+  }, [activeMenuTab, merchantScenario, selectedStore, filterSize, filterColor, filterCategory]);
+
+  useEffect(() => {
+    if (activeMenuTab === 'store_icon') {
       fetchStoreIconsList();
     }
-  }, [activeMenuTab, merchantScenario, selectedStore, filterSize, filterColor, filterCategory, page, pageSize]);
+  }, [activeMenuTab, selectedStore]); // Removed page, pageSize for global search
+
+  const filteredStoreIcons = useMemo(() => {
+    let result = storeIcons;
+    if (debouncedSearchQuery) {
+      const q = debouncedSearchQuery.toLowerCase();
+      result = result.filter(icon => {
+        const name = (icon.describeName || icon.fileName || icon.iconName || icon.name || '').toLowerCase();
+        const resolution = (icon.width && icon.height ? `${icon.width} * ${icon.height}` : icon.resolution || '').toLowerCase();
+        const time = (icon.createdTime || icon.uploadTime || icon.createTime || '').toLowerCase();
+        const method = icon.parseAlgorithm === 0 ? 'original / الأصلي' : icon.parseAlgorithm === 1 ? 'black & white / أبيض وأسود' : 'adaptive / متكيف';
+        
+        return name.includes(q) || resolution.includes(q) || time.includes(q) || method.toLowerCase().includes(q);
+      });
+    }
+    return result;
+  }, [storeIcons, debouncedSearchQuery]);
+
+  // Derived state to sync totalElements and reset page for templates local pagination
+  useEffect(() => {
+    if (activeMenuTab === 'store' || activeMenuTab === 'merchant') {
+      setTotalElements(filteredTemplates.length);
+      const maxPage = Math.max(0, Math.ceil(filteredTemplates.length / pageSize) - 1);
+      if (page > maxPage && maxPage >= 0) {
+        setPage(maxPage);
+      }
+    } else if (activeMenuTab === 'store_icon') {
+      setTotalElements(filteredStoreIcons.length);
+      const maxPage = Math.max(0, Math.ceil(filteredStoreIcons.length / pageSize) - 1);
+      if (page > maxPage && maxPage >= 0) {
+        setPage(maxPage);
+      }
+    }
+  }, [filteredTemplates, filteredStoreIcons, activeMenuTab, pageSize, page]);
+
+  const paginatedTemplates = useMemo(() => {
+    const startIndex = page * pageSize;
+    return filteredTemplates.slice(startIndex, startIndex + pageSize);
+  }, [filteredTemplates, page, pageSize]);
+
+  const paginatedStoreIcons = useMemo(() => {
+    const startIndex = page * pageSize;
+    return filteredStoreIcons.slice(startIndex, startIndex + pageSize);
+  }, [filteredStoreIcons, page, pageSize]);
 
   // Fetch sample products when opening a preview template
   useEffect(() => {
@@ -343,14 +415,13 @@ const Templates: React.FC = () => {
       }
       // removed debouncedSearchQuery from backend search to avoid clearing local array incorrectly
       const reqId = ++fetchRequestId.current;
-      const response = await getTemplates(page, pageSize, searchParams);
+      const response = await getTemplates(0, 1000, searchParams); // Fetch all for local global search
       if (reqId !== fetchRequestId.current) return;
       
       if (response) {
         let content = response.content || [];
         setTemplates(content);
-
-        setTotalElements(response.totalElements || 0);
+        // Local pagination handles totalElements for templates
       }
     } catch (err: any) {
       console.error('Failed to query templates', err);
@@ -363,22 +434,19 @@ const Templates: React.FC = () => {
   const fetchStoreIconsList = async () => {
     setLoading(true);
     try {
-      const response = await getStoreIcons(page, pageSize, { storeId: selectedStore });
+      // Fetch a large pool (1000 items) to support frontend global search across all fields
+      const response = await getStoreIcons(0, 1000, { storeId: selectedStore });
       if (response && (response.content || response.list || response.data)) {
         setStoreIcons(response.content || response.list || response.data || []);
-        setTotalElements(response.totalElements || response.total || 0);
       } else if (response && Array.isArray(response)) {
         setStoreIcons(response);
-        setTotalElements(response.length);
       } else {
         setStoreIcons([]);
-        setTotalElements(0);
       }
     } catch (err: any) {
       console.error('Failed to query store icons', err);
       showNotification('Failed to fetch store icons list.', 'error');
       setStoreIcons([]);
-      setTotalElements(0);
     } finally {
       setLoading(false);
     }
@@ -760,7 +828,7 @@ const Templates: React.FC = () => {
                     <Loader2 size={48} className="text-muted mb-2 animate-spin" />
                     <p>Loading Icons... / جاري تحميل الأيقونات...</p>
                   </div>
-                ) : activeMenuTab === 'store_icon' && storeIcons && storeIcons.length > 0 ? (
+                ) : activeMenuTab === 'store_icon' && filteredStoreIcons && filteredStoreIcons.length > 0 ? (
                   <>
                     <table className="zkong-table">
                       <thead>
@@ -775,7 +843,7 @@ const Templates: React.FC = () => {
                         </tr>
                       </thead>
                       <tbody>
-                        {storeIcons.map((icon, idx) => (
+                        {paginatedStoreIcons.map((icon, idx) => (
                           <tr key={icon.id || idx}>
                             <td>{page * pageSize + idx + 1}</td>
                             <td>{icon.describeName || icon.fileName || icon.iconName || icon.name || '-'}</td>
@@ -791,7 +859,13 @@ const Templates: React.FC = () => {
                             <td>
                               {icon.iconUrl || icon.url ? (
                                 <img
-                                  src={icon.iconUrl || icon.url}
+                                  src={
+                                    (icon.iconUrl || icon.url).startsWith('http') || (icon.iconUrl || icon.url).startsWith('data:') 
+                                    ? (icon.iconUrl || icon.url) 
+                                    : (icon.iconUrl || icon.url).startsWith('//')
+                                    ? `http:${icon.iconUrl || icon.url}`
+                                    : `http://www.dragonesl.com/${(icon.iconUrl || icon.url).replace(/^\//, '')}`
+                                  }
                                   alt="Store Icon"
                                   style={{ width: '40px', height: '40px', objectFit: 'contain', borderRadius: '4px', border: '1px solid var(--glass-border)' }}
                                 />
@@ -892,7 +966,15 @@ const Templates: React.FC = () => {
                       </tr>
                     </thead>
                     <tbody>
-                      {(categoryAttributes[selectedPropertyCat] || ['default']).map((attr, idx) => {
+                      {(categoryAttributes[selectedPropertyCat] || ['default'])
+                        .filter(attr => {
+                          if (!debouncedSearchQuery) return true;
+                          const q = debouncedSearchQuery.toLowerCase();
+                          const isDefault = attr.toLowerCase() === 'default';
+                          const defaultStr = isDefault ? 'yes نعم' : 'no لا';
+                          return attr.toLowerCase().includes(q) || defaultStr.includes(q);
+                        })
+                        .map((attr, idx) => {
                         const isDefault = attr.toLowerCase() === 'default';
                         return (
                           <tr key={idx}>
@@ -1007,16 +1089,7 @@ const Templates: React.FC = () => {
                     />
                     <span>Single screen / شاشة واحدة</span>
                   </label>
-                  <label className="radio-option">
-                    <input
-                      type="radio"
-                      name="screenType"
-                      value="double"
-                      checked={newTemplate.screenType === 'double'}
-                      onChange={() => setNewTemplate({ ...newTemplate, screenType: 'double' })}
-                    />
-                    <span>Double-sided screen / شاشة مزدوجة</span>
-                  </label>
+                  
                 </div>
               </div>
 
@@ -1123,7 +1196,7 @@ const Templates: React.FC = () => {
                 <label>Model / الطراز</label>
                 <div className="glass-input" style={{ padding: '10px 14px', color: 'var(--text-muted)', fontSize: '14px', background: 'rgba(255,255,255,0.02)' }}>
                   {newTemplate.size
-                    ? models.filter(m => m.size === newTemplate.size).map(m => m.model).join('  ') || 'No model available'
+                    ? models.filter(m => m.size === newTemplate.size && m.resolution === newTemplate.resolution && m.color === newTemplate.color).map(m => m.model).join(', ') || 'No model available'
                     : 'Select size first / اختر الحجم أولاً'}
                 </div>
               </div>
@@ -1571,8 +1644,8 @@ const Templates: React.FC = () => {
           border: 1px solid rgba(255,255,255,0.1);
         }
 
-        .color-dot.black { background: #000; }
-        .color-dot.white { background: #fff; }
+        .color-dot.black { background: #000; border: 1px solid rgba(255,255,255,0.6); }
+        .color-dot.white { background: #fff; border: 1px solid rgba(0,0,0,0.6); }
         .color-dot.red { background: #e11d48; }
 
         .status-pill {
@@ -2354,9 +2427,13 @@ const Templates: React.FC = () => {
               </tr>
             </thead>
             <tbody>
-              {filteredTemplates.map(t => {
+              {paginatedTemplates.map(t => {
                 const isEnabled = t.status === '1';
-                const specs = getEslModelSpecs(t.size, t.modelList?.[0]);
+                const specificModelObj = (t as any).modelId ? models.find(m => m.id === parseInt((t as any).modelId, 10)) : null;
+                const displayModel = specificModelObj ? specificModelObj.model : (t.modelList?.join(', ') || 'ZKC29S');
+                const tColor = specificModelObj ? specificModelObj.color : t.color;
+                const specs = getEslModelSpecs(t.size, specificModelObj ? specificModelObj.model : t.modelList?.[0]);
+                
                 return (
                   <tr key={t.id}>
                     <td><strong>{t.templateName}</strong></td>
@@ -2367,10 +2444,13 @@ const Templates: React.FC = () => {
                       <div className="color-dots-indicator">
                         <div className="color-dot black" title="Black"></div>
                         <div className="color-dot white" title="White"></div>
-                        <div className="color-dot red" title="Red"></div>
+                        {(tColor === 2 || tColor === 4) && <div className="color-dot red" title="Red"></div>}
+                        {(tColor === 3 || tColor === 4) && <div className="color-dot yellow" title="Yellow" style={{ background: '#eab308' }}></div>}
+                        {tColor === 5 && <div className="color-dot red" title="Multi-color"></div>}
+                        {!tColor && <div className="color-dot red" title="Red (Default)"></div>}
                       </div>
                     </td>
-                    <td>{t.modelList?.join(', ') || 'ZKC29S'}</td>
+                    <td>{displayModel}</td>
                     <td>
                       {(() => {
                         const rawCat = (t.attrCategory as any) && typeof t.attrCategory === 'object' 
@@ -2601,3 +2681,7 @@ const Templates: React.FC = () => {
 };
 
 export default Templates;
+
+
+
+

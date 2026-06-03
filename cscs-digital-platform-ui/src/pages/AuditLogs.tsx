@@ -101,29 +101,27 @@ const AuditLogs: React.FC = () => {
     fetchStores();
   }, []);
 
-  // Fetch logs whenever store, dates, operation, page, or page size changes
+  // Fetch logs whenever store, dates, operation changes
   const fetchLogs = async () => {
     if (!selectedStoreId) return;
     setLogsLoading(true);
     setError('');
     try {
-      const pageIndex = currentPage - 1; // Backend expects 0-based page
+      // Fetch a large pool for local filtering instead of just the current page
       const response = await getAuditLogs(
         selectedStoreId,
         startDate,
         endDate,
-        pageIndex,
-        pageSize,
+        0,
+        2000,
         selectedOperation === '' ? undefined : selectedOperation
       );
       setLogs(response.content || []);
-      setTotalCount(response.totalElements || 0);
     } catch (err: any) {
       setError(err.message || 'Failed to retrieve audit logs from Dragon ESL.');
       showNotification('Failed to fetch logs. Please try again. / فشل جلب السجلات. يرجى المحاولة مرة أخرى.', 'error');
       console.error(err);
       setLogs([]);
-      setTotalCount(0);
     } finally {
       setLogsLoading(false);
     }
@@ -131,7 +129,7 @@ const AuditLogs: React.FC = () => {
 
   useEffect(() => {
     fetchLogs();
-  }, [selectedStoreId, startDate, endDate, selectedOperation, currentPage, pageSize]);
+  }, [selectedStoreId, startDate, endDate, selectedOperation]);
 
   // Reset page to 1 when filters change
   const handleStoreChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -214,6 +212,46 @@ const AuditLogs: React.FC = () => {
       </span>
     );
   };
+
+  const filteredLogs = React.useMemo(() => {
+    let result = logs;
+    if (debouncedSearchQuery) {
+      const q = debouncedSearchQuery.toLowerCase();
+      result = result.filter(log => {
+        const operator = (log.operator || 'System / النظام').toLowerCase();
+        const operationText = getOperationTranslation(log.operation, log.operationText).toLowerCase();
+        const barcode = (log.itemBarCode || '').toLowerCase();
+        const eslTag = (log.priceTagBarCode || '').toLowerCase();
+        const itemDetails = `${log.itemName || ''} ${log.model || ''}`.toLowerCase();
+        const price = (log.price || '').toLowerCase();
+        const status = getStatusTranslation(log.statusText).toLowerCase();
+
+        let matchesOperation = false;
+        if (q === 'bind' || q === 'bind tag' || q === 'bind ' || q === 'ربط' || q === 'ربط الشاشة') {
+          matchesOperation = operationText.includes(q) && !operationText.includes('unbind') && !operationText.includes('إلغاء');
+        } else {
+          matchesOperation = operationText.includes(q);
+        }
+
+        return operator.includes(q) || matchesOperation || barcode.includes(q) ||
+               eslTag.includes(q) || itemDetails.includes(q) || price.includes(q) || status.includes(q);
+      });
+    }
+    return result;
+  }, [logs, debouncedSearchQuery]);
+
+  useEffect(() => {
+    setTotalCount(filteredLogs.length);
+    const maxPage = Math.max(1, Math.ceil(filteredLogs.length / pageSize));
+    if (currentPage > maxPage) {
+      setCurrentPage(maxPage);
+    }
+  }, [filteredLogs, pageSize, currentPage]);
+
+  const paginatedLogs = React.useMemo(() => {
+    const startIndex = (currentPage - 1) * pageSize;
+    return filteredLogs.slice(startIndex, startIndex + pageSize);
+  }, [filteredLogs, currentPage, pageSize]);
 
   return (
     <div className="audit-logs-container">
@@ -360,19 +398,7 @@ const AuditLogs: React.FC = () => {
                 </tr>
               </thead>
               <tbody>
-                {logs
-                  .filter(log => {
-                    if (!debouncedSearchQuery) return true;
-                    const searchLower = debouncedSearchQuery.toLowerCase();
-                    return (
-                      (log.itemName && log.itemName.toLowerCase().includes(searchLower)) ||
-                      (log.itemBarCode && log.itemBarCode.toLowerCase().includes(searchLower)) ||
-                      (log.priceTagBarCode && log.priceTagBarCode.toLowerCase().includes(searchLower)) ||
-                      (log.operator && log.operator.toLowerCase().includes(searchLower)) ||
-                      (log.operationText && log.operationText.toLowerCase().includes(searchLower))
-                    );
-                  })
-                  .map((logItem, index) => (
+                {paginatedLogs.map((logItem, index) => (
                   <tr key={`${logItem.id}-${index}`}>
                     <td className="col-time">
                       <div className="time-primary">{logItem.createdTime || 'N/A / غير متوفر'}</div>

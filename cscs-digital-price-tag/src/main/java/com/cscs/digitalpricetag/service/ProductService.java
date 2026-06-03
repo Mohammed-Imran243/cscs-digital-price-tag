@@ -60,26 +60,33 @@ public class ProductService {
             int localStart = 0;
 
             if (search != null && !search.isBlank()) {
-                int zkongPage = page + 1; // Zkong uses 1-based indexing
-
-                log.info("Performing native Zkong API search for term: {}", search);
+                log.info("Fetching a large pool of items from Zkong to perform comprehensive local filtering for term: {}", search);
+                int zkongPageSize = 50;
+                int maxPagesToFetch = 20; // Fetch up to 1000 items for global search pool
                 
-                // Try barcode search
-                Map<?, ?> barcodeResp = queryBarcode(body, search.trim(), zkongPage, size, storeId);
-                if (hasItems(barcodeResp)) {
-                    responses.add(barcodeResp);
+                for (int p = 1; p <= maxPagesToFetch; p++) {
+                    try {
+                        Map<?, ?> resp = dragonEslApiClient.post(
+                                "/zk/item/list/" + p + "/0/" + zkongPageSize + "/" + storeId,
+                                body,
+                                Map.class
+                        );
+                        if (hasItems(resp)) {
+                            responses.add(resp);
+                        } else {
+                            break; // No more items, stop fetching early
+                        }
+                        if (p < maxPagesToFetch) {
+                            Thread.sleep(100); // Rate limit protection
+                        }
+                    } catch (Exception e) {
+                        log.error("Error fetching chunked page " + p + " for search", e);
+                        break;
+                    }
                 }
                 
-                // Try title search
-                Map<?, ?> titleResp = queryTitle(body, search.trim(), zkongPage, size, storeId);
-                if (hasItems(titleResp)) {
-                    responses.add(titleResp);
-                }
-
-                // If both are empty, we have no results
-                if (responses.isEmpty()) {
-                    return new PagedResponse<>(Collections.emptyList(), page, size, 0);
-                }
+                // For a global search, our local start is just page * size
+                localStart = page * size;
             } else {
                 log.info("Fetching chunks from Zkong by strictly enforcing zkongPageSize=50 (API constraint).");
                 int zkongPageSize = 50;
@@ -195,10 +202,16 @@ public class ProductService {
                     if (searchLower == null) return true;
                     boolean matchesName = (item.getItemName() != null && item.getItemName().toLowerCase().contains(searchLower));
                     boolean matchesBarcode = (item.getBarcode() != null && item.getBarcode().toLowerCase().contains(searchLower));
-                    if (matchesName || matchesBarcode) {
-                        log.info("Match found: name='{}', barcode='{}'", item.getItemName(), item.getBarcode());
+                    boolean matchesPrice = (item.getPrice() != null && item.getPrice().toLowerCase().contains(searchLower));
+                    boolean matchesOriginalPrice = (item.getOriginalPrice() != null && item.getOriginalPrice().toLowerCase().contains(searchLower));
+                    boolean matchesCategory = (item.getCategory() != null && item.getCategory().toLowerCase().contains(searchLower));
+                    boolean matchesAttrCategory = (item.getAttrCategory() != null && item.getAttrCategory().toLowerCase().contains(searchLower));
+                    
+                    boolean matched = matchesName || matchesBarcode || matchesPrice || matchesOriginalPrice || matchesCategory || matchesAttrCategory;
+                    if (matched) {
+                        log.info("Match found: name='{}', barcode='{}', price='{}'", item.getItemName(), item.getBarcode(), item.getPrice());
                     }
-                    return matchesName || matchesBarcode;
+                    return matched;
                 })
                 .collect(Collectors.toList());
 
