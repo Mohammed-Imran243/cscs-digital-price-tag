@@ -99,6 +99,13 @@ public class ProductController {
         return ResponseEntity.ok(ApiResponse.success("Price updated successfully", null));
     }
 
+    @DeleteMapping("/store/all")
+    public ResponseEntity<ApiResponse<Void>> deleteAllFromStore(
+            @RequestParam String storeId) {
+        productService.deleteAllFromStore(storeId);
+        return ResponseEntity.ok(ApiResponse.success("All products deleted from store", null));
+    }
+
     @DeleteMapping("/{id}/store")
     public ResponseEntity<ApiResponse<Void>> deleteFromStore(
             @PathVariable String id,

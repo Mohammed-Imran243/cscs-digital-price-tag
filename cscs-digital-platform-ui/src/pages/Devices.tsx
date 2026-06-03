@@ -138,7 +138,7 @@ const Devices: React.FC = () => {
     fetchStores();
   }, []);
 
-  // Fetch device list when store, tab, page, or search changes
+  // Fetch device list when store or tab changes
   const fetchDevices = async (isSilent = false) => {
     if (!selectedStoreId) return;
     if (!isSilent) setLoading(true);
@@ -146,19 +146,17 @@ const Devices: React.FC = () => {
     
     try {
       if (activeTab === 'esl') {
-        const response = await deviceService.getEslDevices(page, pageSize, selectedStoreId, debouncedSearch);
+        const response = await deviceService.getEslDevices(0, 2000, selectedStoreId, '');
         if (response) {
           setEslDevices(response.content || []);
-          setTotalElements(response.totalElements || 0);
-          setSelectedBarcodes([]); // Clear selection when page / criteria changes
+          setSelectedBarcodes([]); // Clear selection when criteria changes
         } else {
           setError('Failed to query ESL labels.');
         }
       } else {
-        const response = await deviceService.getApDevices(page, pageSize, selectedStoreId, debouncedSearch);
+        const response = await deviceService.getApDevices(0, 1000, selectedStoreId, '');
         if (response) {
           setApDevices(response.content || []);
-          setTotalElements(response.totalElements || 0);
         } else {
           setError('Failed to query AP base stations.');
         }
@@ -185,7 +183,84 @@ const Devices: React.FC = () => {
 
   useEffect(() => {
     fetchDevices();
-  }, [activeTab, selectedStoreId, page, pageSize, debouncedSearch]);
+  }, [activeTab, selectedStoreId]); // removed page, pageSize, debouncedSearch
+
+  const filteredEslDevices = React.useMemo(() => {
+    let result = eslDevices;
+    if (debouncedSearch) {
+      const q = debouncedSearch.toLowerCase();
+      result = result.filter(esl => {
+        const barcode = (esl.priceTagCode || '').toLowerCase();
+        const oem = (esl.oemModel || esl.model || '').toLowerCase();
+        const product = (esl.itemTitle || esl.itemBarCode || '').toLowerCase();
+        
+        const stateStr = (esl.state || '').toLowerCase();
+        let statusStr = stateStr;
+        if (stateStr === 'online') statusStr = 'online متصل';
+        else if (stateStr === 'offline') statusStr = 'offline غير متصل';
+
+        const battery = (esl.battery || '').toString();
+        const signal = (esl.apSignal || '').toString();
+        const lastUpdate = (esl.updateTime || esl.lastCommuTime || '').toLowerCase();
+
+        return barcode.includes(q) || oem.includes(q) || product.includes(q) || 
+               statusStr.includes(q) || battery.includes(q) || signal.includes(q) || lastUpdate.includes(q);
+      });
+    }
+    return result;
+  }, [eslDevices, debouncedSearch]);
+
+  const filteredApDevices = React.useMemo(() => {
+    let result = apDevices;
+    if (debouncedSearch) {
+      const q = debouncedSearch.toLowerCase();
+      result = result.filter(ap => {
+        const mac = (ap.mac || '').toLowerCase();
+        const name = (ap.apName || '').toLowerCase();
+        const model = (ap.model || '').toLowerCase();
+        const ip = (ap.ip || '').toLowerCase();
+        const conns = (ap.connCount || '0').toString();
+        const firmware = (ap.softVersion || '').toLowerCase();
+        const lastOnline = (ap.lastOnlineTime || '').toLowerCase();
+        
+        const stateStr = (ap.online || '').toLowerCase();
+        let statusStr = stateStr;
+        if (stateStr === 'online') statusStr = 'online متصل';
+        else if (stateStr === 'offline') statusStr = 'offline غير متصل';
+        else if (stateStr === 'upgrading') statusStr = 'upgrading جاري الترقية';
+        
+        return mac.includes(q) || name.includes(q) || model.includes(q) || ip.includes(q) ||
+               conns.includes(q) || statusStr.includes(q) || firmware.includes(q) || lastOnline.includes(q);
+      });
+    }
+    return result;
+  }, [apDevices, debouncedSearch]);
+
+  useEffect(() => {
+    if (activeTab === 'esl') {
+      setTotalElements(filteredEslDevices.length);
+      const maxPage = Math.max(0, Math.ceil(filteredEslDevices.length / pageSize) - 1);
+      if (page > maxPage && maxPage >= 0) {
+        setPage(maxPage);
+      }
+    } else {
+      setTotalElements(filteredApDevices.length);
+      const maxPage = Math.max(0, Math.ceil(filteredApDevices.length / pageSize) - 1);
+      if (page > maxPage && maxPage >= 0) {
+        setPage(maxPage);
+      }
+    }
+  }, [filteredEslDevices, filteredApDevices, activeTab, pageSize, page]);
+
+  const paginatedEslDevices = React.useMemo(() => {
+    const startIndex = page * pageSize;
+    return filteredEslDevices.slice(startIndex, startIndex + pageSize);
+  }, [filteredEslDevices, page, pageSize]);
+
+  const paginatedApDevices = React.useMemo(() => {
+    const startIndex = page * pageSize;
+    return filteredApDevices.slice(startIndex, startIndex + pageSize);
+  }, [filteredApDevices, page, pageSize]);
 
   // Selection Handlers
   const handleSelectRow = (barcode: string) => {
@@ -619,7 +694,7 @@ const Devices: React.FC = () => {
         </div>
       ) : activeTab === 'esl' ? (
         <EslTab
-          eslDevices={eslDevices}
+          eslDevices={paginatedEslDevices}
           page={page}
           pageSize={pageSize}
           totalElements={totalElements}
@@ -637,7 +712,7 @@ const Devices: React.FC = () => {
         />
       ) : (
         <ApTab
-          apDevices={apDevices}
+          apDevices={paginatedApDevices}
           page={page}
           pageSize={pageSize}
           totalElements={totalElements}

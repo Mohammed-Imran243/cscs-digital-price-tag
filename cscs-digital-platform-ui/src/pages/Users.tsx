@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { Plus, Search, Shield, User as UserIcon, Edit2, Trash2, Key, Calendar, RefreshCw, Loader2, X, CheckSquare, Square, Info, ChevronDown, ChevronRight, ChevronLeft, MinusSquare } from 'lucide-react';
 import { userService } from '../services/userService';
 import type { User, Role, PermissionMenu } from '../services/userService';
@@ -546,20 +546,25 @@ const Users: React.FC = () => {
   };
 
   // Filters
-  const filteredUsers = users.filter(user =>
-    (user.account || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (user.staffName || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (user.roleName || '').toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredUsers = users.filter(user => {
+      const q = searchTerm.toLowerCase();
+      return (user.account || '').toLowerCase().includes(q) ||
+             (user.staffName || '').toLowerCase().includes(q) ||
+             (user.roleName || '').toLowerCase().includes(q) ||
+             (user.createTime || '').toLowerCase().includes(q) ||
+             (user.status || 'Normal / طبيعي').toLowerCase().includes(q);
+    });
 
   const totalCount = filteredUsers.length;
   const totalPages = Math.ceil(totalCount / pageSize) || 1;
   const startIndex = (currentPage - 1) * pageSize;
   const paginatedUsers = filteredUsers.slice(startIndex, startIndex + pageSize);
 
-  const filteredRoles = roles.filter(role =>
-    (role.roleName || '').toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredRoles = roles.filter(role => {
+      const q = searchTerm.toLowerCase();
+      return (role.roleName || '').toLowerCase().includes(q) ||
+             (role.id || '').toString().toLowerCase().includes(q);
+    });
 
   return (
     <div className="users-page-container">

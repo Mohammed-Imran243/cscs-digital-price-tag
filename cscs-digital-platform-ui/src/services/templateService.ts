@@ -71,15 +71,32 @@ export const getTemplates = async (page = 0, size = 10, searchParams?: Record<st
   });
   const unwrapped = unwrapResponse<any>(response); 
   
-  // Robust extraction just in case the backend response wrapping changes
+  let contentData: any = unwrapped;
   if (unwrapped && Array.isArray(unwrapped.content)) {
-    return unwrapped;
+    contentData = unwrapped;
+  } else if (unwrapped && unwrapped.data && Array.isArray(unwrapped.data.content)) {
+    contentData = unwrapped.data;
+  } else if (unwrapped.data) {
+    contentData = unwrapped.data;
   }
-  if (unwrapped && unwrapped.data && Array.isArray(unwrapped.data.content)) {
-    return unwrapped.data;
+
+  // Enrich with modelId and color from getTemplateById
+  if (contentData && Array.isArray(contentData.content)) {
+    const detailedContent = await Promise.all(
+      contentData.content.map(async (t: any) => {
+        try {
+          // Fire and await all detail requests to get modelId which is omitted from list API
+          const detail = await getTemplateById(t.id);
+          return { ...t, modelId: detail.modelId };
+        } catch (e) {
+          return t;
+        }
+      })
+    );
+    contentData.content = detailedContent;
   }
   
-  return unwrapped.data || unwrapped;
+  return contentData;
 };
 
 export const getCategories = async (): Promise<any[]> => {
