@@ -136,7 +136,7 @@ const ImportExportModal: React.FC<ImportExportModalProps> = ({
             <div>
               {/* Template Download */}
               <div style={styles.templateBanner}>
-                <span style={{ fontSize: '13px', color: '#94a3b8' }}>
+                <span style={{ fontSize: '13px', color: 'var(--text-muted)' }}>
                   New to importing? Start with our template file.
                 </span>
                 <button
@@ -223,11 +223,11 @@ const ImportExportModal: React.FC<ImportExportModalProps> = ({
                     </div>
                     <div style={styles.statItem}>
                       <span style={styles.statLabel}>Succeeded</span>
-                      <span style={{ ...styles.statValue, color: '#22c55e' }}>{importResult.successCount}</span>
+                      <span style={{ ...styles.statValue, color: 'var(--success-color)' }}>{importResult.successCount}</span>
                     </div>
                     <div style={styles.statItem}>
                       <span style={styles.statLabel}>Failed</span>
-                      <span style={{ ...styles.statValue, color: '#ef4444' }}>{importResult.failedCount}</span>
+                      <span style={{ ...styles.statValue, color: 'var(--danger-color)' }}>{importResult.failedCount}</span>
                     </div>
                   </div>
 
@@ -242,7 +242,7 @@ const ImportExportModal: React.FC<ImportExportModalProps> = ({
                         </div>
                       ))}
                       {importResult.errors.length > 20 && (
-                        <div style={{ fontSize: '12px', color: '#64748b', marginTop: '4px' }}>
+                        <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '4px' }}>
                           ...and {importResult.errors.length - 20} more errors.
                         </div>
                       )}
@@ -285,7 +285,7 @@ const styles: Record<string, React.CSSProperties> = {
   overlay: {
     position: 'fixed',
     inset: 0,
-    background: 'rgba(0,0,0,0.7)',
+    background: 'rgba(0,0,0,0.6)',
     backdropFilter: 'blur(4px)',
     zIndex: 1000,
     display: 'flex',
@@ -294,21 +294,21 @@ const styles: Record<string, React.CSSProperties> = {
     padding: '20px',
   },
   modal: {
-    background: '#0f172a',
-    border: '1px solid #1e293b',
+    background: 'var(--bg-secondary)',
+    border: '1px solid var(--border-color)',
     borderRadius: '16px',
     width: '100%',
     maxWidth: '560px',
     maxHeight: '90vh',
     overflowY: 'auto',
-    boxShadow: '0 25px 80px rgba(0,0,0,0.6)',
+    boxShadow: 'var(--shadow-md)',
   },
   header: {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'space-between',
     padding: '20px 24px',
-    borderBottom: '1px solid #1e293b',
+    borderBottom: '1px solid var(--border-color)',
   },
   headerLeft: {
     display: 'flex',
@@ -322,17 +322,17 @@ const styles: Record<string, React.CSSProperties> = {
     margin: 0,
     fontSize: '18px',
     fontWeight: 700,
-    color: '#f1f5f9',
+    color: 'var(--text-primary)',
   },
   subtitle: {
     margin: '2px 0 0',
     fontSize: '13px',
-    color: '#64748b',
+    color: 'var(--text-secondary)',
   },
   closeBtn: {
     background: 'none',
     border: 'none',
-    color: '#64748b',
+    color: 'var(--text-muted)',
     fontSize: '18px',
     cursor: 'pointer',
     padding: '4px 8px',
@@ -340,14 +340,14 @@ const styles: Record<string, React.CSSProperties> = {
   },
   tabBar: {
     display: 'flex',
-    borderBottom: '1px solid #1e293b',
+    borderBottom: '1px solid var(--border-color)',
     padding: '0 24px',
   },
   tab: {
     background: 'none',
     border: 'none',
     borderBottom: '2px solid transparent',
-    color: '#64748b',
+    color: 'var(--text-secondary)',
     fontSize: '14px',
     fontWeight: 500,
     cursor: 'pointer',
@@ -356,8 +356,8 @@ const styles: Record<string, React.CSSProperties> = {
     transition: 'all 0.2s',
   },
   activeTab: {
-    color: '#6366f1',
-    borderBottomColor: '#6366f1',
+    color: 'var(--primary-color)',
+    borderBottomColor: 'var(--primary-color)',
   },
   body: {
     padding: '24px',
@@ -366,15 +366,15 @@ const styles: Record<string, React.CSSProperties> = {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'space-between',
-    background: '#1e293b',
+    background: 'var(--bg-primary)',
     borderRadius: '10px',
     padding: '12px 16px',
     marginBottom: '16px',
   },
   templateBtn: {
     background: 'transparent',
-    border: '1px solid #334155',
-    color: '#94a3b8',
+    border: '1px solid var(--border-color)',
+    color: 'var(--text-secondary)',
     borderRadius: '8px',
     padding: '6px 12px',
     fontSize: '13px',
@@ -383,7 +383,7 @@ const styles: Record<string, React.CSSProperties> = {
     marginLeft: '12px',
   },
   dropZone: {
-    border: '2px dashed #334155',
+    border: '2px dashed var(--border-color)',
     borderRadius: '12px',
     padding: '32px',
     textAlign: 'center',
@@ -392,12 +392,12 @@ const styles: Record<string, React.CSSProperties> = {
     marginBottom: '16px',
   },
   dropZoneActive: {
-    borderColor: '#6366f1',
-    background: 'rgba(99,102,241,0.05)',
+    borderColor: 'var(--primary-color)',
+    background: 'rgba(59,130,246,0.05)',
   },
   dropZoneSelected: {
-    borderColor: '#22c55e',
-    background: 'rgba(34,197,94,0.05)',
+    borderColor: 'var(--success-color)',
+    background: 'rgba(16,185,129,0.05)',
   },
   dropHint: {
     display: 'flex',
@@ -409,15 +409,15 @@ const styles: Record<string, React.CSSProperties> = {
     fontSize: '36px',
   },
   dropText: {
-    color: '#94a3b8',
+    color: 'var(--text-secondary)',
     fontSize: '15px',
   },
   browseLink: {
-    color: '#6366f1',
+    color: 'var(--primary-color)',
     textDecoration: 'underline',
   },
   dropSubtext: {
-    color: '#475569',
+    color: 'var(--text-muted)',
     fontSize: '12px',
   },
   fileInfo: {
@@ -430,18 +430,18 @@ const styles: Record<string, React.CSSProperties> = {
     fontSize: '32px',
   },
   fileName: {
-    color: '#f1f5f9',
+    color: 'var(--text-primary)',
     fontWeight: 600,
     fontSize: '14px',
   },
   fileSize: {
-    color: '#64748b',
+    color: 'var(--text-secondary)',
     fontSize: '12px',
     marginTop: '2px',
   },
   primaryBtn: {
     width: '100%',
-    background: 'linear-gradient(135deg, #6366f1, #4f46e5)',
+    background: 'var(--primary-color)',
     color: '#fff',
     border: 'none',
     borderRadius: '10px',
@@ -461,16 +461,16 @@ const styles: Record<string, React.CSSProperties> = {
     borderRadius: '10px',
     padding: '14px 16px',
     marginTop: '14px',
-    color: '#fca5a5',
+    color: 'var(--danger-color)',
     fontSize: '14px',
   },
   successBanner: {
-    background: 'rgba(34,197,94,0.1)',
-    border: '1px solid rgba(34,197,94,0.3)',
+    background: 'rgba(16,185,129,0.1)',
+    border: '1px solid rgba(16,185,129,0.3)',
     borderRadius: '10px',
     padding: '14px 16px',
     marginTop: '14px',
-    color: '#86efac',
+    color: 'var(--success-color)',
     fontSize: '14px',
   },
   resultHeader: {
@@ -489,14 +489,14 @@ const styles: Record<string, React.CSSProperties> = {
   },
   statLabel: {
     fontSize: '11px',
-    color: '#64748b',
+    color: 'var(--text-secondary)',
     textTransform: 'uppercase',
     letterSpacing: '0.05em',
   },
   statValue: {
     fontSize: '22px',
     fontWeight: 700,
-    color: '#f1f5f9',
+    color: 'var(--text-primary)',
   },
   errorList: {
     borderTop: '1px solid rgba(239,68,68,0.2)',
@@ -505,7 +505,7 @@ const styles: Record<string, React.CSSProperties> = {
   },
   errorListTitle: {
     fontSize: '12px',
-    color: '#94a3b8',
+    color: 'var(--text-secondary)',
     marginBottom: '6px',
     fontWeight: 600,
     textTransform: 'uppercase',
@@ -518,14 +518,14 @@ const styles: Record<string, React.CSSProperties> = {
     flexWrap: 'wrap',
   },
   errorRowNum: {
-    color: '#fbbf24',
+    color: 'var(--warning-color)',
     fontWeight: 600,
   },
   errorRowField: {
-    color: '#94a3b8',
+    color: 'var(--text-secondary)',
   },
   errorRowMsg: {
-    color: '#fca5a5',
+    color: 'var(--danger-color)',
   },
   exportSection: {
     textAlign: 'center',
@@ -536,13 +536,13 @@ const styles: Record<string, React.CSSProperties> = {
     marginBottom: '12px',
   },
   exportTitle: {
-    color: '#f1f5f9',
+    color: 'var(--text-primary)',
     fontSize: '18px',
     fontWeight: 700,
     margin: '0 0 8px',
   },
   exportDesc: {
-    color: '#64748b',
+    color: 'var(--text-secondary)',
     fontSize: '14px',
     marginBottom: '20px',
     lineHeight: 1.5,
