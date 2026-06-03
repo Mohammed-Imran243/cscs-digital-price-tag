@@ -21,9 +21,11 @@ public class ProductService {
     private static final Logger log = LoggerFactory.getLogger(ProductService.class);
 
     private final DragonEslApiClient dragonEslApiClient;
+    private final PriceHistoryService priceHistoryService;
 
-    public ProductService(DragonEslApiClient dragonEslApiClient) {
+    public ProductService(DragonEslApiClient dragonEslApiClient, PriceHistoryService priceHistoryService) {
         this.dragonEslApiClient = dragonEslApiClient;
+        this.priceHistoryService = priceHistoryService;
     }
 
     @SuppressWarnings("unchecked")
@@ -46,6 +48,10 @@ public class ProductService {
                 }
             }
 
+
+
+            boolean isStoreSpecific = !storeId.trim().equals("0");
+
             // If a specific barcode parameter is passed
             if (barcode != null && !barcode.isBlank()) {
                 body.put("barCode", barcode.trim());
@@ -56,8 +62,8 @@ public class ProductService {
             final String searchLower = (search != null && !search.isBlank()) ? search.toLowerCase() : null;
 
             List<Map<?, ?>> responses = new ArrayList<>();
-
             int localStart = 0;
+            int zkongPageSize = 50;
 
             if (search != null && !search.isBlank()) {
                 log.info("Fetching a large pool of items from Zkong to perform comprehensive local filtering for term: {}", search);
@@ -89,7 +95,6 @@ public class ProductService {
                 localStart = page * size;
             } else {
                 log.info("Fetching chunks from Zkong by strictly enforcing zkongPageSize=50 (API constraint).");
-                int zkongPageSize = 50;
                 int startItemIndex = page * size;
                 int endItemIndex = startItemIndex + size;
                 
@@ -102,11 +107,15 @@ public class ProductService {
                 
                 for (int p = startZkongPage; p <= endZkongPage; p++) {
                     try {
+                        String url = isStoreSpecific 
+                                ? "/zk/erp/item/list?page=" + p + "&size=" + zkongPageSize 
+                                : "/zk/item/list/" + p + "/0/" + zkongPageSize + "/" + storeId;
                         Map<?, ?> resp = dragonEslApiClient.post(
-                                "/zk/item/list/" + p + "/0/" + zkongPageSize + "/" + storeId,
+                                url,
                                 body,
                                 Map.class
                         );
+                        log.info("erp/item/list raw response (page={}): {}", p, resp);
                         if (hasItems(resp)) {
                             responses.add(resp);
                         }
@@ -138,7 +147,81 @@ public class ProductService {
                 return new PagedResponse<>(Collections.emptyList(), page, size, 0);
             }
 
-            return mergeAndParseResponses(responses, page, size, barcodeFilter, searchLower, localStart);
+            if (storeId != null && !storeId.isBlank() 
+                && !storeId.trim().equals("0")) {
+                
+                for (Map<?, ?> response : responses) {
+                    Object dataObj = response.get("data");
+                    if (dataObj instanceof Map) {
+                        Map<String, Object> dataMap = (Map<String, Object>) dataObj;
+                        Object listObj = dataMap.get("list");
+                        if (listObj == null) {
+                            listObj = dataMap.get("rows");
+                        }
+                        if (listObj instanceof List) {
+                            List<Map<String, Object>> allItems = (List<Map<String, Object>>) listObj;
+                            try {
+                                allItems.removeIf(item -> {
+                                    Object itemStoreId = item.get("storeId");
+                                    if (itemStoreId == null) return true;
+                                    String sid = itemStoreId.toString().trim();
+                                    return sid.equals("0") || sid.isBlank();
+                                });
+                            } catch (UnsupportedOperationException e) {
+                                List<Map<String, Object>> mutableList = new ArrayList<>(allItems);
+                                mutableList.removeIf(item -> {
+                                    Object itemStoreId = item.get("storeId");
+                                    if (itemStoreId == null) return true;
+                                    String sid = itemStoreId.toString().trim();
+                                    return sid.equals("0") || sid.isBlank();
+                                });
+                                dataMap.put("list", mutableList);
+                                if (dataMap.containsKey("rows")) {
+                                    dataMap.put("rows", mutableList);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            PagedResponse<ProductResponse> pagedResponse = mergeAndParseResponses(responses, page, size, barcodeFilter, searchLower, localStart);
+
+            if (storeId != null && !storeId.isBlank() 
+                && !storeId.trim().equals("0")) {
+                
+                long totalCount;
+                if (barcodeFilter != null || searchLower != null) {
+                    totalCount = pagedResponse.getTotalElements();
+                } else {
+                    Set<String> uniqueIds = new HashSet<>();
+                    for (Map<?, ?> response : responses) {
+                        Object dataObj = response.get("data");
+                        if (dataObj instanceof Map) {
+                            Map<String, Object> dataMap = (Map<String, Object>) dataObj;
+                            Object listObj = dataMap.get("list");
+                            if (listObj == null) {
+                                listObj = dataMap.get("rows");
+                            }
+                            if (listObj instanceof List) {
+                                List<Map<String, Object>> list = (List<Map<String, Object>>) listObj;
+                                for (Map<String, Object> item : list) {
+                                    Object idObj = item.get("id");
+                                    if (idObj != null) {
+                                        uniqueIds.add(idObj.toString());
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    totalCount = uniqueIds.size();
+                }
+                
+                pagedResponse.setTotalElements(totalCount);
+                pagedResponse.setTotalPages(size > 0 ? (int) Math.ceil((double) totalCount / size) : 0);
+            }
+
+            return pagedResponse;
 
         } catch (DragonEslException e) {
             throw e;
@@ -297,6 +380,13 @@ public class ProductService {
         String priceStr         = request.getPriceAsString();
         String originalPriceStr = request.getOriginalPriceAsString();
 
+        ProductResponse oldProduct = null;
+        try {
+            oldProduct = mapFromRawMap(getRawProductFromZkong(itemId));
+        } catch (Exception e) {
+            log.warn("Failed to fetch old product state before price update for itemId: {}", itemId, e);
+        }
+
         // Build clean whitelist body — mirrors exactly what Dragon ESL UI sends on PUT
         // DO NOT dump the full GET response back — Dragon ESL rejects its own read-only fields
         Map<String, Object> body = new LinkedHashMap<>();
@@ -434,6 +524,10 @@ public class ProductService {
 
             log.info("Price updated for item {} in store {} to {}", itemId, storeId, priceStr);
 
+            if (oldProduct != null && oldProduct.getPrice() != null) {
+                priceHistoryService.recordPriceChange(oldProduct, oldProduct.getPrice(), priceStr, storeId);
+            }
+
         } catch (DragonEslException e) {
             throw e;
         } catch (Exception e) {
@@ -517,8 +611,15 @@ public class ProductService {
         }
 
         try {
+            Object parsedStoreId = storeId;
+            try {
+                parsedStoreId = Long.parseLong(storeId.trim());
+            } catch (NumberFormatException e) {
+                // Keep as string if it cannot be parsed as a number
+            }
+
             Map<String, Object> body = new HashMap<>();
-            body.put("storeId", storeId);
+            body.put("storeId", parsedStoreId);
             body.put("list", Collections.singletonList(barcode));
 
             Map<?, ?> response = dragonEslApiClient.delete(
@@ -526,6 +627,8 @@ public class ProductService {
                     body,
                     Map.class
             );
+
+            log.info("Dragon ESL batchDeleteItem raw response: {}", response);
 
             if (response != null) {
                 Object codeObj = response.get("code");
@@ -561,6 +664,54 @@ public class ProductService {
         }
 
         try {
+            // 1. Fetch all stores in the merchant account
+            List<Map<?, ?>> stores = new ArrayList<>();
+            try {
+                Map<?, ?> storeListResp = dragonEslApiClient.get("/zk/store/storeList", Map.class);
+                if (storeListResp != null && storeListResp.get("data") instanceof List) {
+                    List<?> dataList = (List<?>) storeListResp.get("data");
+                    for (Object obj : dataList) {
+                        if (obj instanceof Map) {
+                            stores.add((Map<?, ?>) obj);
+                        }
+                    }
+                }
+                log.info("Fetched {} stores for global delete of item {}", stores.size(), barcode);
+            } catch (Exception e) {
+                log.error("Failed to fetch stores during global delete: {}", e.getMessage());
+            }
+
+            // 2. Delete the item from each store individually in a robust loop
+            for (Map<?, ?> store : stores) {
+                Object storeIdObj = store.get("storeId");
+                if (storeIdObj != null) {
+                    String storeIdStr = storeIdObj.toString();
+                    try {
+                        Object parsedStoreId = storeIdStr;
+                        try {
+                            parsedStoreId = Long.parseLong(storeIdStr.trim());
+                        } catch (NumberFormatException e) {
+                            // Keep as string
+                        }
+
+                        log.info("Deleting item {} from store {} during global delete...", barcode, parsedStoreId);
+                        Map<String, Object> storeBody = new HashMap<>();
+                        storeBody.put("storeId", parsedStoreId);
+                        storeBody.put("list", Collections.singletonList(barcode));
+
+                        Map<?, ?> storeResponse = dragonEslApiClient.delete(
+                                "/zk/item/batchDeleteItem",
+                                storeBody,
+                                Map.class
+                        );
+                        log.info("Store {} delete response for item {}: {}", parsedStoreId, barcode, storeResponse);
+                    } catch (Exception e) {
+                        log.warn("Failed to delete item {} from store {} during global delete: {}", barcode, storeIdStr, e.getMessage());
+                    }
+                }
+            }
+
+            // 3. Perform final global/merchant deletion
             Map<String, Object> body = new HashMap<>();
             body.put("storeId", "");
             body.put("list", Collections.singletonList(barcode));
@@ -569,7 +720,7 @@ public class ProductService {
                     "/zk/item/batchDeleteItem",
                     body,
                     Map.class
-            );
+                );
 
             if (response != null) {
                 Object codeObj = response.get("code");
@@ -591,6 +742,119 @@ public class ProductService {
         } catch (Exception e) {
             log.error("Error deleting product globally: {}", e.getMessage());
             throw new DragonEslException("Global delete failed: " + e.getMessage(), HttpStatus.BAD_GATEWAY);
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    public void deleteAllFromStore(String storeId) {
+        // Step 1: Validate storeId — throw DragonEslException with BAD_REQUEST if null or blank
+        if (storeId == null || storeId.isBlank()) {
+            throw new DragonEslException("storeId is required", HttpStatus.BAD_REQUEST);
+        }
+
+        // Step 2: Parse storeId to Long — use Long.parseLong(), keep as String if NumberFormatException
+        Object parsedStoreId = storeId;
+        try {
+            parsedStoreId = Long.parseLong(storeId.trim());
+        } catch (NumberFormatException e) {
+            // keep as String
+        }
+
+        try {
+            // Step 3: Fetch all products in store by calling Dragon ESL: POST /zk/erp/item/list
+            Map<String, Object> reqBody = new HashMap<>();
+            reqBody.put("storeId", parsedStoreId);
+
+            String url = "/zk/erp/item/list?page=1&size=500";
+            Map<?, ?> response = dragonEslApiClient.post(
+                    url,
+                    reqBody,
+                    Map.class
+            );
+
+            if (response == null) {
+                throw new DragonEslException("No response from Dragon ESL for listing products", HttpStatus.BAD_GATEWAY);
+            }
+
+            Object successObj = response.get("success");
+            boolean success = Boolean.TRUE.equals(successObj);
+            Object codeObj = response.get("code");
+            boolean codeOk = codeObj != null && (Integer.valueOf(10000).equals(codeObj) || Integer.valueOf(200).equals(codeObj));
+
+            if (!success && !codeOk) {
+                String msg = response.get("message") != null ? response.get("message").toString() : "Unknown error";
+                throw new DragonEslException("Failed to fetch products: " + msg, HttpStatus.BAD_GATEWAY);
+            }
+
+            List<String> barcodes = new ArrayList<>();
+            Object dataObj = response.get("data");
+            if (dataObj instanceof Map) {
+                Map<?, ?> dataMap = (Map<?, ?>) dataObj;
+                Object listObj = dataMap.get("list");
+                if (listObj instanceof List) {
+                    List<?> list = (List<?>) listObj;
+                    for (Object itemObj : list) {
+                        if (itemObj instanceof Map) {
+                            Map<?, ?> itemMap = (Map<?, ?>) itemObj;
+                            Object barCodeVal = itemMap.get("barCode");
+                            if (barCodeVal != null) {
+                                barcodes.add(barCodeVal.toString());
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Step 4: If barcode list is empty — log info and return (nothing to delete, not an error)
+            if (barcodes.isEmpty()) {
+                log.info("No products found in store {} to delete.", storeId);
+                return;
+            }
+
+            log.info("Found {} products to delete in store {}", barcodes.size(), storeId);
+
+            // Step 5: Delete in batches of max 500
+            int batchSize = 500;
+            for (int i = 0; i < barcodes.size(); i += batchSize) {
+                int toIndex = Math.min(i + batchSize, barcodes.size());
+                List<String> batchList = barcodes.subList(i, toIndex);
+
+                Map<String, Object> deleteBody = new HashMap<>();
+                deleteBody.put("storeId", parsedStoreId);
+                deleteBody.put("list", batchList);
+
+                log.info("Sending batch delete request for store {} with {} items (chunk {} to {})",
+                        storeId, batchList.size(), i, toIndex);
+
+                Map<?, ?> deleteResponse = dragonEslApiClient.delete(
+                        "/zk/item/batchDeleteItem",
+                        deleteBody,
+                        Map.class
+                );
+
+                if (deleteResponse != null) {
+                    Object dCodeObj = deleteResponse.get("code");
+                    Object dSuccessObj = deleteResponse.get("success");
+                    boolean dCodeOk = dCodeObj != null &&
+                            (Integer.valueOf(200).equals(dCodeObj) || Integer.valueOf(10000).equals(dCodeObj));
+                    boolean dSuccess = Boolean.TRUE.equals(dSuccessObj);
+                    if (!dSuccess && !dCodeOk) {
+                        String msg = deleteResponse.get("message") != null ?
+                                deleteResponse.get("message").toString() : "Unknown error";
+                        throw new DragonEslException("Delete all products failed for batch starting at " + i + ": " + msg, HttpStatus.BAD_GATEWAY);
+                    }
+                }
+                log.info("Batch delete starting at {} completed successfully", i);
+            }
+
+            // Step 6: Log completion
+            log.info("Deleted all {} products from store {}", barcodes.size(), storeId);
+
+        } catch (DragonEslException e) {
+            throw e;
+        } catch (Exception e) {
+            log.error("Error during delete all from store {}: {}", storeId, e.getMessage());
+            throw new DragonEslException("Delete all products from store failed: " + e.getMessage(), HttpStatus.BAD_GATEWAY);
         }
     }
 
@@ -643,8 +907,12 @@ public class ProductService {
         barcodeBody.put("barCode", barcodeValue);
         barcodeBody.put("pcBarCode", barcodeValue);
         try {
+            boolean isStoreSpecific = storeId != null && !storeId.isBlank() && !storeId.trim().equals("0");
+            String url = isStoreSpecific 
+                    ? "/zk/erp/item/list?page=" + page + "&size=" + size 
+                    : "/zk/item/list/" + page + "/0/" + size + "/" + storeId;
             return dragonEslApiClient.post(
-                    "/zk/item/list/" + page + "/0/" + size + "/" + storeId,
+                    url,
                     barcodeBody,
                     Map.class
             );
@@ -670,12 +938,18 @@ public class ProductService {
         return false;
     }
 
+
+
     private Map<?, ?> queryTitle(Map<String, Object> baseBody, String titleValue, int page, int size, String storeId) {
         Map<String, Object> titleBody = new HashMap<>(baseBody);
         titleBody.put("itemTitle", titleValue);
         try {
+            boolean isStoreSpecific = storeId != null && !storeId.isBlank() && !storeId.trim().equals("0");
+            String url = isStoreSpecific 
+                    ? "/zk/erp/item/list?page=" + page + "&size=" + size 
+                    : "/zk/item/list/" + page + "/0/" + size + "/" + storeId;
             return dragonEslApiClient.post(
-                    "/zk/item/list/" + page + "/0/" + size + "/" + storeId,
+                    url,
                     titleBody,
                     Map.class
             );

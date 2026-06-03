@@ -661,7 +661,7 @@ const Devices: React.FC = () => {
       {loading ? (
         <div className="devices-loading-state glass-card">
           <Loader2 className="animate-spin" size={40} />
-          <p>Reading live equipment data from Zkong Cloud platform... / جاري قراءة بيانات الأجهزة المباشرة من منصة Zkong السحابية...</p>
+          <p>Fetching equipment data... / جاري جلب بيانات الأجهزة...</p>
         </div>
       ) : error ? (
         <div className="devices-error-state glass-card">
@@ -1094,6 +1094,7 @@ const Devices: React.FC = () => {
         .barcode-cell {
           display: flex;
           align-items: center;
+          justify-content: center;
           gap: 8px;
           font-weight: 600;
         }

@@ -1710,6 +1710,35 @@ const Templates: React.FC = () => {
         .op-btn.danger-text:hover { background: rgba(239,68,68,0.1); }
         .op-btn.disabled-text { color: var(--text-muted); }
 
+        .custom-toggle-switch {
+          width: 36px;
+          height: 20px;
+          border-radius: 10px;
+          background-color: #cbd5e1;
+          position: relative;
+          cursor: pointer;
+          transition: background-color 0.3s;
+          display: inline-flex;
+          align-items: center;
+          margin: 0 4px;
+        }
+        .custom-toggle-switch.on {
+          background-color: #10b981;
+        }
+        .custom-toggle-switch .toggle-handle {
+          width: 16px;
+          height: 16px;
+          border-radius: 50%;
+          background-color: white;
+          position: absolute;
+          left: 2px;
+          transition: transform 0.3s;
+          box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+        }
+        .custom-toggle-switch.on .toggle-handle {
+          transform: translateX(16px);
+        }
+
         /* Empty states */
         .empty-state-table {
           padding-bottom: 40px;
@@ -2580,15 +2609,19 @@ const Templates: React.FC = () => {
                       </div>
                     </td>
                     <td>
-                      <div className="op-buttons">
-                        <button className="op-btn primary-text" onClick={() => setEditTemplateModal({ id: t.id, templateName: t.templateName, attrCategory: t.attrCategory || '' })}>
-                          Edit / تعديل
+                      <div className="op-buttons" style={{ alignItems: 'center' }}>
+                        <button className="op-btn primary-text" title="Edit / تعديل" onClick={() => setEditTemplateModal({ id: t.id, templateName: t.templateName, attrCategory: t.attrCategory || '' })}>
+                          <Edit size={16} />
                         </button>
-                        <button className="op-btn primary-text" onClick={() => handleToggleStatus(t.id, t.status)}>
-                          {isEnabled ? 'Disable / تعطيل' : 'Enable / تفعيل'}
-                        </button>
-                        <button className="op-btn danger-text" onClick={() => handleDeleteTemplate(t.id)}>
-                          Delete / حذف
+                        <div 
+                          className={`custom-toggle-switch ${isEnabled ? 'on' : 'off'}`} 
+                          onClick={() => handleToggleStatus(t.id, t.status)}
+                          title={isEnabled ? 'Disable / تعطيل' : 'Enable / تفعيل'}
+                        >
+                          <div className="toggle-handle"></div>
+                        </div>
+                        <button className="op-btn danger-text" title="Delete / حذف" onClick={() => handleDeleteTemplate(t.id)}>
+                          <Trash2 size={16} />
                         </button>
                         {activeMenuTab === 'store' && <button className="op-btn disabled-text">Copy / نسخ</button>}
                       </div>

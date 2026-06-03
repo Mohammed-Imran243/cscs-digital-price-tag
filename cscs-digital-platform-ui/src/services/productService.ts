@@ -107,3 +107,9 @@ export const deleteProductGlobal = async (id: string, barcode: string): Promise<
   const response = await api.delete(`/products/${id}/global?${params.toString()}`);
   unwrapResponse(response);
 };
+
+export const deleteAllProductsFromStore = async (storeId: string): Promise<void> => {
+  const params = new URLSearchParams({ storeId });
+  const response = await api.delete(`/products/store/all?${params.toString()}`);
+  unwrapResponse(response);
+};

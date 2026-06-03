@@ -2,7 +2,7 @@ import React, { useState, useEffect, useLayoutEffect, useRef } from 'react';
 import { useTheme } from '../context/ThemeContext';
 import { useAuth } from '../context/AuthContext';
 
-import { Sun, Moon, LogOut, LayoutDashboard, Store, Package, User, Cpu, Menu, Building2, LayoutTemplate, History, Smartphone, Settings, Image as ImageIcon, Tag, Shield } from 'lucide-react';
+import { Sun, Moon, LogOut, LayoutDashboard, Store, Package, User, Cpu, Menu, Building2, LayoutTemplate, History, Smartphone, Settings, Image as ImageIcon, Tag, Shield, TrendingUp } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 
 const SidebarItem: React.FC<{ 
