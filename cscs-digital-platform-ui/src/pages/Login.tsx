@@ -91,11 +91,23 @@ const LoginPage: React.FC = () => {
         .login-page {
           display: flex;
           align-items: center;
-          justify-content: center;
+          justify-content: flex-end;
           min-height: 100vh;
           width: 100vw;
-          background: linear-gradient(135deg, #020617 0%, #1e1b4b 100%);
+          background: url('/UPDATE-LOGIN-BG.png') center/cover no-repeat;
           padding: 20px;
+          position: relative;
+        }
+
+        .login-page::before {
+          content: '';
+          position: absolute;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          background: rgba(15, 23, 42, 0.65); /* Dark Navy Overlay */
+          z-index: 1;
         }
 
         .login-card {
@@ -103,13 +115,15 @@ const LoginPage: React.FC = () => {
           max-width: 440px;
           padding: 48px 40px;
           text-align: center;
-          background: rgba(15, 23, 42, 0.6);
-          backdrop-filter: blur(16px);
-          -webkit-backdrop-filter: blur(16px);
-          border: 1px solid rgba(255, 255, 255, 0.1);
+          background: rgba(15, 23, 42, 0.45);
+          backdrop-filter: blur(24px);
+          -webkit-backdrop-filter: blur(24px);
+          border: 1px solid rgba(255, 255, 255, 0.12);
           border-radius: 24px;
-          box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-          margin: 20px;
+          box-shadow: 0 30px 60px -15px rgba(0, 0, 0, 0.7);
+          margin-right: 10%;
+          position: relative;
+          z-index: 2;
         }
 
         .logo-container {
@@ -212,6 +226,17 @@ const LoginPage: React.FC = () => {
           animation: spin 1s linear infinite;
         }
 
+        @media (max-width: 992px) {
+          .login-page {
+            justify-content: center;
+          }
+          
+          .login-card {
+            margin-right: 0;
+            margin: 20px;
+          }
+        }
+
         @media (max-width: 480px) {
           .login-card {
             padding: 32px 24px;
@@ -220,8 +245,7 @@ const LoginPage: React.FC = () => {
             font-size: 24px;
           }
           .logo-img {
-            width: 240px;
-            height: auto;
+            width: 220px;
           }
         }
       `}</style>
