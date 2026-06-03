@@ -43,11 +43,10 @@ const LoginPage: React.FC = () => {
     <div className="login-page">
       <div className="login-card">
         <div className="login-header">
-          <div className="logo">
-            <img src="/cscs.png" alt="CSCS Logo" className="logo-img" />
+          <div className="logo-container">
+            <img src="/cscs-logo-login-cropped.png" alt="CSCS Logo" className="logo-img" />
           </div>
-          <h2>Welcome Back / مرحباً بعودتك</h2>
-          <p>CSCS ESL CONNECT APP / منصة إدارة بطاقات الأسعار الرقمية</p>
+          <h2 className="login-title">Login / تسجيل الدخول</h2>
         </div>
 
         <form onSubmit={handleSubmit} className="login-form" autoComplete="off">
@@ -59,7 +58,7 @@ const LoginPage: React.FC = () => {
               type="text"
               name="cscs-username"
               id="cscs-username"
-              placeholder="Username / اسم المستخدم"
+              placeholder="Username"
               value={userId}
               onChange={(e) => setUserId(e.target.value)}
               autoComplete="off"
@@ -73,7 +72,7 @@ const LoginPage: React.FC = () => {
               type="password"
               name="cscs-password"
               id="cscs-password"
-              placeholder="Password / كلمة المرور"
+              placeholder="Password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               autoComplete="new-password"
@@ -86,9 +85,6 @@ const LoginPage: React.FC = () => {
           </button>
         </form>
 
-        <div className="login-footer">
-          <p>© 2024 CSCS Platform. All rights reserved / جميع الحقوق محفوظة.</p>
-        </div>
       </div>
 
       <style>{`
@@ -116,30 +112,25 @@ const LoginPage: React.FC = () => {
           margin: 20px;
         }
 
-        .login-header .logo {
+        .logo-container {
           display: flex;
           justify-content: center;
-          margin-bottom: 8px; /* Reduced margin because the logo image might have internal padding */
+          align-items: center;
+          margin-bottom: 20px;
         }
 
         .logo-img {
-          height: 120px; /* Significantly increased from 52px */
-          width: auto;
+          width: 250px;
+          height: auto;
           object-fit: contain;
-          filter: drop-shadow(0 4px 6px rgba(0,0,0,0.3)) invert(1) brightness(2);
+          mix-blend-mode: screen;
         }
 
-        .login-header h2 {
-          font-size: 28px;
-          margin-bottom: 8px;
+        .login-title {
+          font-size: 24px;
+          margin-bottom: 32px;
           color: #f8fafc;
           font-weight: 700;
-        }
-
-        .login-header p {
-          color: #94a3b8;
-          font-size: 15px;
-          margin-bottom: 32px;
         }
 
         .login-form {
@@ -229,7 +220,8 @@ const LoginPage: React.FC = () => {
             font-size: 24px;
           }
           .logo-img {
-            height: 90px; /* Scaled down for mobile, but still large */
+            width: 240px;
+            height: auto;
           }
         }
       `}</style>
