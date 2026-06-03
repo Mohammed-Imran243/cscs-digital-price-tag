@@ -272,12 +272,19 @@ const Users: React.FC = () => {
         
         const mappedUsers = userList.map((item: any) => {
           const u = item.user || item;
+          const rawRoleName = item.roleName || u.roleName || 'No Role Assigned / لم يتم تعيين دور';
+          const translateMap: Record<string, string> = {
+            '商家超级管理员': 'Merchant Super Administrator',
+            '商家管理员': 'Merchant Administrator'
+          };
+          const translatedRoleName = translateMap[rawRoleName] || rawRoleName;
+          
           return {
             id: u.id,
             account: u.account,
             staffName: u.name || u.staffName || 'Unnamed Staff / موظف غير مسمى',
             roleId: u.roleId,
-            roleName: item.roleName || u.roleName || 'No Role Assigned / لم يتم تعيين دور',
+            roleName: translatedRoleName,
             createTime: u.createTime,
             status: u.enable === 1 ? 'Normal / طبيعي' : 'Disabled / معطل',
             allStorePermission: u.allStorePermission,
@@ -290,13 +297,22 @@ const Users: React.FC = () => {
         const rawData = rolesRes;
         const rolesList = Array.isArray(rawData) ? rawData : (rawData?.list || []);
         
-        const mappedRoles = rolesList.map((r: any) => ({
-          id: r.id,
-          roleName: r.roleName || r.name || 'Unnamed Role / دور غير مسمى',
-          merchantId: r.merchantId || '1775639851383',
-          createTime: r.createTime || 'Shared / مشترك',
-          _pending: r._pending === true || r.id === -1,
-        }));
+        const mappedRoles = rolesList.map((r: any) => {
+          const rawName = r.roleName || r.name || 'Unnamed Role / دور غير مسمى';
+          const translateMap: Record<string, string> = {
+            '商家超级管理员': 'Merchant Super Administrator',
+            '商家管理员': 'Merchant Administrator'
+          };
+          const translatedName = translateMap[rawName] || rawName;
+          
+          return {
+            id: r.id,
+            roleName: translatedName,
+            merchantId: r.merchantId || '1775639851383',
+            createTime: r.createTime || 'Shared / مشترك',
+            _pending: r._pending === true || r.id === -1,
+          };
+        });
         setRoles(mappedRoles);
       }
     } catch (err: any) {
