@@ -102,8 +102,25 @@ const PriceChangeMonitor: React.FC = () => {
     return () => clearInterval(interval);
   }, [fetchPriceChanges]);
 
-  const getStoreName = (storeId?: string) => {
-    if (!storeId) return 'Unknown Store / متجر غير معروف';
+  const formatTimeAgo = (dateStr: string): string => {
+    const normalized = dateStr && dateStr.includes(' ') && !dateStr.includes('T') ? dateStr.replace(' ', 'T') : dateStr;
+    const date = new Date(normalized);
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMs / 3600000);
+    const diffDays = Math.floor(diffMs / 86400000);
+    if (diffMins < 60) 
+      return diffMins + ' mins ago / منذ ' + diffMins + ' دقائق';
+    if (diffHours < 24) 
+      return diffHours + ' hrs ago / منذ ' + diffHours + ' ساعات';
+    return diffDays + ' days ago / منذ ' + diffDays + ' أيام';
+  };
+
+  const getStoreName = (storeId?: string, operator?: string) => {
+    if (!storeId || storeId === 'null' || storeId.trim() === '') {
+      return operator || 'System / النظام';
+    }
     const matched = stores.find(s => s.storeId === storeId || s.id === storeId);
     return matched ? matched.storeName : `Store #${storeId}`;
   };
@@ -149,37 +166,43 @@ const PriceChangeMonitor: React.FC = () => {
         </div>
       ) : (
         <div className="price-change-grid">
-          {changes.map(record => (
-            <div key={record.id} className="price-change-card glass-card">
-              <div className="card-top">
-                <h3 className="product-title">
+          {changes.map(record => {
+            const priceNum = parseFloat(record.price || '0');
+            const origNum = parseFloat(record.originalPrice || '0');
+            const isDecreased = priceNum < origNum;
+            const isIncreased = priceNum > origNum;
+
+            return (
+              <div key={record.id} className="price-change-card">
+                <div style={{ fontWeight: '700', fontSize: '15px', color: 'var(--text-primary)', marginBottom: '8px', lineHeight: '1.4' }}>
                   {record.itemName || 'Unnamed Item / منتج غير مسمى'}
-                </h3>
+                </div>
+                
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px', marginBottom: '12px' }}>
+                  <span style={{ color: 'var(--text-secondary)', fontWeight: '400' }}>
+                    {formatPrice(record.originalPrice)} AED
+                  </span>
+                  <span style={{ color: 'var(--text-muted)' }}>→</span>
+                  <span style={{ 
+                    fontWeight: '700', 
+                    color: isDecreased ? '#10b981' : (isIncreased ? '#ef4444' : 'var(--text-primary)') 
+                  }}>
+                    {formatPrice(record.price)} AED
+                  </span>
+                </div>
+                
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', color: 'var(--text-secondary)', marginBottom: '6px' }}>
+                  <span>📍</span>
+                  <span>Store / المتجر: {getStoreName(record.storeId, record.operator)}</span>
+                </div>
+                
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', color: 'var(--text-secondary)' }}>
+                  <span>🕐</span>
+                  <span>Time / الوقت: {formatTimeAgo(record.pushTime || record.createdTime)}</span>
+                </div>
               </div>
-              
-              <div className="card-middle">
-                <div className="price-row-item">
-                  <span className="price-lbl">Offer Price / سعر العرض:</span>
-                  <span className="price-val highlighted">{record.price ? `${formatPrice(record.price)} AED` : 'N/A'}</span>
-                </div>
-                <div className="price-row-item" style={{ marginTop: '10px' }}>
-                  <span className="price-lbl">Discount Price / Discount Amount / قيمة الخصم:</span>
-                  <span className="price-val">{record.discountAmount ? `${formatPrice(record.discountAmount)} AED` : '0.00 AED'}</span>
-                </div>
-              </div>
-              
-              <div className="card-bottom">
-                <div className="meta-row">
-                  <Store size={14} className="icon-store" />
-                  <span className="meta-text">Store Name / المتجر: {getStoreName(record.storeId)}</span>
-                </div>
-                <div className="meta-row">
-                  <Clock size={14} className="icon-clock" />
-                  <span className="meta-text">Last Updated Time / آخر تحديث: {getRelativeTime(record.pushTime || record.createdTime)}</span>
-                </div>
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
 
@@ -195,98 +218,19 @@ const PriceChangeMonitor: React.FC = () => {
         }
 
         .price-change-card {
-          padding: 20px;
-          border-radius: 16px;
-          border: 1px solid var(--glass-border);
-          box-shadow: 0 4px 20px 0 rgba(0, 0, 0, 0.05);
+          padding: 16px;
+          border-radius: 12px;
+          border: none;
+          box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
           display: flex;
           flex-direction: column;
-          justify-content: space-between;
-          background: var(--glass-card);
+          background: #ffffff;
           transition: transform 0.2s, box-shadow 0.2s;
         }
 
         .price-change-card:hover {
           transform: translateY(-2px);
-          box-shadow: 0 8px 30px 0 rgba(0, 0, 0, 0.08);
-          border-color: rgba(255, 255, 255, 0.15);
-        }
-
-        .product-title {
-          margin: 0;
-          font-size: 16px;
-          font-weight: 700;
-          color: var(--text-primary);
-          line-height: 1.4;
-          display: -webkit-box;
-          -webkit-line-clamp: 2;
-          -webkit-box-orient: vertical;
-          overflow: hidden;
-          text-overflow: ellipsis;
-          min-height: 44px;
-        }
-
-        .card-middle {
-          margin: 16px 0;
-          display: flex;
-          flex-direction: column;
-          gap: 6px;
-        }
-
-        .price-row-item {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          font-size: 14px;
-        }
-
-        .price-lbl {
-          font-weight: 600;
-          color: var(--text-secondary);
-        }
-
-        .price-val {
-          font-weight: 700;
-          color: var(--text-primary);
-        }
-
-        .price-val.highlighted {
-          font-size: 18px;
-          font-weight: 800;
-          color: var(--primary-color);
-        }
-
-        .card-bottom {
-          display: flex;
-          flex-direction: column;
-          gap: 8px;
-          border-top: 1px solid var(--glass-border);
-          padding-top: 14px;
-          font-size: 13px;
-          color: var(--text-secondary);
-        }
-
-        .meta-row {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-        }
-
-        .icon-store {
-          color: var(--primary-color);
-          opacity: 0.85;
-          flex-shrink: 0;
-        }
-
-        .icon-clock {
-          color: var(--text-muted);
-          flex-shrink: 0;
-        }
-
-        .meta-text {
-          white-space: nowrap;
-          overflow: hidden;
-          text-overflow: ellipsis;
+          box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
         }
 
         .pulse-dot {

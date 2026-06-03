@@ -12,6 +12,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -20,9 +21,11 @@ public class AuditLogService {
 
     private static final Logger log = LoggerFactory.getLogger(AuditLogService.class);
     private final DragonEslApiClient dragonEslApiClient;
+    private final StoreService storeService;
 
-    public AuditLogService(DragonEslApiClient dragonEslApiClient) {
+    public AuditLogService(DragonEslApiClient dragonEslApiClient, StoreService storeService) {
         this.dragonEslApiClient = dragonEslApiClient;
+        this.storeService = storeService;
     }
 
     public PagedResponse<AuditLogResponse> getPriceChangeLogs(
@@ -33,20 +36,84 @@ public class AuditLogService {
             int size) {
 
         try {
-            java.util.Map<String, Object> requestBody = new java.util.HashMap<>();
+            List<Long> targetStoreIds = new ArrayList<>();
             if (storeId != null && !storeId.isBlank()) {
                 try {
-                    requestBody.put("storeId", Long.parseLong(storeId.trim()));
+                    targetStoreIds.add(Long.parseLong(storeId.trim()));
                 } catch (NumberFormatException e) {
                     // skip invalid storeId
                 }
+            } else {
+                List<com.cscs.digitalpricetag.dto.api.StoreResponse> stores = storeService.getAllStores();
+                if (stores != null) {
+                    for (com.cscs.digitalpricetag.dto.api.StoreResponse s : stores) {
+                        if (s.getStoreId() != null && !s.getStoreId().isBlank()) {
+                            try {
+                                targetStoreIds.add(Long.parseLong(s.getStoreId().trim()));
+                            } catch (NumberFormatException e) {
+                                // skip
+                            }
+                        }
+                    }
+                }
             }
+
+            if (targetStoreIds.isEmpty()) {
+                return new PagedResponse<>(Collections.emptyList(), page, size, 0L);
+            }
+
+            List<AuditLogResponse> mergedLogs = new ArrayList<>();
+            long totalElementsAccumulator = 0;
+
+            if (targetStoreIds.size() == 1) {
+                long[] totalHolder = new long[1];
+                List<AuditLogResponse> storeLogs = getMappedLogsForStore(targetStoreIds.get(0), startDate, endDate, page, size, totalHolder);
+                mergedLogs.addAll(storeLogs);
+                totalElementsAccumulator = totalHolder[0];
+            } else {
+                int targetSize = (page + 1) * size;
+                for (Long tid : targetStoreIds) {
+                    long[] totalHolder = new long[1];
+                    List<AuditLogResponse> storeLogs = getMappedLogsForStore(tid, startDate, endDate, 0, targetSize, totalHolder);
+                    mergedLogs.addAll(storeLogs);
+                    totalElementsAccumulator += totalHolder[0];
+                }
+
+                // Sort merged list descending by feedbackTime (or createdTime, or id)
+                mergedLogs.sort((a, b) -> {
+                    String timeA = a.getCreatedTime() != null ? a.getCreatedTime() : (a.getPushTime() != null ? a.getPushTime() : "");
+                    String timeB = b.getCreatedTime() != null ? b.getCreatedTime() : (b.getPushTime() != null ? b.getPushTime() : "");
+                    int cmp = timeB.compareTo(timeA);
+                    if (cmp != 0) return cmp;
+                    return Long.compare(b.getId() != null ? b.getId() : 0L, a.getId() != null ? a.getId() : 0L);
+                });
+
+                // Slice list
+                int start = page * size;
+                int end = Math.min(start + size, mergedLogs.size());
+                if (start < mergedLogs.size()) {
+                    mergedLogs = new ArrayList<>(mergedLogs.subList(start, end));
+                } else {
+                    mergedLogs = Collections.emptyList();
+                }
+            }
+
+            return new PagedResponse<>(mergedLogs, page, size, totalElementsAccumulator);
+
+        } catch (Exception e) {
+            log.error("Error retrieving price change logs: {}", e.getMessage(), e);
+            throw new DragonEslException("Price change logs retrieval failed: " + e.getMessage(), HttpStatus.BAD_GATEWAY);
+        }
+    }
+
+    private List<AuditLogResponse> getMappedLogsForStore(Long storeIdLong, String startDate, String endDate, int page, int size, long[] totalElementsHolder) {
+        try {
+            java.util.Map<String, Object> requestBody = new java.util.HashMap<>();
+            requestBody.put("storeId", storeIdLong);
 
             if (startDate != null && endDate != null && !startDate.isBlank() && !endDate.isBlank()) {
                 requestBody.put("createdTime", startDate.trim() + " 00:00:00," + endDate.trim() + " 23:59:59");
             } else {
-                // Default to last 90 days — Dragon ESL requires createdTime,
-                // it cannot be null or omitted
                 java.time.LocalDate today = java.time.LocalDate.now();
                 java.time.LocalDate ninetyDaysAgo = today.minusDays(90);
                 requestBody.put("createdTime", ninetyDaysAgo.toString() + " 00:00:00," + today.toString() + " 23:59:59");
@@ -55,21 +122,21 @@ public class AuditLogService {
             requestBody.put("feedBackTimeOrder", "desc");
 
             String url = String.format("/zk/erp/log/listLog?page=%d&size=%d", page, size);
-            log.info("Querying ZKong listLog for price changes: URL={}, body={}", url, requestBody);
+            log.info("Querying ZKong listLog for store {}: URL={}, body={}", storeIdLong, url, requestBody);
 
             java.util.Map response = dragonEslApiClient.post(url, requestBody, java.util.Map.class);
             if (response == null) {
-                throw new DragonEslException("No response from Dragon ESL for logs", HttpStatus.BAD_GATEWAY);
+                log.warn("No response from Dragon ESL for logs for store {}", storeIdLong);
+                return Collections.emptyList();
             }
 
             Boolean success = (Boolean) response.get("success");
             if (success == null || !success) {
-                throw new DragonEslException("Failed to fetch logs: " + response.get("message"), HttpStatus.BAD_GATEWAY);
+                log.warn("Failed to fetch logs for store {}: {}", storeIdLong, response.get("message"));
+                return Collections.emptyList();
             }
 
             List<AuditLogResponse> mappedLogs = new java.util.ArrayList<>();
-            long totalElements = 0;
-
             java.util.Map data = (java.util.Map) response.get("data");
             if (data != null) {
                 Object totalObj = data.get("totalElements");
@@ -77,7 +144,7 @@ public class AuditLogService {
                     totalObj = data.get("total");
                 }
                 if (totalObj instanceof Number) {
-                    totalElements = ((Number) totalObj).longValue();
+                    totalElementsHolder[0] = ((Number) totalObj).longValue();
                 }
 
                 List<java.util.Map> list = (List<java.util.Map>) data.get("list");
@@ -114,7 +181,7 @@ public class AuditLogService {
 
                         // Retrieve the product's original price to calculate the discount amount
                         String barcode = dto.getItemBarCode();
-                        String logStoreId = dto.getStoreId() != null ? dto.getStoreId() : "0";
+                        String logStoreId = dto.getStoreId() != null ? dto.getStoreId() : String.valueOf(storeIdLong);
                         String originalPrice = "0";
                         
                         if (barcode != null && !barcode.isBlank()) {
@@ -221,14 +288,10 @@ public class AuditLogService {
                     }
                 }
             }
-
-            return new PagedResponse<>(mappedLogs, page, size, totalElements);
-
-        } catch (DragonEslException e) {
-            throw e;
+            return mappedLogs;
         } catch (Exception e) {
-            log.error("Error retrieving price change logs: {}", e.getMessage(), e);
-            throw new DragonEslException("Price change logs retrieval failed: " + e.getMessage(), HttpStatus.BAD_GATEWAY);
+            log.error("Error retrieving price change logs for store {}: {}", storeIdLong, e.getMessage(), e);
+            return Collections.emptyList();
         }
     }
 

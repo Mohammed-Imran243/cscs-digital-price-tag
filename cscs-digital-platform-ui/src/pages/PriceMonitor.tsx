@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import api from '../services/api';
 import '../styles/theme.css';
+import PageHeader from '../components/PageHeader';
 
 interface PriceHistoryEvent {
   id: string;
@@ -106,17 +107,15 @@ const PriceMonitor: React.FC = () => {
 
   return (
     <div className="page-container" style={{ padding: '24px' }}>
-      <div className="page-header" style={{ marginBottom: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <div>
-          <h1 style={{ margin: 0, fontSize: '24px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <Activity className="text-primary" /> Price Change Monitor
-          </h1>
-          <p style={{ margin: '8px 0 0 0', color: 'var(--text-secondary)' }}>Track and analyze chronological product price movements.</p>
-        </div>
-        <button className="primary-btn" onClick={fetchHistory} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <RefreshCcw size={16} /> Refresh
-        </button>
-      </div>
+      <PageHeader
+        title="Price Change Monitor"
+        titleAr="مراقب تغيير الأسعار"
+        actions={<>
+          <button className="primary-btn" onClick={fetchHistory} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <RefreshCcw size={16} /> Refresh
+          </button>
+        </>}
+      />
 
       {/* Summary Cards */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px', marginBottom: '24px' }}>

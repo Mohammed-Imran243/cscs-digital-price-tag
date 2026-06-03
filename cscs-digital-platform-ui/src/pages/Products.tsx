@@ -7,6 +7,7 @@ import type { Store } from '../services/storeService';
 import { Search, Plus, Loader2, AlertTriangle, RefreshCw, Package, Store as StoreIcon, Upload, Edit2, Trash2 } from 'lucide-react';
 import { getPaginationRange } from '../utils/paginationUtils';
 import { getTemplates, getCategories, getTemplateTypes } from '../services/templateService';
+import PageHeader from '../components/PageHeader';
 import ImportExportModal from '../components/ImportExportModal';
 import { importProducts, exportProducts, downloadProductImportTemplate } from '../services/importExportService';
 
@@ -667,11 +668,10 @@ const Products: React.FC = () => {
     )}
 
     {/* Page Header */}
-    <div className="page-header">
-      <div>
-        <h2>Product Management / إدارة المنتجات</h2>
-      </div>
-      <div className="header-actions">
+    <PageHeader
+      title="Product Management"
+      titleAr="إدارة المنتجات"
+      actions={<>
         <div className="store-selector-wrapper">
           <StoreIcon size={16} className="text-muted" />
           <select 
@@ -794,8 +794,8 @@ const Products: React.FC = () => {
         <button className="btn-primary" onClick={() => setIsModalOpen(true)}>
           <Plus size={18} /> Add / إضافة
         </button>
-      </div>
-    </div>
+      </>}
+    />
 
     <ImportExportModal
       isOpen={showImportExport}

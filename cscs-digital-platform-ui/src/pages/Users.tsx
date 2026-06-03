@@ -5,6 +5,7 @@ import type { User, Role, PermissionMenu } from '../services/userService';
 import { storeService } from '../services/storeService';
 import type { Store as StoreType } from '../services/storeService';
 import { getPaginationRange } from '../utils/paginationUtils';
+import PageHeader from '../components/PageHeader';
 
 const AVAILABLE_PERMISSIONS = [
   { id: 135, name: 'Product Management / إدارة المنتجات', code: 'product' },
@@ -593,11 +594,10 @@ const Users: React.FC = () => {
       )}
 
       {/* Header */}
-      <div className="users-header">
-        <div>
-          <h2>Staff User Management / إدارة حسابات الموظفين</h2>
-        </div>
-        <div className="users-header-actions" style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+      <PageHeader
+        title="User Management"
+        titleAr="إدارة المستخدمين"
+        actions={<>
           <div className="global-search-bar">
             <Search size={16} className="text-muted" />
             <input
@@ -619,8 +619,8 @@ const Users: React.FC = () => {
               <Plus size={18} /> Create Role / إضافة دور
             </button>
           )}
-        </div>
-      </div>
+        </>}
+      />
 
       {/* Navigation Tabs */}
       <div className="nav-tabs-container" style={{ margin: '0 24px' }}>

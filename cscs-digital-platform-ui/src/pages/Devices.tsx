@@ -25,6 +25,7 @@ import ImportExportModal from '../components/ImportExportModal';
 import { importEslTags, exportEslTags, downloadEslTagImportTemplate } from '../services/importExportService';
 
 import { useLocation, useNavigate } from 'react-router-dom';
+import PageHeader from '../components/PageHeader';
 
 const Devices: React.FC = () => {
   const location = useLocation();
@@ -587,11 +588,10 @@ const Devices: React.FC = () => {
         </div>
       )}
 
-      <div className="devices-page-header">
-        <div>
-          <h2>Device Management / إدارة الأجهزة</h2>
-        </div>
-        <div className="devices-header-actions" style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+      <PageHeader
+        title="Device Management"
+        titleAr="إدارة الأجهزة"
+        actions={<>
           <div className="global-search-bar">
             <Search size={16} className="text-muted" />
             <input
@@ -647,8 +647,8 @@ const Devices: React.FC = () => {
           <button className="btn-secondary" onClick={() => fetchDevices()} disabled={loading || storesLoading}>
             <RefreshCw size={18} className={loading ? 'animate-spin' : ''} /> Refresh / تحديث
           </button>
-        </div>
-      </div>
+        </>}
+      />
 
       <ImportExportModal
         isOpen={showEslImportExport}

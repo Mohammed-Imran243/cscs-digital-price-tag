@@ -38,6 +38,7 @@ import { importTemplate, exportTemplates } from '../services/importExportService
 
 import { getEslModelSpecs, renderEinkLayout } from '../utils/eslModelUtils';
 import { getPaginationRange } from '../utils/paginationUtils';
+import PageHeader from '../components/PageHeader';
 
 
 const COLOR_MAPPINGS: Record<number, { key: string; label: string }> = {
@@ -608,13 +609,11 @@ const Templates: React.FC = () => {
         </div>
       )}
 
-      {/* Breadcrumbs & Navigation Section */}
-      <div className="top-breadcrumb" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
-        <div>
-          <h2 style={{ fontSize: '24px', fontWeight: 700, color: 'var(--text-primary)', margin: '0 0 4px 0' }}>
-            Template Management / إدارة القوالب
-          </h2>
-          <div style={{ fontSize: '13px', color: 'var(--text-muted)' }}>
+      <PageHeader
+        title="Template Management"
+        titleAr="إدارة القوالب"
+        actions={<>
+          <div style={{ fontSize: '13px', color: 'var(--text-muted)', marginRight: 'auto' }}>
             Templates &gt; <span style={{ color: 'var(--primary-color)', fontWeight: 600 }}>
               {activeMenuTab === 'merchant' && 'Merchant Template / قوالب التاجر'}
               {activeMenuTab === 'store' && 'Store Template / قوالب المتجر'}
@@ -622,8 +621,6 @@ const Templates: React.FC = () => {
               {activeMenuTab === 'properties' && 'Template Properties / خصائص القالب'}
             </span>
           </div>
-        </div>
-        <div className="templates-header-actions" style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
           <div className="global-search-bar">
             <Search size={16} className="text-muted" />
             <input
@@ -639,8 +636,8 @@ const Templates: React.FC = () => {
           <button className="btn-secondary" onClick={() => setShowTemplateImportExport(true)}>
             <Upload size={18} /> Import / Export
           </button>
-        </div>
-      </div>
+        </>}
+      />
 
       <ImportExportModal
         isOpen={showTemplateImportExport}

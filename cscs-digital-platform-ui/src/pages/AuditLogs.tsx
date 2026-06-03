@@ -18,6 +18,7 @@ import type { Store } from '../services/storeService';
 import { getAuditLogs } from '../services/auditLogService';
 import type { AuditLog } from '../services/auditLogService';
 import { getPaginationRange } from '../utils/paginationUtils';
+import PageHeader from '../components/PageHeader';
 
 const AuditLogs: React.FC = () => {
   const [stores, setStores] = useState<Store[]>([]);
@@ -255,11 +256,10 @@ const AuditLogs: React.FC = () => {
 
   return (
     <div className="audit-logs-container">
-      <div className="audit-logs-page-header">
-        <div>
-          <h2>Audit Logs / سجلات المراجعة</h2>
-        </div>
-        <div className="audit-logs-header-actions" style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+      <PageHeader
+        title="Audit Logs"
+        titleAr="سجلات التدقيق"
+        actions={<>
           <div className="global-search-bar">
             <Search size={16} className="text-muted" />
             <input 
@@ -276,8 +276,8 @@ const AuditLogs: React.FC = () => {
           >
             <RefreshCw size={18} className={logsLoading ? 'animate-spin' : ''} /> Refresh / تحديث
           </button>
-        </div>
-      </div>
+        </>}
+      />
       {/* Toast Notification */}
       {notification && (
         <div className={`toast-notification ${notification.type} glass-card`}>

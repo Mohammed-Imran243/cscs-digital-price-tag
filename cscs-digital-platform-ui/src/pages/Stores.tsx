@@ -5,6 +5,7 @@ import type { Store } from '../services/storeService';
 import { getPaginationRange } from '../utils/paginationUtils';
 import ImportExportModal from '../components/ImportExportModal';
 import { importStores, exportStores, downloadStoreImportTemplate } from '../services/importExportService';
+import PageHeader from '../components/PageHeader';
 
 const Stores: React.FC = () => {
   const [stores, setStores] = useState<Store[]>([]);
@@ -217,11 +218,10 @@ const Stores: React.FC = () => {
         </div>
       )}
 
-      <div className="stores-page-header">
-        <div>
-          <h2>Store Management / إدارة المتاجر</h2>
-         </div>
-        <div className="stores-header-actions" style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+      <PageHeader
+        title="Store Management"
+        titleAr="إدارة المتاجر"
+        actions={<>
           <div className="global-search-bar">
             <Search size={16} className="text-muted" />
             <input
@@ -240,8 +240,8 @@ const Stores: React.FC = () => {
           <button className="btn-primary" onClick={openCreateModal}>
             <Plus size={18} /> Add Store / إضافة متجر
           </button>
-        </div>
-      </div>
+        </>}
+      />
 
       <ImportExportModal
         isOpen={showImportExport}
