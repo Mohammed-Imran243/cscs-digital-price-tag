@@ -30,7 +30,8 @@ import {
   Trash2,
   FolderOpen,
   Edit,
-  Upload
+  Upload,
+  Copy
 } from 'lucide-react';
 
 import ImportExportModal from '../components/ImportExportModal';
@@ -2513,9 +2514,18 @@ const Templates: React.FC = () => {
                       })()}
                     </td>
                     <td>
-                      <span className={`status-pill ${isEnabled ? 'enabled' : 'disabled'}`}>
-                        {isEnabled ? 'Enabled / مفعل' : 'Disabled / معطل'}
-                      </span>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <div 
+                          className={`custom-toggle-switch ${isEnabled ? 'on' : 'off'}`} 
+                          onClick={() => handleToggleStatus(t.id, t.status)}
+                          title={isEnabled ? 'Disable / تعطيل' : 'Enable / تفعيل'}
+                        >
+                          <div className="toggle-handle"></div>
+                        </div>
+                        <span className={`status-pill ${isEnabled ? 'enabled' : 'disabled'}`} style={{ margin: 0 }}>
+                          {isEnabled ? 'Enabled / مفعل' : 'Disabled / غير مفعل'}
+                        </span>
+                      </div>
                     </td>
                     <td>{t.updateTime || t.createdTime || 'N/A / غير متوفر'}</td>
                     <td>
@@ -2637,17 +2647,14 @@ const Templates: React.FC = () => {
                         <button className="op-btn primary-text" title="Edit / تعديل" onClick={() => setEditTemplateModal({ id: t.id, templateName: t.templateName, attrCategory: t.attrCategory || '' })}>
                           <Edit size={16} />
                         </button>
-                        <div 
-                          className={`custom-toggle-switch ${isEnabled ? 'on' : 'off'}`} 
-                          onClick={() => handleToggleStatus(t.id, t.status)}
-                          title={isEnabled ? 'Disable / تعطيل' : 'Enable / تفعيل'}
-                        >
-                          <div className="toggle-handle"></div>
-                        </div>
+                        {activeMenuTab === 'store' && (
+                          <button className="op-btn disabled-text" title="Copy / نسخ">
+                            <Copy size={16} />
+                          </button>
+                        )}
                         <button className="op-btn danger-text" title="Delete / حذف" onClick={() => handleDeleteTemplate(t.id)}>
                           <Trash2 size={16} />
                         </button>
-                        {activeMenuTab === 'store' && <button className="op-btn disabled-text">Copy / نسخ</button>}
                       </div>
                     </td>
                   </tr>
