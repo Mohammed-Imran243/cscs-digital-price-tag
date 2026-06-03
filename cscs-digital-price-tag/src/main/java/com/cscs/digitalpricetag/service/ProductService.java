@@ -67,7 +67,6 @@ public class ProductService {
 
             if (search != null && !search.isBlank()) {
                 log.info("Fetching a large pool of items from Zkong to perform comprehensive local filtering for term: {}", search);
-                int zkongPageSize = 50;
                 int maxPagesToFetch = 20; // Fetch up to 1000 items for global search pool
                 
                 for (int p = 1; p <= maxPagesToFetch; p++) {
