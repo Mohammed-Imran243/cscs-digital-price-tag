@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Plus, Search, Shield, User as UserIcon, Edit2, Trash2, Key, Calendar, RefreshCw, Loader2, X, CheckSquare, Square, Info, ChevronDown, ChevronRight, ChevronLeft, MinusSquare } from 'lucide-react';
 import { userService } from '../services/userService';
 import type { User, Role, PermissionMenu } from '../services/userService';
@@ -181,7 +181,7 @@ const Users: React.FC = () => {
       setAvailablePermissions(normalized);
       return normalized;
     } catch (err) {
-      console.error('Failed to load permission tree from Dragon ESL, falling back to static permissions', err);
+      console.error('Failed to load permission tree from the server, falling back to static permissions', err);
       const fallbackList: PermissionMenu[] = AVAILABLE_PERMISSIONS.map(item => ({
         id: item.id,
         menuName: item.name,
@@ -319,10 +319,17 @@ const Users: React.FC = () => {
       const rolesList = Array.isArray(rawData) ? rawData : (rawData?.list || []);
       const mappedRoles = rolesList
         .filter((r: any) => r.id !== -1 && r._pending !== true) // exclude pending roles not yet propagated to ZKong
-        .map((r: any) => ({
-          id: r.id,
-          roleName: r.roleName || r.name || 'Unnamed Role / دور غير مسمى',
-          merchantId: r.merchantId || '1775639851383',
+        .map((r: any) => {
+          const rawName = r.roleName || r.name || 'Unnamed Role / دور غير مسمى';
+          const translateMap: Record<string, string> = {
+            '商家超级管理员': 'Merchant Super Administrator',
+            '商家管理员': 'Merchant Administrator'
+          };
+          const translatedName = translateMap[rawName] || rawName;
+          return {
+            id: r.id,
+            roleName: translatedName,
+            merchantId: r.merchantId || '1775639851383',
           createTime: r.createTime || 'Shared / مشترك',
         }));
       setRoles(mappedRoles);

@@ -84,7 +84,8 @@ const PriceChangeMonitor: React.FC = () => {
       const response = await getAuditLogs('', startDate, endDate, 0, 5);
       setChanges(response.content || []);
     } catch (error) {
-      console.error('Error fetching price changes from Dragon ESL log API', error);
+      console.error('Error fetching price changes from log API', error);
+      setError('Failed to load recent price changes. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -156,13 +157,15 @@ const PriceChangeMonitor: React.FC = () => {
       {loading && changes.length === 0 ? (
         <div className="loading-state" style={{ padding: '80px 40px', textAlign: 'center', color: 'var(--text-secondary)' }}>
           <RefreshCw className="spinning" size={32} style={{ margin: '0 auto 16px' }} />
-          <p>Scanning ZKong ESL log history... / جاري جلب سجل العمليات...</p>
+          <p>Scanning log history... / جاري جلب سجل العمليات...</p>
         </div>
       ) : changes.length === 0 ? (
         <div className="empty-state glass-card" style={{ padding: '60px 40px', textAlign: 'center', borderRadius: '16px', border: '1px solid var(--glass-border)' }}>
           <AlertCircle size={48} style={{ margin: '0 auto 16px', color: 'var(--text-muted)' }} />
-          <h3 style={{ fontSize: '16px', margin: '0 0 8px 0', color: 'var(--text-primary)' }}>No Operation Logs Found / لا يوجد سجلات عمليات</h3>
-          <p style={{ color: 'var(--text-secondary)', fontSize: '13px', margin: 0 }}>No Dragon ESL logs found for this merchant.</p>
+          <div style={{ padding: '24px', textAlign: 'center', background: 'var(--bg-primary)', borderRadius: '12px', border: '1px solid var(--border-color)' }}>
+            <h3 style={{ fontSize: '16px', margin: '0 0 8px 0', color: 'var(--text-primary)' }}>No Operation Logs Found / لا يوجد سجلات عمليات</h3>
+            <p style={{ color: 'var(--text-secondary)', fontSize: '13px', margin: 0 }}>No logs found for this merchant.</p>
+          </div>
         </div>
       ) : (
         <div className="price-change-grid">

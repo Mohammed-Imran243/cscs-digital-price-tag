@@ -474,7 +474,7 @@ const Templates: React.FC = () => {
     setConfirmDialog({
       isOpen: true,
       title: 'Delete Template / حذف القالب',
-      message: 'Are you sure you want to delete this template from Zkong Cloud? / هل أنت متأكد أنك تريد حذف هذا القالب من سحابة Zkong؟',
+      message: 'Are you sure you want to delete this template? / هل أنت متأكد أنك تريد حذف هذا القالب؟',
       onConfirm: async () => {
         try {
           await deleteTemplate(id, '0', true);

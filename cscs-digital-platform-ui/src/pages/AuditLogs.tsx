@@ -119,7 +119,7 @@ const AuditLogs: React.FC = () => {
       );
       setLogs(response.content || []);
     } catch (err: any) {
-      setError(err.message || 'Failed to retrieve audit logs from Dragon ESL.');
+      setError(err.message || 'Failed to retrieve audit logs from the server.');
       showNotification('Failed to fetch logs. Please try again. / فشل جلب السجلات. يرجى المحاولة مرة أخرى.', 'error');
       console.error(err);
       setLogs([]);
@@ -366,8 +366,10 @@ const AuditLogs: React.FC = () => {
         </div>
       ) : logsLoading && logs.length === 0 ? (
         <div className="audit-logs-loading-state">
-          <Loader2 className="animate-spin" size={40} />
-          <p>Loading audit logs from Dragon ESL... / جاري تحميل سجلات المراجعة من Dragon ESL...</p>
+          <div className="empty-state">
+            <Loader2 className="animate-spin" size={40} />
+            <p>Loading audit logs... / جاري تحميل سجلات المراجعة...</p>
+          </div>
         </div>
       ) : error ? (
         <div className="audit-logs-error-state glass-card">
