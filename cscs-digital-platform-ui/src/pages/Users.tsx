@@ -330,8 +330,9 @@ const Users: React.FC = () => {
             id: r.id,
             roleName: translatedName,
             merchantId: r.merchantId || '1775639851383',
-          createTime: r.createTime || 'Shared / مشترك',
-        }));
+            createTime: r.createTime || 'Shared / مشترك',
+          };
+        });
       setRoles(mappedRoles);
     } catch (err) {
       console.error('Failed to load roles for dropdown', err);
