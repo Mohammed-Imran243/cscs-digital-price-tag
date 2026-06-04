@@ -17,7 +17,7 @@ import type { Store } from '../services/storeService';
 import { getAuditLogs } from '../services/auditLogService';
 import type { AuditLog } from '../services/auditLogService';
 import { getPaginationRange } from '../utils/paginationUtils';
-import PageHeader from '../components/PageHeader';
+import { PageHeader, PageToolbar, ActionButtons } from '../components/common';
 
 const AuditLogs: React.FC = () => {
   const [stores, setStores] = useState<Store[]>([]);
@@ -255,8 +255,9 @@ const AuditLogs: React.FC = () => {
       <PageHeader
         title="Audit Logs"
         titleAr="سجلات التدقيق"
-        actions={<>
-          {/* Store Location Selection - Compact Inline (FIX 3 & 4) */}
+      />
+      <PageToolbar>
+        <div style={{ display: 'flex', gap: '16px', flex: 1, alignItems: 'center' }}>
           <div className="store-selector-wrapper">
             <StoreIcon size={16} className="text-muted" />
             {storesLoading ? (
@@ -265,6 +266,7 @@ const AuditLogs: React.FC = () => {
               <select 
                 value={selectedStoreId} 
                 onChange={handleStoreChange}
+                className="glass-select"
               >
                 <option value="">All Stores / جميع الفروع</option>
                 {stores.map(store => (
@@ -275,26 +277,12 @@ const AuditLogs: React.FC = () => {
               </select>
             )}
           </div>
-          <div className="global-search-bar">
-            <Search size={16} className="text-muted" />
-            <input 
-              type="text" 
-              placeholder="Search logs... / بحث في السجلات..." 
-              value={searchQuery} 
-              onChange={(e) => setSearchQuery(e.target.value)} 
-            />
-          </div>
+
           <button 
-            className="btn-secondary" 
-            onClick={fetchLogs} 
-            disabled={logsLoading}
-          >
-            <RefreshCw size={18} className={logsLoading ? 'animate-spin' : ''} /> Refresh / تحديث
-          </button>
-          <button 
-            className={`btn-secondary filter-icon-btn ${showFilters ? 'active' : ''}`} 
+            className={`btn-action btn-action-slate ${showFilters ? 'active' : ''}`} 
             onClick={() => setShowFilters(!showFilters)}
             title="Filters / التصفية"
+            style={{ position: 'relative' }}
           >
             <Filter size={18} />
             {(() => {
@@ -313,8 +301,23 @@ const AuditLogs: React.FC = () => {
               );
             })()}
           </button>
-        </>}
-      />
+
+          <div className="global-search-bar">
+            <Search size={16} className="text-muted" />
+            <input 
+              type="text" 
+              placeholder="Search logs... / بحث في السجلات..." 
+              value={searchQuery} 
+              onChange={(e) => setSearchQuery(e.target.value)} 
+            />
+          </div>
+        </div>
+
+        <ActionButtons
+          onRefresh={fetchLogs}
+          loading={logsLoading}
+        />
+      </PageToolbar>
       {/* Toast Notification */}
       {notification && (
         <div className={`toast-notification ${notification.type} glass-card`}>

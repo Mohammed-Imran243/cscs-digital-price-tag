@@ -23,11 +23,18 @@ import { BindModal } from '../components/devices/BindModal';
 import { EslDetailModal } from '../components/devices/EslDetailModal';
 import ImportExportModal from '../components/ImportExportModal';
 import { importEslTags, exportEslTags, downloadEslTagImportTemplate } from '../services/importExportService';
-
+import { 
+  PageHeader, 
+  PageToolbar, 
+  SearchInput, 
+  FilterGroup, 
+  ActionButtons
+} from '../components/common';
+import { useLanguage } from '../context/LanguageContext';
 import { useLocation, useNavigate } from 'react-router-dom';
-import PageHeader from '../components/PageHeader';
 
 const Devices: React.FC = () => {
+  const { t } = useLanguage();
   const location = useLocation();
   const navigate = useNavigate();
   const searchParams = new URLSearchParams(location.search);
@@ -192,7 +199,7 @@ const Devices: React.FC = () => {
       const q = debouncedSearch.toLowerCase();
       result = result.filter(esl => {
         const barcode = (esl.priceTagCode || '').toLowerCase();
-        const oem = (esl.oemModel || esl.model || '').toLowerCase();
+        const oem = (esl.oemModel || (esl as any).model || '').toLowerCase();
         const product = (esl.itemTitle || esl.itemBarCode || '').toLowerCase();
         
         const stateStr = (esl.state || '').toLowerCase();
@@ -220,9 +227,9 @@ const Devices: React.FC = () => {
         const name = (ap.apName || '').toLowerCase();
         const model = (ap.model || '').toLowerCase();
         const ip = (ap.ip || '').toLowerCase();
-        const conns = (ap.connCount || '0').toString();
+        const conns = ((ap as any).connCount || '0').toString();
         const firmware = (ap.softVersion || '').toLowerCase();
-        const lastOnline = (ap.lastOnlineTime || '').toLowerCase();
+        const lastOnline = ((ap as any).lastOnlineTime || '').toLowerCase();
         
         const stateStr = (ap.online || '').toLowerCase();
         let statusStr = stateStr;
@@ -588,20 +595,9 @@ const Devices: React.FC = () => {
         </div>
       )}
 
-      <PageHeader
-        title="Device Management"
-        titleAr="إدارة الأجهزة"
-        actions={<>
-          <div className="global-search-bar">
-            <Search size={16} className="text-muted" />
-            <input
-              type="text"
-              placeholder="Search devices... / ابحث عن الأجهزة..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-          </div>
-          
+      <PageHeader title="Device Management" titleAr="إدارة الأجهزة" />
+            <PageToolbar>
+        <div style={{ display: 'flex', gap: '16px', flex: 1, alignItems: 'center' }}>
           <div className="store-selector-wrapper">
             <StoreIcon size={16} className="text-muted" />
             <select 
@@ -609,7 +605,7 @@ const Devices: React.FC = () => {
               onChange={(e) => setSelectedStoreId(e.target.value)}
               className="glass-select"
             >
-              <option value="">Select a Store... / اختر متجراً...</option>
+              <option value="">{t('Select a Store...', 'اختر متجراً...')}</option>
               {stores.map(store => (
                 <option key={store.storeId} value={store.storeId}>
                   {store.storeName} {store.externalStoreId ? `(${store.externalStoreId})` : ''}
@@ -617,51 +613,59 @@ const Devices: React.FC = () => {
               ))}
             </select>
           </div>
+          
+          <SearchInput
+            value={searchTerm}
+            onChange={setSearchTerm}
+            placeholder="Search devices... / ابحث عن الأجهزة..."
+          />
+        </div>
 
+        <ActionButtons
+          onRefresh={() => fetchDevices()}
+          loading={loading || storesLoading}
+          onBatchBind={activeTab === 'esl' ? () => setShowEslImportExport(true) : undefined}
+          onExport={activeTab === 'esl' ? async () => {
+            try {
+              await exportEslTags(selectedStoreId);
+            } catch (e) {
+              console.error('Export failed', e);
+            }
+          } : undefined}
+          onAdd={activeTab === 'ap' ? () => setIsAddApModalOpen(true) : undefined}
+          addLabel={activeTab === 'ap' ? 'Add AP' : 'Add'}
+          addLabelAr={activeTab === 'ap' ? 'إضافة محطة' : 'إضافة'}
+        >
           {activeTab === 'esl' && (
-            <div style={{ display: 'flex', gap: '12px' }}>
+            <>
               <button 
-                className="btn-primary" 
-                onClick={() => { setBindModalTab('bind'); openBindModal('bind'); }} 
-                disabled={!selectedStoreId || storesLoading}
-              >
-                <Link2 size={18} /> Bind
-              </button>
-              <button 
-                className="btn-secondary" 
-                onClick={() => { setBindModalTab('unbind'); openBindModal('unbind'); }} 
-                disabled={!selectedStoreId || storesLoading}
-              >
-                <Link2 size={18} style={{ transform: 'rotate(90deg)' }} /> Unbind
-              </button>
-              <button
-                className="btn-primary"
-                onClick={() => setShowEslImportExport(true)}
-                disabled={!selectedStoreId || storesLoading}
-              >
-                <Upload size={18} /> Batch Bind
-              </button>
-              <button
-                className="btn-secondary"
-                onClick={async () => {
-                  try {
-                    await exportEslTags(selectedStoreId);
-                  } catch (e) {
-                    console.error('Export failed', e);
-                  }
+                className="btn-action btn-action-bind" 
+                onClick={() => {
+                  setBindModalTab('bind');
+                  openBindModal('bind');
+                  setBindFormStoreId(selectedStoreId || stores[0]?.storeId || '');
+                  setBindModalOpen(true);
                 }}
                 disabled={!selectedStoreId || storesLoading}
               >
-                Export Binding Relationship
+                <Link2 /> {t('Bind', 'ربط')}
               </button>
-            </div>
+              <button 
+                className="btn-action btn-action-unbind" 
+                onClick={() => {
+                  setBindModalTab('unbind');
+                  openBindModal('unbind');
+                  setBindFormStoreId(selectedStoreId || stores[0]?.storeId || '');
+                  setBindModalOpen(true);
+                }}
+                disabled={!selectedStoreId || storesLoading}
+              >
+                <Link2 style={{ transform: 'rotate(90deg)' }} /> {t('Unbind', 'إلغاء ربط')}
+              </button>
+            </>
           )}
-
-          <button className="btn-secondary" onClick={() => fetchDevices()} disabled={loading || storesLoading}>
-            <RefreshCw size={18} className={loading ? 'animate-spin' : ''} /> Refresh / تحديث
-          </button>
-        </>}
-      />
+        </ActionButtons>
+      </PageToolbar>
 
       <ImportExportModal
         isOpen={showEslImportExport}

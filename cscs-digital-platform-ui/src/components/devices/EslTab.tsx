@@ -3,6 +3,8 @@ import React from 'react';
 import { Smartphone, Copy, Check, Eye, RefreshCw, Loader2, Signal, WifiOff } from 'lucide-react';
 import type { EslDevice } from '../../services/deviceService';
 import { getPaginationRange } from '../../utils/paginationUtils';
+import { DataTable, PagePagination, StatusBadge } from '../common';
+import { useLanguage } from '../../context/LanguageContext';
 
 interface EslTabProps {
   eslDevices: EslDevice[];
@@ -39,6 +41,7 @@ export const EslTab: React.FC<EslTabProps> = ({
   copyToClipboard,
   copiedId,
 }) => {
+  const { t } = useLanguage();
   const totalPages = Math.ceil(totalElements / pageSize) || 1;
 
   // Helper to determine battery rendering
@@ -64,233 +67,174 @@ export const EslTab: React.FC<EslTabProps> = ({
 
   return (
     <div className="table-card glass-card animate-fade-in">
-      <div className="table-wrapper">
-        <table>
-          <thead>
-            <tr>
-              <th style={{ width: '40px', padding: '16px 12px' }}>
-                <input 
-                  type="checkbox" 
-                  className="custom-checkbox"
-                  checked={eslDevices.length > 0 && selectedBarcodes.length === eslDevices.length}
-                  onChange={(e) => handleSelectAll(e.target.checked)}
-                />
-              </th>
-              <th>ESL Barcode / باركود الشاشة</th>
-              <th>OEM Model / طراز الجهاز</th>
-              <th>Bound Product / المنتج المرتبط</th>
-              <th>Status / الحالة</th>
-              <th>Battery / البطارية</th>
-              <th>Signal / الإشارة</th>
-              <th>Last Update / آخر تحديث</th>
-              <th style={{ textAlign: 'center' }}>Operation / الإجراءات</th>
-            </tr>
-          </thead>
-          <tbody>
-            {eslDevices.length === 0 ? (
-              <tr>
-                <td colSpan={9} className="empty-table-cell">
-                  <Smartphone size={36} className="empty-icon" />
-                  <p>No ESL devices registered in this store context. / لا توجد أجهزة شاشات مسجلة في هذا المتجر.</p>
-                </td>
-              </tr>
-            ) : (
-              eslDevices.map((esl) => {
-                const isSelected = selectedBarcodes.includes(esl.priceTagCode);
-                return (
-                  <tr key={esl.id || esl.priceTagCode} className={isSelected ? 'row-selected' : ''}>
-                    {/* Checkbox */}
-                    <td style={{ padding: '16px 12px' }}>
-                      <input 
-                        type="checkbox" 
-                        className="custom-checkbox"
-                        checked={isSelected}
-                        onChange={() => handleSelectRow(esl.priceTagCode)}
-                      />
-                    </td>
-
-                    {/* ESL Barcode */}
-                    <td className="barcode-cell font-mono">
-                      <span>{esl.priceTagCode}</span>
-                      <button 
-                        className="copy-btn" 
-                        onClick={() => copyToClipboard(esl.priceTagCode)}
-                        title="Copy Barcode / نسخ الباركود"
-                      >
-                        {copiedId === esl.priceTagCode ? <Check size={14} className="copied" /> : <Copy size={14} />}
-                      </button>
-                    </td>
-
-                    {/* OEM Model */}
-                    <td>
-                      <span className="model-badge">{esl.oemModel || 'ZKC21S'}</span>
-                    </td>
-
-                    {/* Bound Product */}
-                    <td>
-                      {esl.bindState === 1 && esl.itemBarCode ? (
-                        <div className="bound-product-info">
-                          <span className="product-title">{esl.itemTitle || 'Unnamed Product / منتج غير مسمى'}</span>
-                          <span className="product-barcode font-mono">{esl.itemBarCode}</span>
-                        </div>
-                      ) : (
-                        <span className="unbound-badge">Unbound / Idle / غير مرتبط / خامل</span>
-                      )}
-                    </td>
-
-                    {/* Status */}
-                    <td>
-                      <span className={`status-pill ${esl.state === 'ONLINE' ? 'online' : 'offline'}`}>
-                        <span className="dot" />
-                        <span>{esl.state === 'ONLINE' ? 'Online / متصل' : (esl.state === 'OFFLINE' ? 'Offline / غير متصل' : esl.state)}</span>
-                      </span>
-                    </td>
-
-                    {/* Battery */}
-                    <td>
-                      <div className="battery-meter-container">
-                        <div className="battery-value">
-                          {getBatteryIcon(esl.battery)}
-                          <span>{esl.battery}%</span>
-                        </div>
-                        <div className="battery-bar-track">
-                          <div 
-                            className={`battery-bar-fill ${
-                              esl.battery >= 70 ? 'green' : esl.battery >= 30 ? 'yellow' : 'red'
-                            }`} 
-                            style={{ width: `${esl.battery}%` }}
-                          />
-                        </div>
-                      </div>
-                    </td>
-
-                    {/* Signal */}
-                    <td>
-                      <div className="signal-cell" title={`Signal: ${esl.apSignal} dBm`}>
-                        {esl.state === 'ONLINE' ? (
-                          <>
-                            <Signal size={16} className="signal-active" />
-                            <span className="signal-text">{esl.apSignal || 45} dBm</span>
-                          </>
-                        ) : (
-                          <>
-                            <WifiOff size={16} className="signal-inactive" />
-                            <span className="signal-text text-muted">—</span>
-                          </>
-                        )}
-                      </div>
-                    </td>
-
-                    {/* Last Update */}
-                    <td className="time-cell">
-                      {esl.updateTime || esl.lastCommuTime || 'Never / أبداً'}
-                    </td>
-
-                    {/* Actions */}
-                    <td style={{ textAlign: 'center' }}>
-                      <div className="action-buttons-cell">
-                        <button 
-                          className="btn-table-action view-btn"
-                          onClick={() => handleViewDetails(esl.priceTagCode, esl)}
-                          title="View Binding Details & Screen Render / عرض تفاصيل الربط ومعاينة الشاشة"
-                        >
-                          <Eye size={16} />
-                        </button>
-                        <button 
-                          className={`btn-table-action refresh-btn ${!isAuthorized ? 'disabled' : ''}`}
-                          onClick={() => handleForceRefresh(esl.priceTagCode)}
-                          disabled={refreshingBarcodes[esl.priceTagCode]}
-                          title={isAuthorized ? "Force Refresh & Reboot ESL / تحديث إجباري وإعادة تشغيل الشاشة" : "Admin privileges required / مطلوب صلاحيات المسؤول"}
-                        >
-                          {refreshingBarcodes[esl.priceTagCode] ? (
-                            <Loader2 size={16} className="animate-spin" />
-                          ) : (
-                            <RefreshCw size={16} />
-                          )}
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })
-            )}
-          </tbody>
-        </table>
-      </div>
-
-      {/* Premium Zkong/DragonESL Pagination */}
-      {totalElements > 0 && (
-        <div className="dragonesl-pagination-bar glass-card" style={{ borderTop: 'none', borderLeft: 'none', borderRight: 'none', borderRadius: '0 0 12px 12px' }}>
-          <div className="pagination-left">
-            <span className="pagination-total">Total {totalElements} items / الإجمالي {totalElements} عناصر</span>
-            <select
-              value={pageSize}
-              onChange={(e) => {
-                setPageSize(Number(e.target.value));
-                setPage(0);
-              }}
-              className="pagination-size-select"
-            >
-              <option value={5}>5 / page / ٥ للصفحة</option>
-              <option value={10}>10 / page / ١٠ للصفحة</option>
-              <option value={20}>20 / page / ٢٠ للصفحة</option>
-              <option value={50}>50 / page / ٥٠ للصفحة</option>
-              <option value={100}>100 / page / ١٠٠ للصفحة</option>
-            </select>
-          </div>
-
-          <div className="pagination-right">
-            <button
-              type="button"
-              disabled={page === 0}
-              onClick={() => setPage(Math.max(page - 1, 0))}
-              className="pagination-arrow-btn"
-            >
-              &lt;
-            </button>
-
-            {getPaginationRange(page + 1, totalPages, 1).map((pageNum, idx) => (
-              pageNum === '...' ? (
-                <span key={`dots-${idx}`} className="pagination-dots">...</span>
-              ) : (
-                <button
-                  key={pageNum}
-                  type="button"
-                  onClick={() => setPage(Number(pageNum) - 1)}
-                  className={`pagination-num-btn ${page === Number(pageNum) - 1 ? 'active' : ''}`}
-                >
-                  {pageNum}
-                </button>
-              )
-            ))}
-
-            <button
-              type="button"
-              disabled={page === totalPages - 1 || totalPages === 0}
-              onClick={() => setPage(Math.min(page + 1, totalPages - 1))}
-              className="pagination-arrow-btn"
-            >
-              &gt;
-            </button>
-
-            <div className="pagination-jump">
-              <span>Go to / الذهاب إلى</span>
-              <input
-                type="number"
-                min={1}
-                max={totalPages || 1}
-                value={page + 1}
-                onChange={(e) => {
-                  const val = Number(e.target.value);
-                  if (val >= 1 && val <= totalPages) {
-                    setPage(val - 1);
-                  }
-                }}
-                className="pagination-jump-input"
+      <DataTable
+        loading={false}
+        data={eslDevices}
+        emptyIcon={<Smartphone size={36} />}
+        emptyTitle="No ESL devices registered in this store context."
+        emptyTitleAr="لا توجد أجهزة شاشات مسجلة في هذا المتجر."
+        columns={[
+          {
+            key: 'selection',
+            header: <input 
+              type="checkbox" 
+              className="custom-checkbox"
+              checked={eslDevices.length > 0 && selectedBarcodes.length === eslDevices.length}
+              onChange={(e) => handleSelectAll(e.target.checked)}
+            />,
+            headerAr: <input 
+              type="checkbox" 
+              className="custom-checkbox"
+              checked={eslDevices.length > 0 && selectedBarcodes.length === eslDevices.length}
+              onChange={(e) => handleSelectAll(e.target.checked)}
+            />,
+            render: (esl: EslDevice) => (
+              <input 
+                type="checkbox" 
+                className="custom-checkbox"
+                checked={selectedBarcodes.includes(esl.priceTagCode)}
+                onChange={() => handleSelectRow(esl.priceTagCode)}
               />
-            </div>
-          </div>
-        </div>
+            )
+          },
+          {
+            key: 'barcode',
+            header: 'ESL Barcode',
+            headerAr: 'باركود الشاشة',
+            render: (esl: EslDevice) => (
+              <div className="barcode-cell font-mono">
+                <span>{esl.priceTagCode}</span>
+                <button 
+                  className="copy-btn" 
+                  onClick={() => copyToClipboard(esl.priceTagCode)}
+                  title={t('Copy Barcode', 'نسخ الباركود')}
+                >
+                  {copiedId === esl.priceTagCode ? <Check size={14} className="copied" /> : <Copy size={14} />}
+                </button>
+              </div>
+            )
+          },
+          {
+            key: 'model',
+            header: 'OEM Model',
+            headerAr: 'طراز الجهاز',
+            render: (esl: EslDevice) => <span className="model-badge">{esl.oemModel || 'ZKC21S'}</span>
+          },
+          {
+            key: 'boundProduct',
+            header: 'Bound Product',
+            headerAr: 'المنتج المرتبط',
+            render: (esl: EslDevice) => esl.bindState === 1 && esl.itemBarCode ? (
+              <div className="bound-product-info">
+                <span className="product-title">{esl.itemTitle || t('Unnamed Product', 'منتج غير مسمى')}</span>
+                <span className="product-barcode font-mono">{esl.itemBarCode}</span>
+              </div>
+            ) : (
+              <span className="unbound-badge">{t('Unbound / Idle', 'غير مرتبط / خامل')}</span>
+            )
+          },
+          {
+            key: 'status',
+            header: 'Status',
+            headerAr: 'الحالة',
+            render: (esl: EslDevice) => (
+              <StatusBadge
+                status={esl.state === 'ONLINE' ? 'ACTIVE' : 'INACTIVE'}
+                label={esl.state === 'ONLINE' ? 'Online' : (esl.state === 'OFFLINE' ? 'Offline' : esl.state)}
+                labelAr={esl.state === 'ONLINE' ? 'متصل' : (esl.state === 'OFFLINE' ? 'غير متصل' : esl.state)}
+              />
+            )
+          },
+          {
+            key: 'battery',
+            header: 'Battery',
+            headerAr: 'البطارية',
+            render: (esl: EslDevice) => (
+              <div className="battery-meter-container">
+                <div className="battery-value">
+                  {getBatteryIcon(esl.battery)}
+                  <span>{esl.battery}%</span>
+                </div>
+                <div className="battery-bar-track">
+                  <div 
+                    className={`battery-bar-fill ${
+                      esl.battery >= 70 ? 'green' : esl.battery >= 30 ? 'yellow' : 'red'
+                    }`} 
+                    style={{ width: `${esl.battery}%` }}
+                  />
+                </div>
+              </div>
+            )
+          },
+          {
+            key: 'signal',
+            header: 'Signal',
+            headerAr: 'الإشارة',
+            render: (esl: EslDevice) => (
+              <div className="signal-cell" title={`Signal: ${esl.apSignal} dBm`}>
+                {esl.state === 'ONLINE' ? (
+                  <>
+                    <Signal size={16} className="signal-active" />
+                    <span className="signal-text">{esl.apSignal || 45} dBm</span>
+                  </>
+                ) : (
+                  <>
+                    <WifiOff size={16} className="signal-inactive" />
+                    <span className="signal-text text-muted">—</span>
+                  </>
+                )}
+              </div>
+            )
+          },
+          {
+            key: 'lastUpdate',
+            header: 'Last Update',
+            headerAr: 'آخر تحديث',
+            render: (esl: EslDevice) => esl.updateTime || esl.lastCommuTime || t('Never', 'أبداً')
+          },
+          {
+            key: 'actions',
+            header: 'Operation',
+            headerAr: 'الإجراءات',
+            render: (esl: EslDevice) => (
+              <div className="action-buttons-cell">
+                <button 
+                  className="btn-table-action view-btn"
+                  onClick={() => handleViewDetails(esl.priceTagCode, esl)}
+                  title={t('View Binding Details & Screen Render', 'عرض تفاصيل الربط ومعاينة الشاشة')}
+                >
+                  <Eye size={16} />
+                </button>
+                <button 
+                  className={`btn-table-action refresh-btn ${!isAuthorized ? 'disabled' : ''}`}
+                  onClick={() => handleForceRefresh(esl.priceTagCode)}
+                  disabled={refreshingBarcodes[esl.priceTagCode]}
+                  title={isAuthorized ? t("Force Refresh & Reboot ESL", "تحديث إجباري وإعادة تشغيل الشاشة") : t("Admin privileges required", "مطلوب صلاحيات المسؤول")}
+                >
+                  {refreshingBarcodes[esl.priceTagCode] ? (
+                    <Loader2 size={16} className="animate-spin" />
+                  ) : (
+                    <RefreshCw size={16} />
+                  )}
+                </button>
+              </div>
+            )
+          }
+        ]}
+      />
+
+      {totalElements > 0 && (
+        <PagePagination
+          currentPage={page + 1}
+          totalPages={totalPages}
+          totalCount={totalElements}
+          pageSize={pageSize}
+          onPageChange={(p) => setPage(p - 1)}
+          onPageSizeChange={(s) => {
+            setPageSize(s);
+            setPage(0);
+          }}
+        />
       )}
     </div>
   );

@@ -4,10 +4,10 @@ import { getProducts, createProduct, updateProductPrice, deleteProductFromStore,
 import type { Product, ProductCreateRequest } from '../services/productService';
 import { storeService } from '../services/storeService';
 import type { Store } from '../services/storeService';
-import { Search, Plus, Loader2, AlertTriangle, RefreshCw, Package, Store as StoreIcon, Upload, Edit2, Trash2 } from 'lucide-react';
+import { Search, Plus, Loader2, AlertTriangle, RefreshCw, Package, Store as StoreIcon, Upload, Edit2, Trash2, Copy } from 'lucide-react';
 import { getPaginationRange } from '../utils/paginationUtils';
 import { getTemplates, getCategories, getTemplateTypes } from '../services/templateService';
-import PageHeader from '../components/PageHeader';
+import { PageHeader, PageToolbar, ActionButtons } from '../components/common';
 import ImportExportModal from '../components/ImportExportModal';
 import { importProducts, exportProducts, downloadProductImportTemplate } from '../services/importExportService';
 
@@ -671,131 +671,134 @@ const Products: React.FC = () => {
     <PageHeader
       title="Product Management"
       titleAr="إدارة المنتجات"
-      actions={<>
-        <div className="store-selector-wrapper">
-          <StoreIcon size={16} className="text-muted" />
-          <select 
-            value={selectedStore} 
-            onChange={(e) => setSelectedStore(e.target.value)}
-            className="glass-select"
-          >
-            <option value="">Select a Store... / اختر متجراً...</option>
-            {stores.map(store => (
-              <option key={store.storeId} value={store.storeId}>
-                {store.storeName} {store.externalStoreId ? `(${store.externalStoreId})` : ''}
-              </option>
-            ))}
-          </select>
+    />
+    <PageToolbar>
+        <div style={{ display: 'flex', gap: '16px', flex: 1, alignItems: 'center' }}>
+          <div className="store-selector-wrapper">
+            <StoreIcon size={16} className="text-muted" />
+            <select 
+              value={selectedStore} 
+              onChange={(e) => setSelectedStore(e.target.value)}
+              className="glass-select"
+            >
+              <option value="">Select a Store... / اختر متجراً...</option>
+              {stores.map(store => (
+                <option key={store.storeId} value={store.storeId}>
+                  {store.storeName} {store.externalStoreId ? `(${store.externalStoreId})` : ''}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="global-search-bar">
+            <Search size={16} className="text-muted" />
+            <input
+              type="text"
+              placeholder="Search products... / ابحث عن المنتجات..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+          </div>
+          
+          <button className="btn-action btn-action-slate">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon></svg>
+            Filter
+          </button>
         </div>
-        <div className="global-search-bar">
-          <Search size={16} className="text-muted" />
-          <input
-            type="text"
-            placeholder="Search products... / ابحث عن المنتجات..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
-        </div>
-        <button 
-          className="op-btn danger-btn" 
-          disabled={!selectedStore || loading}
-          onClick={handleDeleteAllFromStore}
-          style={{ 
-            padding: '8px 16px', 
-            fontSize: '14px', 
-            height: '42px', 
-            display: 'flex', 
-            alignItems: 'center', 
-            gap: '8px',
-            opacity: (!selectedStore || loading) ? 0.6 : 1,
-            cursor: (!selectedStore || loading) ? 'not-allowed' : 'pointer'
+        <ActionButtons
+          onRefresh={() => fetchProducts()}
+          onImport={() => setShowImportExport(true)}
+          onExport={() => setShowImportExport(true)}
+          onAdd={() => setIsModalOpen(true)}
+          addLabel="Add Product"
+          addLabelAr="إضافة منتج"
+          loading={loading}
+          isSelectMode={isSelectMode}
+          onCancelSelectMode={() => {
+            setIsSelectMode(false);
+            setSelectedProductIds([]);
           }}
-        >
-          Delete All / حذف الكل
-        </button>
-        <button 
-          className="op-btn danger-btn" 
-          disabled={!selectedStore || loading}
-          onClick={() => {
-            if (!isSelectMode) {
-              setIsSelectMode(true);
-            } else {
-              if (selectedProductIds.length === 0) {
-                showNotification('Please select products to delete / الرجاء تحديد المنتجات للحذف', 'warning');
-                return;
-              }
-              setConfirmDialog({
-                isOpen: true,
-                title: 'Delete Selected Products / حذف المنتجات المحددة',
-                message: 'Are you sure you want to delete the selected products from this store? This cannot be undone. / هل أنت متأكد من حذف المنتجات المحددة من هذا المتجر؟ لا يمكن التراجع عن ذلك.',
-                onConfirm: async () => {
-                  setLoading(true);
-                  try {
-                    for (const id of selectedProductIds) {
-                      const product = products.find(p => p.id === id);
-                      if (product) {
-                        await deleteProductFromStore(product.id, selectedStore, product.barcode);
+        />
+      </PageToolbar>
+
+      {selectedProductIds.length > 0 && (
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 24px', background: 'var(--glass-card)', borderBottom: '1px solid var(--glass-border)', margin: '0 24px 20px', borderRadius: '12px' }}>
+           <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+             <button className="btn-action btn-action-slate" style={{ background: 'var(--bg-secondary)' }}>
+                Bulk Actions <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+             </button>
+             <span style={{ fontSize: '14px', color: 'var(--text-secondary)', fontWeight: 500 }}>
+               {selectedProductIds.length} Products Selected / {selectedProductIds.length} منتجات محددة
+             </span>
+           </div>
+           <div style={{ display: 'flex', gap: '12px' }}>
+             <button 
+                className="btn-action btn-action-orange" 
+                onClick={() => setShowImportExport(true)}
+              >
+                Export Selected / تصدير المحدد
+              </button>
+              <button 
+                className="btn-action btn-action-red" 
+                onClick={() => {
+                  setConfirmDialog({
+                    isOpen: true,
+                    title: 'Delete Selected Products / حذف المنتجات المحددة',
+                    message: `Are you sure you want to delete ${selectedProductIds.length} products from this store? / هل أنت متأكد من حذف ${selectedProductIds.length} منتجات من هذا المتجر؟`,
+                    onConfirm: async () => {
+                      setLoading(true);
+                      try {
+                        for (const id of selectedProductIds) {
+                          const product = products.find(p => p.id === id);
+                          if (product) {
+                            await deleteProductFromStore(product.id, selectedStore, product.barcode);
+                          }
+                        }
+                        showNotification('Selected products deleted successfully / تم حذف المنتجات المحددة بنجاح', 'success');
+                        setSelectedProductIds([]);
+                        setIsSelectMode(false);
+                        setTimeout(() => fetchProducts(), 2000);
+                      } catch (err) {
+                        showNotification(`Failed to delete selected products`, 'error');
+                      } finally {
+                        setLoading(false);
                       }
                     }
-                    showNotification('Selected products deleted successfully / تم حذف المنتجات المحددة بنجاح', 'success');
-                    setSelectedProductIds([]);
-                    setIsSelectMode(false);
-                    setTimeout(() => fetchProducts(), 2000);
-                  } catch (err: any) {
-                    console.error('Failed to delete selected products', err);
-                    const msg = err.response?.data?.message || err.message || 'Unknown error';
-                    showNotification(`Failed to delete selected products from store: ${msg} / فشل حذف المنتجات المحددة من المتجر: ${msg}`, 'error');
-                  } finally {
-                    setLoading(false);
-                  }
-                }
-              });
-            }
-          }}
-          style={{ 
-            padding: '8px 16px', 
-            fontSize: '14px', 
-            height: '42px', 
-            display: 'flex', 
-            alignItems: 'center', 
-            gap: '8px',
-            opacity: (!selectedStore || loading) ? 0.6 : 1,
-            cursor: (!selectedStore || loading) ? 'not-allowed' : 'pointer'
-          }}
-        >
-          <Trash2 size={18} />
-          <span>{isSelectMode ? 'Confirm Delete / تأكيد الحذف' : 'Delete Selected / حذف المحدد'}</span>
-        </button>
-        {isSelectMode && (
-          <button 
-            className="btn-secondary" 
-            onClick={() => {
-              setIsSelectMode(false);
-              setSelectedProductIds([]);
-            }}
-            style={{ 
-              padding: '8px 16px', 
-              fontSize: '14px', 
-              height: '42px', 
-              display: 'flex', 
-              alignItems: 'center', 
-              gap: '8px'
-            }}
-          >
-            Cancel / إلغاء
-          </button>
-        )}
-        <button className="btn-secondary" onClick={() => fetchProducts()} disabled={loading}>
-          <RefreshCw size={18} className={loading ? 'animate-spin' : ''} /> Refresh / تحديث
-        </button>
-        <button className="btn-secondary" onClick={() => setShowImportExport(true)}>
-          <Upload size={18} /> Import / Export
-        </button>
-        <button className="btn-primary" onClick={() => setIsModalOpen(true)}>
-          <Plus size={18} /> Add / إضافة
-        </button>
-      </>}
-    />
+                  });
+                }}
+              >
+                <Trash2 size={16} />
+                Delete Selected / حذف المحدد
+              </button>
+              <button 
+                className="btn-action btn-action-red" 
+                onClick={() => {
+                   setConfirmDialog({
+                    isOpen: true,
+                    title: 'Delete All Products / حذف كل المنتجات',
+                    message: `Delete ${products.length} products from ${stores.find(s => s.storeId === selectedStore)?.storeName}? This cannot be undone. / هل أنت متأكد من حذف كل المنتجات؟`,
+                    onConfirm: async () => {
+                      setLoading(true);
+                      try {
+                        await deleteAllProductsFromStore(selectedStore);
+                        showNotification('All products deleted successfully', 'success');
+                        setSelectedProductIds([]);
+                        setIsSelectMode(false);
+                        setTimeout(() => fetchProducts(), 2000);
+                      } catch (err) {
+                        showNotification(`Failed to delete all products`, 'error');
+                      } finally {
+                        setLoading(false);
+                      }
+                    }
+                  });
+                }}
+              >
+                <Trash2 size={16} />
+                Delete All Products / حذف الكل
+              </button>
+           </div>
+        </div>
+      )}
 
     <ImportExportModal
       isOpen={showImportExport}
@@ -825,7 +828,7 @@ const Products: React.FC = () => {
         <p>No products found / لا توجد منتجات</p>
       </div>
     ) : (
-      <div className="products-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(285px, 1fr))', gap: '20px', width: '100%', marginBottom: '24px' }}>
+      <div className="products-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '20px', width: '100%', marginBottom: '24px' }}>
         {products.map(product => (
           <div key={product.id} className="store-card glass-card" style={{ padding: '20px', borderRadius: '16px', border: '1px solid var(--glass-border)', display: 'flex', flexDirection: 'column', background: 'var(--glass-card)', transition: 'transform 0.2s, box-shadow 0.2s', position: 'relative' }}>
             {isSelectMode && (
@@ -850,7 +853,7 @@ const Products: React.FC = () => {
                 }}
               />
             )}
-            <div className="store-card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', paddingLeft: '12px' }}>
+            <div className="store-card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px', paddingLeft: '8px' }}>
               <div className="store-icon-wrapper" style={{ width: '38px', height: '38px', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(135deg, var(--primary-color), #8b5cf6)', color: 'white' }}>
                 <Package size={20} />
               </div>
@@ -860,7 +863,7 @@ const Products: React.FC = () => {
             </div>
 
             <div className="store-card-body" style={{ flex: '1', display: 'flex', flexDirection: 'column', gap: '4px' }}>
-              <h3 className="product-title-card" style={{ fontSize: '16px', fontWeight: '700', margin: '0 0 6px 0', color: 'var(--text-primary)', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', textOverflow: 'ellipsis', minHeight: '44px', lineHeight: '1.4' }}>
+              <h3 className="product-title-card" style={{ fontSize: "14px", fontWeight: "600", margin: '0 0 6px 0', color: 'var(--text-primary)', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', textOverflow: 'ellipsis', minHeight: '44px', lineHeight: '1.4' }}>
                 {product.itemName}
               </h3>
               <p className="store-id" style={{ fontSize: '11px', color: 'var(--text-muted)', fontFamily: 'monospace', margin: '0 0 6px 0' }}>
@@ -892,16 +895,29 @@ const Products: React.FC = () => {
               </div>
             </div>
 
-            <div className="store-card-actions" style={{ display: 'flex', justifyContent: 'space-between', gap: '8px', paddingTop: '14px', borderTop: '1px solid var(--glass-border)', marginTop: '14px' }}>
-              <button 
-                className="op-btn primary-btn" 
-                style={{ padding: '6px 12px', fontSize: '12px', display: 'flex', alignItems: 'center', gap: '6px', flex: 1, justifyContent: 'center' }} 
-                onClick={() => openEditProductModal(product)}
-              >
-                <Edit2 size={14} />
-                <span>Edit / تعديل</span>
-              </button>
-            </div>
+            <div className="store-card-actions" style={{ display: 'flex', justifyContent: 'space-between', gap: '4px', paddingTop: '10px', borderTop: '1px solid var(--glass-border)', marginTop: '8px' }}>
+                <button 
+                  className="btn-action btn-action-blue" 
+                  onClick={() => handleEditProduct(product)}
+                  style={{ flex: 1, height: '32px', fontSize: '12px', padding: '0 8px' }}
+                >
+                  <Edit2 size={14} /> Edit
+                </button>
+                <button 
+                  className="btn-action btn-action-slate" 
+                  onClick={() => handleCopyProduct(product)}
+                  style={{ flex: 1, height: '32px', fontSize: '12px', padding: '0 8px' }}
+                >
+                  <Copy size={14} /> Copy
+                </button>
+                <button 
+                  className="btn-action btn-action-red" 
+                  onClick={() => handleDeleteProduct(product)}
+                  style={{ flex: 1, height: '32px', fontSize: '12px', padding: '0 8px' }}
+                >
+                  <Trash2 size={14} /> Delete
+                </button>
+              </div>
           </div>
         ))}
       </div>

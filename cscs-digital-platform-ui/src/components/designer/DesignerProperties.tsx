@@ -16,7 +16,7 @@ export const DesignerProperties: React.FC<DesignerPropertiesProps> = ({ element,
   useEffect(() => {
     // Fetch business attributes and map them properly
     getFieldNames('1').then((res: any) => {
-      let dataObj = Array.isArray(res) ? res : (res?.data || res);
+      const dataObj = Array.isArray(res) ? res : (res?.data || res);
       let allFields: any[] = [];
       
       if (dataObj && typeof dataObj === 'object' && !Array.isArray(dataObj)) {

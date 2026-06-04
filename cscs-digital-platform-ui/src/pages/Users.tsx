@@ -5,7 +5,16 @@ import type { User, Role, PermissionMenu } from '../services/userService';
 import { storeService } from '../services/storeService';
 import type { Store as StoreType } from '../services/storeService';
 import { getPaginationRange } from '../utils/paginationUtils';
-import PageHeader from '../components/PageHeader';
+import { 
+  PageHeader, 
+  PageToolbar, 
+  SearchInput, 
+  ActionButtons, 
+  DataTable, 
+  PagePagination, 
+  StatusBadge 
+} from '../components/common';
+import { useLanguage } from '../context/LanguageContext';
 
 const AVAILABLE_PERMISSIONS = [
   { id: 135, name: 'Product Management / إدارة المنتجات', code: 'product' },
@@ -53,6 +62,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 
 
 const Users: React.FC = () => {
+  const { t } = useLanguage();
   const location = useLocation();
   const navigate = useNavigate();
   const searchParams = new URLSearchParams(location.search);
@@ -618,33 +628,28 @@ const Users: React.FC = () => {
       )}
 
       {/* Header */}
-      <PageHeader
-        title="User Management"
-        titleAr="إدارة المستخدمين"
-        actions={<>
+      <PageHeader title="User Management" titleAr="إدارة المستخدمين" />
+      <PageToolbar>
+        <div style={{ display: 'flex', gap: '16px', flex: 1, alignItems: 'center' }}>
           <div className="global-search-bar">
             <Search size={16} className="text-muted" />
-            <input
-              type="text"
+            <input 
+              type="text" 
               placeholder={activeTab === 'users' ? "Search by account or name... / ابحث بالحساب أو الاسم..." : "Search by role name... / ابحث باسم الدور..."}
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              value={searchTerm} 
+              onChange={(e) => setSearchTerm(e.target.value)} 
             />
           </div>
-          <button className="btn-secondary" onClick={fetchData} disabled={loading}>
-            <RefreshCw size={18} className={loading ? 'animate-spin' : ''} /> Refresh / تحديث
-          </button>
-          {activeTab === 'users' ? (
-            <button className="btn-primary" onClick={handleOpenCreateUser}>
-              <Plus size={18} /> Create User / إضافة مستخدم
-            </button>
-          ) : (
-            <button className="btn-primary" onClick={handleOpenCreateRole}>
-              <Plus size={18} /> Create Role / إضافة دور
-            </button>
-          )}
-        </>}
-      />
+        </div>
+        
+        <ActionButtons
+          onRefresh={fetchData}
+          loading={loading}
+          onAdd={activeTab === 'users' ? handleOpenCreateUser : handleOpenCreateRole}
+          addLabel={activeTab === 'users' ? 'Create User' : 'Create Role'}
+          addLabelAr={activeTab === 'users' ? 'إضافة مستخدم' : 'إضافة دور'}
+        />
+      </PageToolbar>
 
       {/* Navigation Tabs */}
       <div className="nav-tabs-container" style={{ margin: '0 24px' }}>
@@ -666,7 +671,7 @@ const Users: React.FC = () => {
           }}
         >
           <Shield size={16} />
-          <span>Security Roles / أدوار الأمان</span>
+          <span>{t('Security Roles', 'أدوار الأمان')}</span>
         </button>
       </div>
 
@@ -692,144 +697,102 @@ const Users: React.FC = () => {
             <button className="btn-primary" onClick={handleOpenCreateUser}>Create User / إضافة مستخدم</button>
           </div>
         ) : (
-          <div className="users-table-wrapper glass-card">
-            <table className="users-table">
-              <thead>
-                <tr>
-                  <th style={{ textAlign: 'left', paddingLeft: '24px' }}>Staff Name / اسم الموظف</th>
-                  <th>Account / الحساب</th>
-                  <th>Role Name / اسم الدور</th>
-                  <th>Created Date / تاريخ الإنشاء</th>
-                  <th>Status / الحالة</th>
-                  <th style={{ textAlign: 'right', paddingRight: '24px' }}>Actions / الإجراءات</th>
-                </tr>
-              </thead>
-              <tbody>
-                {paginatedUsers.map(user => (
-                  <tr key={user.id}>
-                    <td style={{ textAlign: 'left', paddingLeft: '24px' }}>
-                      <div className="user-name-col" style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                        <div className="user-avatar-circle" style={{ flexShrink: 0 }}>
-                          {user.staffName ? user.staffName.substring(0, 2).toUpperCase() : 'ST'}
+          <div className="table-card glass-card animate-fade-in" style={{ padding: 0 }}>
+            <DataTable
+              loading={false}
+              data={paginatedUsers}
+              emptyIcon={<UserIcon size={48} />}
+              emptyTitle="No Staff Users Found"
+              emptyTitleAr="لم يتم العثور على موظفين"
+              columns={[
+                {
+                  key: 'staffName',
+                  header: 'Staff Name',
+                  headerAr: 'اسم الموظف',
+                  render: (user: User) => (
+                    <div className="user-name-col" style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                      <div className="user-avatar-circle" style={{ flexShrink: 0 }}>
+                        {user.staffName ? user.staffName.substring(0, 2).toUpperCase() : 'ST'}
+                      </div>
+                      <div style={{ textAlign: 'left', display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                        <div className="font-semibold" style={{ fontSize: '15px', color: 'var(--text-primary)', lineHeight: '1.2' }}>
+                          {user.staffName || t('Unnamed Staff', 'موظف غير مسمى')}
                         </div>
-                        <div style={{ textAlign: 'left', display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                          <div className="font-semibold" style={{ fontSize: '15px', color: 'var(--text-primary)', lineHeight: '1.2' }}>
-                            {user.staffName || 'Unnamed Staff / موظف غير مسمى'}
-                          </div>
-                          <div className="text-muted" style={{ fontSize: '12px', fontWeight: '500' }}>
-                            ID: {user.id}
-                          </div>
+                        <div className="text-muted" style={{ fontSize: '12px', fontWeight: '500' }}>
+                          ID: {user.id}
                         </div>
                       </div>
-                    </td>
-                    <td>
-                      <code className="text-sm">{user.account}</code>
-                    </td>
-                    <td>
-                      <span className="role-chip">
-                        <Shield size={12} />
-                        <span>{user.roleName || 'No Role Assigned / لم يتم تعيين دور'}</span>
-                      </span>
-                    </td>
-                    <td>
-                      <span className="date-display">
-                        <Calendar size={12} />
-                        <span>{user.createTime || 'N/A / غير متوفر'}</span>
-                      </span>
-                    </td>
-                    <td>
-                      <span className="badge-normal">
-                        {user.status || 'Normal / طبيعي'}
-                      </span>
-                    </td>
-                    <td style={{ paddingRight: '24px' }}>
-                      <div className="table-actions">
-                        <button className="icon-action" onClick={() => handleOpenEditUser(user)} title="Edit User / تعديل المستخدم">
-                          <Edit2 size={16} />
-                        </button>
-                        <button className="icon-action danger" onClick={() => user.id && handleUserDelete(user.id)} title="Delete User / حذف المستخدم">
-                          <Trash2 size={16} />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-
-            {/* Premium Zkong/DragonESL Pagination */}
-            {totalCount > 0 && (
-              <div className="dragonesl-pagination-bar" style={{ padding: '16px 0 0 0', marginTop: '16px', borderTop: '1px solid var(--glass-border)' }}>
-                <div className="pagination-left">
-                  <span className="pagination-total">Total {totalCount} items / الإجمالي {totalCount} عناصر</span>
-                  <select
-                    value={pageSize}
-                    onChange={(e) => {
-                      setPageSize(Number(e.target.value));
-                      setCurrentPage(1);
-                    }}
-                    className="pagination-size-select"
-                  >
-                    <option value={5}>5/page / ٥ في الصفحة</option>
-                    <option value={10}>10/page / ١٠ في الصفحة</option>
-                    <option value={20}>20/page / ٢٠ في الصفحة</option>
-                    <option value={50}>50/page / ٥٠ في الصفحة</option>
-                    <option value={100}>100/page / ١٠٠ في الصفحة</option>
-                  </select>
-                </div>
-
-                <div className="pagination-right">
-                  <button
-                    type="button"
-                    disabled={currentPage === 1}
-                    onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                    className="pagination-arrow-btn"
-                  >
-                    &lt;
-                  </button>
-
-                  {getPaginationRange(currentPage, totalPages, 1).map((pageNum, idx) => (
-                    pageNum === '...' ? (
-                      <span key={`dots-${idx}`} className="pagination-dots">...</span>
-                    ) : (
-                      <button
-                        key={pageNum}
-                        type="button"
-                        onClick={() => setCurrentPage(Number(pageNum))}
-                        className={`pagination-num-btn ${currentPage === pageNum ? 'active' : ''}`}
-                      >
-                        {pageNum}
+                    </div>
+                  )
+                },
+                {
+                  key: 'account',
+                  header: 'Account',
+                  headerAr: 'الحساب',
+                  render: (user: User) => <code className="text-sm">{user.account}</code>
+                },
+                {
+                  key: 'roleName',
+                  header: 'Role Name',
+                  headerAr: 'اسم الدور',
+                  render: (user: User) => (
+                    <span className="role-chip">
+                      <Shield size={12} />
+                      <span>{user.roleName || t('No Role Assigned', 'لم يتم تعيين دور')}</span>
+                    </span>
+                  )
+                },
+                {
+                  key: 'createdDate',
+                  header: 'Created Date',
+                  headerAr: 'تاريخ الإنشاء',
+                  render: (user: User) => (
+                    <span className="date-display">
+                      <Calendar size={12} />
+                      <span>{user.createTime || t('N/A', 'غير متوفر')}</span>
+                    </span>
+                  )
+                },
+                {
+                  key: 'status',
+                  header: 'Status',
+                  headerAr: 'الحالة',
+                  render: (user: User) => (
+                    <span className="badge-normal">
+                      {user.status || t('Normal', 'طبيعي')}
+                    </span>
+                  )
+                },
+                {
+                  key: 'actions',
+                  header: 'Actions',
+                  headerAr: 'الإجراءات',
+                  render: (user: User) => (
+                    <div className="table-actions">
+                      <button className="icon-action" onClick={() => handleOpenEditUser(user)} title={t('Edit User', 'تعديل المستخدم')}>
+                        <Edit2 size={16} />
                       </button>
-                    )
-                  ))}
+                      <button className="icon-action danger" onClick={() => user.id && handleUserDelete(user.id)} title={t('Delete User', 'حذف المستخدم')}>
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
+                  )
+                }
+              ]}
+            />
 
-                  <button
-                    type="button"
-                    disabled={currentPage === totalPages || totalPages === 0}
-                    onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                    className="pagination-arrow-btn"
-                  >
-                    &gt;
-                  </button>
-
-                  <div className="pagination-jump">
-                    <span>Go to / الذهاب إلى</span>
-                    <input
-                      type="number"
-                      min={1}
-                      max={totalPages || 1}
-                      value={currentPage}
-                      onChange={(e) => {
-                        const val = Number(e.target.value);
-                        if (val >= 1 && val <= totalPages) {
-                          setCurrentPage(val);
-                        }
-                      }}
-                      className="pagination-jump-input"
-                    />
-                  </div>
-                </div>
-              </div>
+            {totalCount > 0 && (
+              <PagePagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                totalCount={totalCount}
+                pageSize={pageSize}
+                onPageChange={setCurrentPage}
+                onPageSizeChange={(s) => {
+                  setPageSize(s);
+                  setCurrentPage(1);
+                }}
+              />
             )}
           </div>
         )

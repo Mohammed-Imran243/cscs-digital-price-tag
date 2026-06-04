@@ -5,8 +5,7 @@ import type { Store } from '../services/storeService';
 import { getPaginationRange } from '../utils/paginationUtils';
 import ImportExportModal from '../components/ImportExportModal';
 import { importStores, exportStores, downloadStoreImportTemplate } from '../services/importExportService';
-import PageHeader from '../components/PageHeader';
-
+import { PageHeader, PageToolbar, ActionButtons } from '../components/common';
 const Stores: React.FC = () => {
   const [stores, setStores] = useState<Store[]>([]);
   const [loading, setLoading] = useState(true);
@@ -221,7 +220,9 @@ const Stores: React.FC = () => {
       <PageHeader
         title="Store Management"
         titleAr="إدارة المتاجر"
-        actions={<>
+      />
+      <PageToolbar>
+        <div style={{ display: 'flex', gap: '16px', flex: 1, alignItems: 'center' }}>
           <div className="global-search-bar">
             <Search size={16} className="text-muted" />
             <input
@@ -231,17 +232,17 @@ const Stores: React.FC = () => {
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
-          <button className="btn-secondary" onClick={fetchStores} disabled={loading}>
-            <RefreshCw size={18} className={loading ? 'animate-spin' : ''} /> Refresh / تحديث
-          </button>
-          <button className="btn-secondary" onClick={() => setShowImportExport(true)}>
-            <Upload size={18} /> Import / Export
-          </button>
-          <button className="btn-primary" onClick={openCreateModal}>
-            <Plus size={18} /> Add Store / إضافة متجر
-          </button>
-        </>}
-      />
+        </div>
+        <ActionButtons
+          onRefresh={fetchStores}
+          onImport={() => setShowImportExport(true)}
+          onExport={() => setShowImportExport(true)}
+          onAdd={openCreateModal}
+          addLabel="Add Store"
+          addLabelAr="إضافة متجر"
+          loading={loading}
+        />
+      </PageToolbar>
 
       <ImportExportModal
         isOpen={showImportExport}

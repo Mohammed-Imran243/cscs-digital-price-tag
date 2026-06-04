@@ -3,6 +3,8 @@ import React from 'react';
 import { Cpu, Copy, Check, Plus } from 'lucide-react';
 import type { ApDevice } from '../../services/deviceService';
 import { getPaginationRange } from '../../utils/paginationUtils';
+import { DataTable, PagePagination, StatusBadge } from '../common';
+import { useLanguage } from '../../context/LanguageContext';
 
 interface ApTabProps {
   apDevices: ApDevice[];
@@ -27,217 +29,117 @@ export const ApTab: React.FC<ApTabProps> = ({
   copiedId,
   onAddAp,
 }) => {
+  const { t } = useLanguage();
   const totalPages = Math.ceil(totalElements / pageSize) || 1;
 
   return (
     <div className="table-card glass-card animate-fade-in">
-      {/* AP Actions Bar */}
-      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '16px', padding: '16px 24px 0 24px' }}>
-        <button className="btn-primary sm-btn" onClick={onAddAp}>
-          <Plus size={16} /> Add AP / إضافة نقطة وصول
-        </button>
-      </div>
 
-      <div className="table-responsive">
-        <table className="ap-table">
-          <thead>
-            <tr>
-              <th>Base Station MAC / عنوان MAC للمحطة</th>
-              <th>AP Name / اسم المحطة</th>
-              <th>Model / SN / الطراز / الرقم التسلسلي</th>
-              <th>IP Address / عنوان IP</th>
-              <th>Connections / الاتصالات</th>
-              <th>Status / الحالة</th>
-              <th>Firmware Version / إصدار البرمجيات</th>
-              <th>Last Online Time / آخر وقت اتصال</th>
-            </tr>
-          </thead>
-          <tbody>
-            {apDevices.length === 0 ? (
-              <tr>
-                <td colSpan={8} className="empty-table-cell">
-                  <Cpu size={36} className="empty-icon" />
-                  <p>No AP Base Stations registered in this store context. / لا توجد محطات بث مسجلة في هذا المتجر.</p>
-                </td>
-              </tr>
-            ) : (
-              apDevices.map((ap) => (
-                <tr key={ap.id || ap.mac}>
-                  {/* MAC */}
-                  <td className="barcode-cell font-mono">
-                    <span>{ap.mac}</span>
-                    <button 
-                      className="copy-btn" 
-                      onClick={() => copyToClipboard(ap.mac)}
-                      title="Copy MAC Address / نسخ عنوان MAC"
-                    >
-                      {copiedId === ap.mac ? <Check size={14} className="copied" /> : <Copy size={14} />}
-                    </button>
-                  </td>
-
-                  {/* Name */}
-                  <td>
-                    <span className="ap-name-label">{ap.apName || 'Unregistered Station / محطة غير مسجلة'}</span>
-                  </td>
-
-                  {/* Model */}
-                  <td>
-                    <div className="model-cell">
-                      <span className="model-badge">{ap.model || 'ZAP-CM'}</span>
-                    </div>
-                  </td>
-
-                  {/* IP */}
-                  <td className="font-mono ip-cell">{ap.ip || '192.168.1.100'}</td>
-
-                  {/* Connections */}
-                  <td>
-                    <div className="connections-badge">
-                      <span className="count">{ap.eslCount}</span>
-                      <span className="label">ESLs / شاشات</span>
-                    </div>
-                  </td>
-
-                  {/* Status */}
-                  <td>
-                    <span className={`status-pill ${
-                      ap.online === 'ONLINE' ? 'online' : ap.online === 'UPGRADING' ? 'warning' : 'offline'
-                    }`}>
-                      <span className="dot" />
-                      <span>{ap.online === 'ONLINE' ? 'Online / متصل' : ap.online === 'UPGRADING' ? 'Upgrading / جاري الترقية' : (ap.online === 'OFFLINE' ? 'Offline / غير متصل' : ap.online)}</span>
-                    </span>
-                  </td>
-
-                  {/* Firmware */}
-                  <td className="firmware-cell">{ap.softVersion || '3.1.017_Release'}</td>
-
-                  {/* Last Join */}
-                  <td className="time-cell">
-                    {ap.joinTime || 'N/A / غير متوفر'}
-                  </td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-      </div>
-
-      {/* Premium Zkong/DragonESL Pagination */}
-      {totalElements > 0 && (
-        <div className="dragonesl-pagination-bar glass-card" style={{ borderTop: 'none', borderLeft: 'none', borderRight: 'none', borderRadius: '0 0 12px 12px' }}>
-          <div className="pagination-left">
-            <span className="pagination-total">Total {totalElements} items / الإجمالي {totalElements} عناصر</span>
-            <select
-              value={pageSize}
-              onChange={(e) => {
-                setPageSize(Number(e.target.value));
-                setPage(0);
-              }}
-              className="pagination-size-select"
-            >
-              <option value={5}>5 / page / ٥ للصفحة</option>
-              <option value={10}>10 / page / ١٠ للصفحة</option>
-              <option value={20}>20 / page / ٢٠ للصفحة</option>
-              <option value={50}>50 / page / ٥٠ للصفحة</option>
-              <option value={100}>100 / page / ١٠٠ للصفحة</option>
-            </select>
-          </div>
-
-          <div className="pagination-right">
-            <button
-              type="button"
-              disabled={page === 0}
-              onClick={() => setPage(Math.max(page - 1, 0))}
-              className="pagination-arrow-btn"
-            >
-              &lt;
-            </button>
-
-            {getPaginationRange(page + 1, totalPages, 1).map((pageNum, idx) => (
-              pageNum === '...' ? (
-                <span key={`dots-${idx}`} className="pagination-dots">...</span>
-              ) : (
-                <button
-                  key={pageNum}
-                  type="button"
-                  onClick={() => setPage(Number(pageNum) - 1)}
-                  className={`pagination-num-btn ${page === Number(pageNum) - 1 ? 'active' : ''}`}
+      <DataTable
+        loading={false}
+        data={apDevices}
+        emptyIcon={<Cpu size={36} />}
+        emptyTitle="No AP Base Stations registered in this store context."
+        emptyTitleAr="لا توجد محطات بث مسجلة في هذا المتجر."
+        columns={[
+          {
+            key: 'mac',
+            header: 'Base Station MAC',
+            headerAr: 'عنوان MAC للمحطة',
+            render: (ap: ApDevice) => (
+              <div className="barcode-cell font-mono">
+                <span>{ap.mac}</span>
+                <button 
+                  className="copy-btn" 
+                  onClick={() => copyToClipboard(ap.mac)}
+                  title={t('Copy MAC Address', 'نسخ عنوان MAC')}
                 >
-                  {pageNum}
+                  {copiedId === ap.mac ? <Check size={14} className="copied" /> : <Copy size={14} />}
                 </button>
-              )
-            ))}
-
-            <button
-              type="button"
-              disabled={page === totalPages - 1 || totalPages === 0}
-              onClick={() => setPage(Math.min(page + 1, totalPages - 1))}
-              className="pagination-arrow-btn"
-            >
-              &gt;
-            </button>
-
-            <div className="pagination-jump">
-              <span>Go to / الذهاب إلى</span>
-              <input
-                type="number"
-                min={1}
-                max={totalPages || 1}
-                value={page + 1}
-                onChange={(e) => {
-                  const val = Number(e.target.value);
-                  if (val >= 1 && val <= totalPages) {
-                    setPage(val - 1);
-                  }
-                }}
-                className="pagination-jump-input"
+              </div>
+            )
+          },
+          {
+            key: 'apName',
+            header: 'AP Name',
+            headerAr: 'اسم المحطة',
+            render: (ap: ApDevice) => (
+              <span className="ap-name-label">{ap.apName || t('Unregistered Station', 'محطة غير مسجلة')}</span>
+            )
+          },
+          {
+            key: 'model',
+            header: 'Model / SN',
+            headerAr: 'الطراز / الرقم التسلسلي',
+            render: (ap: ApDevice) => (
+              <div className="model-cell">
+                <span className="model-badge">{ap.model || 'ZAP-CM'}</span>
+              </div>
+            )
+          },
+          {
+            key: 'ip',
+            header: 'IP Address',
+            headerAr: 'عنوان IP',
+            render: (ap: ApDevice) => (
+              <span className="font-mono ip-cell">{ap.ip || '192.168.1.100'}</span>
+            )
+          },
+          {
+            key: 'connections',
+            header: 'Connections',
+            headerAr: 'الاتصالات',
+            render: (ap: ApDevice) => (
+              <div className="connections-badge" style={{ justifyContent: 'center' }}>
+                <span className="count">{ap.eslCount}</span>
+                <span className="label">{t('ESLs', 'شاشات')}</span>
+              </div>
+            )
+          },
+          {
+            key: 'status',
+            header: 'Status',
+            headerAr: 'الحالة',
+            render: (ap: ApDevice) => (
+              <StatusBadge
+                status={ap.online === 'ONLINE' ? 'ACTIVE' : ap.online === 'UPGRADING' ? 'WARNING' : 'INACTIVE'}
+                label={ap.online === 'ONLINE' ? 'Online' : ap.online === 'UPGRADING' ? 'Upgrading' : (ap.online === 'OFFLINE' ? 'Offline' : ap.online)}
+                labelAr={ap.online === 'ONLINE' ? 'متصل' : ap.online === 'UPGRADING' ? 'جاري الترقية' : (ap.online === 'OFFLINE' ? 'غير متصل' : ap.online)}
               />
-            </div>
-          </div>
-        </div>
-      )}
+            )
+          },
+          {
+            key: 'firmware',
+            header: 'Firmware Version',
+            headerAr: 'إصدار البرمجيات',
+            render: (ap: ApDevice) => (
+              <span className="firmware-cell">{ap.softVersion || '3.1.017_Release'}</span>
+            )
+          },
+          {
+            key: 'lastOnline',
+            header: 'Last Online Time',
+            headerAr: 'آخر وقت اتصال',
+            render: (ap: ApDevice) => (
+              <span className="time-cell">{ap.joinTime || t('N/A', 'غير متوفر')}</span>
+            )
+          }
+        ]}
+      />
 
-      <style>{`
-        .table-responsive {
-          width: 100%;
-          overflow-x: auto;
-        }
-        
-        .ap-table {
-          width: 100%;
-          table-layout: auto;
-          border-collapse: collapse;
-        }
-        
-        .ap-table th, .ap-table td {
-          text-align: center !important;
-          vertical-align: middle !important;
-          white-space: normal !important; /* Prevents long bilingual text from forcing horizontal scroll */
-          padding: 14px 12px !important;
-        }
-        
-        .ap-table th {
-          background-color: var(--bg-accent) !important;
-          color: var(--text-primary) !important;
-          font-size: 13px !important;
-          font-weight: 700 !important;
-          text-transform: uppercase;
-          border-bottom: 2px solid var(--border-color) !important;
-        }
-        
-        .ap-table td {
-          border-bottom: 1px solid var(--glass-border) !important;
-          font-size: 14px;
-        }
-        
-        .ap-table tbody tr {
-          transition: background-color 0.2s ease;
-        }
-        
-        .ap-table tbody tr:hover td {
-          background-color: rgba(255, 255, 255, 0.03) !important;
-        }
-      `}</style>
+      {totalElements > 0 && (
+        <PagePagination
+          currentPage={page + 1}
+          totalPages={totalPages}
+          totalCount={totalElements}
+          pageSize={pageSize}
+          onPageChange={(p) => setPage(p - 1)}
+          onPageSizeChange={(s) => {
+            setPageSize(s);
+            setPage(0);
+          }}
+        />
+      )}
     </div>
   );
 };

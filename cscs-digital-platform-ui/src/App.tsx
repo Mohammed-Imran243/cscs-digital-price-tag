@@ -2,6 +2,7 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { ThemeProvider } from './context/ThemeContext';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { LanguageProvider } from './context/LanguageContext';
 
 import Layout from './components/Layout';
 import LoginPage from './pages/Login';
@@ -52,6 +53,7 @@ const App: React.FC = () => {
   return (
     <ErrorBoundary>
       <ThemeProvider>
+        <LanguageProvider>
           <AuthProvider>
             <Router>
               <Routes>
@@ -79,7 +81,8 @@ const App: React.FC = () => {
               </Routes>
             </Router>
           </AuthProvider>
-        </ThemeProvider>
+        </LanguageProvider>
+      </ThemeProvider>
       </ErrorBoundary>
   );
 };

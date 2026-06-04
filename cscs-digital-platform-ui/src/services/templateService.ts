@@ -20,6 +20,7 @@ export interface Template {
   tempPicUrl?: string;
   status?: string; // 1 = enabled, 0 = disabled
   storeId?: number;
+  modelId?: string;
 }
 
 export interface TemplateCategory {

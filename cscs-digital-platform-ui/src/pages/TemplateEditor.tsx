@@ -94,8 +94,8 @@ const TemplateEditor: React.FC = () => {
       const viewportCenterX = areaRect.left + areaRect.width / 2;
       const viewportCenterY = areaRect.top + areaRect.height / 2;
       
-      let relativeX = (viewportCenterX - canvasRect.left) / (zoom / 100);
-      let relativeY = (viewportCenterY - canvasRect.top) / (zoom / 100);
+      const relativeX = (viewportCenterX - canvasRect.left) / (zoom / 100);
+      const relativeY = (viewportCenterY - canvasRect.top) / (zoom / 100);
       
       targetX = relativeX - (width / 2);
       targetY = relativeY - (height / 2);
@@ -163,7 +163,7 @@ const TemplateEditor: React.FC = () => {
     };
 
     getFieldNames('1').then((res: any) => {
-      let dataObj = Array.isArray(res) ? res : (res?.data || res);
+      const dataObj = Array.isArray(res) ? res : (res?.data || res);
       let allFields: any[] = [];
       if (dataObj && typeof dataObj === 'object' && !Array.isArray(dataObj)) {
         Object.values(dataObj).forEach((arr: any) => {
@@ -208,7 +208,7 @@ const TemplateEditor: React.FC = () => {
 
   // Helper to map React frontend payload to DragonESL payload
   const buildDragonEslPayload = (config: any, items: TemplateElement[]) => {
-    let payload = { ...config };
+    const payload = { ...config };
 
     if (payload.storeId && typeof payload.storeId === 'string') {
       payload.storeId = parseInt(payload.storeId, 10);

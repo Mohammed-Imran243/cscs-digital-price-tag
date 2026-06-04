@@ -38,10 +38,9 @@ import {
 
 import ImportExportModal from '../components/ImportExportModal';
 import { importTemplate, exportTemplates } from '../services/importExportService';
-
+import { PageHeader, PageToolbar, ActionButtons } from '../components/common';
 import { getEslModelSpecs, renderEinkLayout } from '../utils/eslModelUtils';
 import { getPaginationRange } from '../utils/paginationUtils';
-import PageHeader from '../components/PageHeader';
 
 
 const COLOR_MAPPINGS: Record<number, { key: string; label: string }> = {
@@ -628,15 +627,17 @@ const Templates: React.FC = () => {
       <PageHeader
         title="Template Management"
         titleAr="إدارة القوالب"
-        actions={<>
-          <div style={{ fontSize: '13px', color: 'var(--text-muted)', marginRight: 'auto' }}>
-            Templates &gt; <span style={{ color: 'var(--primary-color)', fontWeight: 600 }}>
-              {activeMenuTab === 'merchant' && 'Merchant Template / قوالب التاجر'}
-              {activeMenuTab === 'store' && 'Store Template / قوالب المتجر'}
-              {activeMenuTab === 'store_icon' && 'Store Icon / أيقونة المتجر'}
-              {activeMenuTab === 'properties' && 'Template Properties / خصائص القالب'}
-            </span>
-          </div>
+      />
+      <div style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '16px' }}>
+        Templates &gt; <span style={{ color: 'var(--primary-color)', fontWeight: 600 }}>
+          {activeMenuTab === 'merchant' && 'Merchant Template / قوالب التاجر'}
+          {activeMenuTab === 'store' && 'Store Template / قوالب المتجر'}
+          {activeMenuTab === 'store_icon' && 'Store Icon / أيقونة المتجر'}
+          {activeMenuTab === 'properties' && 'Template Properties / خصائص القالب'}
+        </span>
+      </div>
+      <PageToolbar>
+        <div style={{ display: 'flex', gap: '16px', flex: 1, alignItems: 'center' }}>
           {(activeMenuTab === 'store' || activeMenuTab === 'store_icon') && (
             <div className="store-selector-wrapper">
               <StoreIcon size={16} className="text-muted" />
@@ -646,6 +647,7 @@ const Templates: React.FC = () => {
                 <select 
                   value={selectedStore} 
                   onChange={e => setSelectedStore(e.target.value)}
+                  className="glass-select"
                 >
                   <option value="">Select a Store... / اختر متجراً</option>
                   {stores.map(s => (
@@ -657,22 +659,12 @@ const Templates: React.FC = () => {
               )}
             </div>
           )}
-          <div className="global-search-bar">
-            <Search size={16} className="text-muted" />
-            <input
-              type="text"
-              placeholder="Search templates... / ابحث عن القوالب..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-          </div>
-          <button className="btn-secondary" onClick={fetchTemplatesList} disabled={loading}>
-            <RefreshCw size={18} className={loading ? 'animate-spin' : ''} /> Refresh / تحديث
-          </button>
+          
           <button 
-            className={`btn-secondary filter-icon-btn ${showFilters ? 'active' : ''}`} 
+            className={`btn-action btn-action-slate ${showFilters ? 'active' : ''}`} 
             onClick={() => setShowFilters(!showFilters)}
             title="Filters / التصفية"
+            style={{ position: 'relative' }}
           >
             <Filter size={18} />
             {isFilterActive && (
@@ -688,11 +680,25 @@ const Templates: React.FC = () => {
               }} />
             )}
           </button>
-          <button className="btn-secondary" onClick={() => setShowTemplateImportExport(true)}>
-            <Upload size={18} /> Import / Export
-          </button>
-        </>}
-      />
+
+          <div className="global-search-bar">
+            <Search size={16} className="text-muted" />
+            <input
+              type="text"
+              placeholder="Search templates... / ابحث عن القوالب..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </div>
+        </div>
+        
+        <ActionButtons
+          onRefresh={fetchTemplatesList}
+          onImport={() => setShowTemplateImportExport(true)}
+          onExport={() => setShowTemplateImportExport(true)}
+          loading={loading}
+        />
+      </PageToolbar>
 
       <ImportExportModal
         isOpen={showTemplateImportExport}
@@ -2620,9 +2626,6 @@ const Templates: React.FC = () => {
                         >
                           <div className="toggle-handle"></div>
                         </div>
-                        <span className={`status-pill ${isEnabled ? 'enabled' : 'disabled'}`} style={{ margin: 0 }}>
-                          {isEnabled ? 'Enabled / مفعل' : 'Disabled / غير مفعل'}
-                        </span>
                       </div>
                     </td>
                     <td>{t.updateTime || t.createdTime || 'N/A / غير متوفر'}</td>
