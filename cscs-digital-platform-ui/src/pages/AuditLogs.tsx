@@ -257,9 +257,6 @@ const AuditLogs: React.FC = () => {
         titleAr="سجلات التدقيق"
       />
       <PageToolbar>
-        <button className="btn-action btn-action-filter" style={{ padding: '0 12px' }}>
-          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon></svg>
-        </button>
         <div className="global-search-bar" style={{ flex: 1, minWidth: 'var(--search-min-width)' }}>
           <Search size={16} className="text-muted" />
           <input
@@ -282,114 +279,7 @@ const AuditLogs: React.FC = () => {
         </div>
       )}
 
-      {/* Collapsible Advanced Filter Panel */}
-      {showFilters && (
-        <div 
-          className="audit-logs-filters glass-card"
-          style={{
-            padding: '12px 16px',
-            border: '1px solid var(--glass-border)',
-            marginBottom: '16px',
-            background: 'rgba(255, 255, 255, 0.02)',
-            display: 'flex',
-            flexDirection: 'row',
-            alignItems: 'flex-end',
-            gap: '16px',
-            flexWrap: 'nowrap',
-            borderRadius: '12px'
-          }}
-        >
-          {/* Start Date */}
-          <div className="filter-group" style={{ display: 'flex', flexDirection: 'column', gap: '4px', flex: '1 1 150px', minWidth: '120px' }}>
-            <label style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-secondary)' }}>
-              Start Date / تاريخ البدء
-            </label>
-            <input 
-              type="date" 
-              value={startDate} 
-              onChange={handleStartDateChange}
-              className="glass-input" 
-              style={{ width: '100%', height: '36px', padding: '6px 12px', borderRadius: '8px', fontSize: '13px' }}
-            />
-          </div>
-
-          {/* End Date */}
-          <div className="filter-group" style={{ display: 'flex', flexDirection: 'column', gap: '4px', flex: '1 1 150px', minWidth: '120px' }}>
-            <label style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-secondary)' }}>
-              End Date / تاريخ الانتهاء
-            </label>
-            <input 
-              type="date" 
-              value={endDate} 
-              onChange={handleEndDateChange}
-              className="glass-input" 
-              style={{ width: '100%', height: '36px', padding: '6px 12px', borderRadius: '8px', fontSize: '13px' }}
-            />
-          </div>
-
-          {/* Operation Type */}
-          <div className="filter-group" style={{ display: 'flex', flexDirection: 'column', gap: '4px', flex: '1 1 200px', minWidth: '150px' }}>
-            <label style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-secondary)' }}>
-              Operation Type / نوع العملية
-            </label>
-            <select 
-              value={selectedOperation} 
-              onChange={handleOperationChange}
-              className="glass-select"
-              style={{ width: '100%', height: '36px', padding: '6px 12px', borderRadius: '8px', fontSize: '13px' }}
-            >
-              <option value="">All Operations / جميع العمليات</option>
-              <option value={1}>Bind Tag / ربط الشاشة</option>
-              <option value={2}>Unbind Tag / إلغاء ربط الشاشة</option>
-              <option value={3}>Force Refresh / تحديث الشاشة فوراً</option>
-              <option value={4}>Product Change / تغيير المنتج</option>
-              <option value={5}>Template Change / تغيير القالب</option>
-              <option value={13}>Force LED Flash / وميض إضاءة LED</option>
-              <option value={14}>Smart Reissue / إعادة إصدار ذكي</option>
-            </select>
-          </div>
-
-          {/* Status */}
-          <div className="filter-group" style={{ display: 'flex', flexDirection: 'column', gap: '4px', flex: '1 1 200px', minWidth: '150px' }}>
-            <label style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-secondary)' }}>
-              Status / الحالة
-            </label>
-            <select 
-              value={selectedStatus} 
-              onChange={handleStatusChange}
-              className="glass-select"
-              style={{ width: '100%', height: '36px', padding: '6px 12px', borderRadius: '8px', fontSize: '13px' }}
-            >
-              <option value="">All Statuses / جميع الحالات</option>
-              <option value="2">Success / نجح</option>
-              <option value="3">Failed - Timeout / فشل - انتهاء الوقت</option>
-              <option value="9">Failed - Tag Offline / فشل - الشاشة غير متصلة</option>
-              <option value="10">Failed - No AP / فشل - لا يوجد AP</option>
-            </select>
-          </div>
-
-          {/* Reset Button */}
-          <button 
-            onClick={handleResetFilters}
-            style={{
-              background: 'none',
-              border: 'none',
-              color: 'var(--primary-color)',
-              cursor: 'pointer',
-              fontSize: '13px',
-              fontWeight: 600,
-              padding: '8px 12px',
-              alignSelf: 'flex-end',
-              whiteSpace: 'nowrap',
-              transition: 'color 0.2s',
-              marginLeft: 'auto'
-            }}
-            className="reset-filters-btn"
-          >
-            Reset Filters / إعادة تعيين
-          </button>
-        </div>
-      )}
+      
 
       {/* Main content display */}
       {logsLoading && logs.length === 0 ? (
