@@ -895,25 +895,22 @@ const Products: React.FC = () => {
               </div>
             </div>
 
-            <div className="store-card-actions" style={{ display: 'flex', justifyContent: 'space-between', gap: '4px', paddingTop: '10px', borderTop: '1px solid var(--glass-border)', marginTop: '8px' }}>
+            <div className="store-card-actions" style={{ display: 'flex', justifyContent: 'space-between', gap: '6px', paddingTop: '12px', borderTop: '1px solid var(--glass-border)', marginTop: '12px' }}>
                 <button 
-                  className="btn-action btn-action-blue" 
+                  className="card-action-btn" 
                   onClick={() => handleEditProduct(product)}
-                  style={{ flex: 1, height: '32px', fontSize: '12px', padding: '0 8px' }}
                 >
                   <Edit2 size={14} /> Edit
                 </button>
                 <button 
-                  className="btn-action btn-action-slate" 
+                  className="card-action-btn" 
                   onClick={() => handleCopyProduct(product)}
-                  style={{ flex: 1, height: '32px', fontSize: '12px', padding: '0 8px' }}
                 >
                   <Copy size={14} /> Copy
                 </button>
                 <button 
-                  className="btn-action btn-action-red" 
+                  className="card-action-btn delete-action" 
                   onClick={() => handleDeleteProduct(product)}
-                  style={{ flex: 1, height: '32px', fontSize: '12px', padding: '0 8px' }}
                 >
                   <Trash2 size={14} /> Delete
                 </button>
@@ -1482,6 +1479,39 @@ const Products: React.FC = () => {
         }
         .btn-text.delete-btn:hover {
           background: rgba(239, 68, 68, 0.1);
+          color: var(--primary-color);
+        }
+
+        .card-action-btn {
+          flex: 1;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          gap: 6px;
+          height: 32px;
+          font-size: 13px;
+          font-weight: 600;
+          color: var(--text-primary);
+          background: var(--bg-secondary);
+          border: 1px solid var(--glass-border);
+          border-radius: 8px;
+          cursor: pointer;
+          transition: all 0.2s;
+          padding: 0 4px;
+        }
+        .card-action-btn:hover {
+          background: rgba(0, 0, 0, 0.05);
+          transform: translateY(-1px);
+        }
+        [data-theme='dark'] .card-action-btn:hover {
+          background: rgba(255, 255, 255, 0.1);
+        }
+        .card-action-btn.delete-action {
+          color: var(--danger-color);
+        }
+        .card-action-btn.delete-action:hover {
+          background: rgba(239, 68, 68, 0.1);
+          border-color: rgba(239, 68, 68, 0.3);
         }
 
         .product-title {

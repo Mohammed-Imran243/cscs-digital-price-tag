@@ -185,12 +185,12 @@ public class AuditLogService {
                         dto.setCreatedTime(createdTimeVal != null ? createdTimeVal.toString() : null);
 
                         Object storeIdVal = item.get("storeId");
-                        dto.setStoreId(storeIdVal != null ? storeIdVal.toString() : null);
+                        String logStoreId = storeIdVal != null ? storeIdVal.toString() : String.valueOf(storeIdLong);
+                        dto.setStoreId(logStoreId);
 
                         if (operation != null && operation == 4) {
                             // Retrieve the product's original price to calculate the discount amount
                             String barcode = dto.getItemBarCode();
-                            String logStoreId = dto.getStoreId() != null ? dto.getStoreId() : String.valueOf(storeIdLong);
                             String originalPrice = "0";
                             
                             if (barcode != null && !barcode.isBlank()) {
@@ -388,6 +388,7 @@ public class AuditLogService {
         dto.setPushTime(item.getPushTime());
         dto.setFeedbackTime(item.getFeedbackTime());
         dto.setCreatedTime(item.getCreatedTime());
+        dto.setStoreId(item.getStoreId());
         
         dto.setOperation(item.getOperation());
         dto.setOperationText(getOperationText(item.getOperation()));

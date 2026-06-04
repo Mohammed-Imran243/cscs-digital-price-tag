@@ -123,6 +123,12 @@ public class DragonLogListResponse {
 
         public String getCreatedTime() { return createdTime; }
         public void setCreatedTime(String createdTime) { this.createdTime = createdTime; }
+
+        @JsonProperty("storeId")
+        private String storeId;
+
+        public String getStoreId() { return storeId; }
+        public void setStoreId(String storeId) { this.storeId = storeId; }
     }
 }
 
