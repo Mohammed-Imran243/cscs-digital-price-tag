@@ -417,7 +417,13 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                     if (r === 'MERCHANT_SUPER_ADMIN') return 'Merchant Super Admin / مسؤول التاجر الرئيسي';
                     if (r === 'MERCHANT') return 'Merchant / تاجر';
                     if (r === 'STAFF') return 'Staff / موظف';
-                    return user?.role;
+                    
+                    const rawRole = user?.role || '';
+                    const translateMap: Record<string, string> = {
+                      '商家超级管理员': 'Merchant Super Administrator',
+                      '商家管理员': 'Merchant Administrator'
+                    };
+                    return translateMap[rawRole] || rawRole;
                   })()}
                 </span>
               </div>

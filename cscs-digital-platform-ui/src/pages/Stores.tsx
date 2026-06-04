@@ -178,7 +178,7 @@ const Stores: React.FC = () => {
     setConfirmDialog({
       isOpen: true,
       title: 'Delete Store / حذف المتجر',
-      message: 'Are you sure you want to delete this store? This will physically remove it from Dragon ESL. / هل أنت متأكد من رغبتك في حذف هذا المتجر؟ سيؤدي ذلك إلى إزالته نهائياً من Dragon ESL.',
+      message: 'Are you sure you want to delete this store? This will physically remove it from the system. / هل أنت متأكد من رغبتك في حذف هذا المتجر؟ سيؤدي ذلك إلى إزالته نهائياً من النظام.',
       onConfirm: async () => {
         try {
           await storeService.deleteStore(id);

@@ -45,18 +45,18 @@ public class ImportExportService {
         log.info("Starting Product Import. File: {}, StoreId: {}", file.getOriginalFilename(), storeId);
         
         String[] expectedHeaders = {
-            "barcode", "itemTitle", "price", "originalPrice", "unit", "productArea", "spec"
+            "Item Barcode*", "Item Name", "Product sales price (unit yuan, support five decimal places)"
         };
         
         List<DragonBatchImportRequest.Item> validItems = new ArrayList<>();
         
         ImportResponse response = ExcelImportUtil.parseExcel(file, expectedHeaders, row -> {
-            String barcode = row.get("barcode");
+            String barcode = row.get("Item Barcode*");
             if (barcode == null || barcode.trim().isEmpty()) {
                 throw new IllegalArgumentException("Barcode cannot be empty");
             }
             
-            String price = row.get("price");
+            String price = row.get("Product sales price (unit yuan, support five decimal places)");
             if (price == null || price.trim().isEmpty()) {
                 throw new IllegalArgumentException("Price cannot be empty");
             }
@@ -69,12 +69,12 @@ public class ImportExportService {
             
             return DragonBatchImportRequest.Item.builder()
                 .barCode(barcode.trim())
-                .itemTitle(row.getOrDefault("itemTitle", ""))
+                .itemTitle(row.getOrDefault("Item Name", ""))
                 .price(price.trim())
-                .originalPrice(row.getOrDefault("originalPrice", null))
-                .unit(row.getOrDefault("unit", null))
-                .productArea(row.getOrDefault("productArea", null))
-                .spec(row.getOrDefault("spec", null))
+                .originalPrice(row.getOrDefault("The original price of goods (unit yuan, support five decimal places)", null))
+                .unit(row.getOrDefault("Unit", null))
+                .productArea(row.getOrDefault("Origin", null))
+                .spec(row.getOrDefault("Specifications", null))
                 .build();
         }, validItems);
         
@@ -131,18 +131,32 @@ public class ImportExportService {
     }
 
     public byte[] getProductImportTemplate() throws IOException {
-        List<String> headers = Arrays.asList("barcode", "itemTitle", "price", "originalPrice", "unit", "productArea", "spec");
+        List<String> headers = new ArrayList<>(Arrays.asList(
+            "Item Code", "Item Barcode*", "Own Code", "Item Name", 
+            "The original price of goods (unit yuan, support five decimal places)", 
+            "Product sales price (unit yuan, support five decimal places)", 
+            "Member price (unit yuan, support five decimal places)", 
+            "Template Category*", "Template Type*", "Unit", "Level", "Origin", "Specifications", 
+            "Stock 1", "Stock 2", "Stock 3", "Qrcode Link", "Nfc Url", "Item Abbr.", "Time1", "Time2", "Copywriting"
+        ));
+        for (int i = 1; i <= 50; i++) {
+            headers.add("Custom field " + i);
+        }
+        headers.add("Label");
+
         List<Map<String, Object>> rows = new ArrayList<>();
         
         // Sample row
         Map<String, Object> sample = new LinkedHashMap<>();
-        sample.put("barcode", "123456789012");
-        sample.put("itemTitle", "Sample Product");
-        sample.put("price", "9.99");
-        sample.put("originalPrice", "12.99");
-        sample.put("unit", "pcs");
-        sample.put("productArea", "Aisle 1");
-        sample.put("spec", "100g");
+        sample.put("Item Barcode*", "123456789012");
+        sample.put("Item Name", "Sample Product");
+        sample.put("Product sales price (unit yuan, support five decimal places)", "9.99");
+        sample.put("The original price of goods (unit yuan, support five decimal places)", "12.99");
+        sample.put("Unit", "pcs");
+        sample.put("Origin", "Aisle 1");
+        sample.put("Specifications", "100g");
+        sample.put("Template Category*", "Default");
+        sample.put("Template Type*", "Default");
         rows.add(sample);
         
         return ExcelExportUtil.generateExcel(headers, rows);
@@ -245,14 +259,15 @@ public class ImportExportService {
         log.info("Starting ESL Tag Import. File: {}, StoreId: {}", file.getOriginalFilename(), storeId);
         
         String[] expectedHeaders = {
-            "eslBarcode", "itemBarcode"
+            "ESL Barcode", "Item Barcode"
         };
         
         List<DragonBatchBindRequest.TagItemBind> validItems = new ArrayList<>();
         
         ImportResponse response = ExcelImportUtil.parseExcel(file, expectedHeaders, row -> {
-            String eslBarcode = row.get("eslBarcode");
-            String itemBarcode = row.get("itemBarcode");
+            String eslBarcode = row.get("ESL Barcode");
+            String itemBarcode = row.get("Item Barcode");
+            String apMac = row.get("AP mac");
             
             if (eslBarcode == null || eslBarcode.trim().isEmpty()) {
                 throw new IllegalArgumentException("ESL Barcode cannot be empty");
@@ -298,13 +313,14 @@ public class ImportExportService {
         
         PagedResponse<EslResponse> pagedResponse = deviceService.getEslDevices(0, 100000, storeId, null);
         
-        List<String> headers = Arrays.asList("ESL Barcode", "Product Barcode", "Status", "Battery", "Bind State", "Last Sync");
+        List<String> headers = Arrays.asList("ESL Barcode", "Item Barcode", "AP mac", "Status", "Battery", "Bind State", "Last Sync");
         List<Map<String, Object>> rows = new ArrayList<>();
         
         for (EslResponse t : pagedResponse.getContent()) {
             Map<String, Object> row = new LinkedHashMap<>();
             row.put("ESL Barcode", t.getPriceTagCode());
-            row.put("Product Barcode", t.getItemBarCode());
+            row.put("Item Barcode", t.getItemBarCode());
+            row.put("AP mac", "");
             row.put("Status", t.getState());
             row.put("Battery", t.getBattery());
             row.put("Bind State", t.getBindState());
@@ -316,12 +332,13 @@ public class ImportExportService {
     }
 
     public byte[] getEslTagImportTemplate() throws IOException {
-        List<String> headers = Arrays.asList("eslBarcode", "itemBarcode");
+        List<String> headers = Arrays.asList("ESL Barcode", "Item Barcode", "AP mac");
         List<Map<String, Object>> rows = new ArrayList<>();
         
         Map<String, Object> sample = new LinkedHashMap<>();
-        sample.put("eslBarcode", "A0A3B8204C96");
-        sample.put("itemBarcode", "123456789012");
+        sample.put("ESL Barcode", "A0A3B8204C96");
+        sample.put("Item Barcode", "123456789012");
+        sample.put("AP mac", "");
         rows.add(sample);
         
         return ExcelExportUtil.generateExcel(headers, rows);

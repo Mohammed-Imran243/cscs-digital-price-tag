@@ -127,11 +127,11 @@ const Devices: React.FC = () => {
             setSelectedStoreId(response[0].storeId);
           }
         } else {
-          setError('No stores found in Dragon ESL. Please set up a store first.');
+          setError('No stores found. Please set up a store first.');
         }
       } catch (err: any) {
         console.error('Failed to load stores:', err);
-        setError('Failed to fetch stores from Dragon ESL.');
+        setError('Failed to fetch stores.');
       } finally {
         setStoresLoading(false);
       }
@@ -625,21 +625,34 @@ const Devices: React.FC = () => {
                 onClick={() => { setBindModalTab('bind'); openBindModal('bind'); }} 
                 disabled={!selectedStoreId || storesLoading}
               >
-                <Link2 size={18} /> Bind / ربط
+                <Link2 size={18} /> Bind
               </button>
               <button 
-                className="btn-primary" 
+                className="btn-secondary" 
                 onClick={() => { setBindModalTab('unbind'); openBindModal('unbind'); }} 
                 disabled={!selectedStoreId || storesLoading}
               >
-                <Link2 size={18} style={{ transform: 'rotate(90deg)' }} /> Unbind / إلغاء الربط
+                <Link2 size={18} style={{ transform: 'rotate(90deg)' }} /> Unbind
               </button>
               <button
-                className="btn-secondary"
+                className="btn-primary"
                 onClick={() => setShowEslImportExport(true)}
                 disabled={!selectedStoreId || storesLoading}
               >
-                <Upload size={18} /> Import / Export
+                <Upload size={18} /> Batch Bind
+              </button>
+              <button
+                className="btn-secondary"
+                onClick={async () => {
+                  try {
+                    await exportEslTags(selectedStoreId);
+                  } catch (e) {
+                    console.error('Export failed', e);
+                  }
+                }}
+                disabled={!selectedStoreId || storesLoading}
+              >
+                Export Binding Relationship
               </button>
             </div>
           )}

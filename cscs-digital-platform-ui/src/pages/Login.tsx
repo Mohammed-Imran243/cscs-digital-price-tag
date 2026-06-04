@@ -24,8 +24,8 @@ const LoginPage: React.FC = () => {
       const rawError = err.response?.data?.message || '';
       let friendlyMsg = 'Invalid username or password. Please verify your ESL credentials and try again. / اسم المستخدم أو كلمة المرور غير صالحة. يرجى التحقق من بيانات اعتماد ESL والمحاولة مرة أخرى.';
       
-      if (rawError.includes('resolve') || rawError.includes('Network') || rawError.includes('Failed to resolve')) {
-        friendlyMsg = 'Network error: Failed to connect to Dragon ESL server. Please check your internet connection. / خطأ في الشبكة: فشل الاتصال بخادم Dragon ESL. يرجى التحقق من اتصالك بالإنترنت.';
+      if (rawError.includes('resolve') || rawError.includes('Failed to resolve') || err.message === 'Network Error' || String(err).includes('Network Error')) {
+        friendlyMsg = 'Network error: Failed to connect to the server. Please check your internet connection. / خطأ في الشبكة: فشل الاتصال بالخادم. يرجى التحقق من اتصالك بالإنترنت.';
       }
       
       setError(friendlyMsg);
