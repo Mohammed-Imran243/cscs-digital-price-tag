@@ -7,7 +7,7 @@ import type { Store } from '../services/storeService';
 import { Search, Plus, Loader2, AlertTriangle, RefreshCw, Package, Store as StoreIcon, Upload, Edit2, Trash2, Copy } from 'lucide-react';
 import { getPaginationRange } from '../utils/paginationUtils';
 import { getTemplates, getCategories, getTemplateTypes } from '../services/templateService';
-import { PageHeader, PageToolbar, ActionButtons } from '../components/common';
+import { PageHeader, PageToolbar, ActionButtons, StoreSelector } from '../components/common';
 import ImportExportModal from '../components/ImportExportModal';
 import { importProducts, exportProducts, downloadProductImportTemplate } from '../services/importExportService';
 
@@ -125,9 +125,6 @@ const SearchableDropdown: React.FC<SearchableDropdownProps> = ({
 const Products: React.FC = () => {
   const [stores, setStores] = useState<Store[]>([]);
   const [selectedStore, setSelectedStore] = useState<string>('');
-  const [selectedProductIds, setSelectedProductIds] = useState<string[]>([]);
-  const [isSelectMode, setIsSelectMode] = useState(false);
-  
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState('');
@@ -172,9 +169,7 @@ const Products: React.FC = () => {
   }, [selectedStore, debouncedSearch]);
 
   useEffect(() => {
-    setSelectedProductIds([]);
-    setIsSelectMode(false);
-  }, [selectedStore]);
+    }, [selectedStore]);
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
@@ -502,7 +497,6 @@ const Products: React.FC = () => {
         try {
           await deleteProductFromStore(product.id, selectedStore, product.barcode);
           showNotification('Product removed from store successfully / تم حذف المنتج من المتجر بنجاح', 'success');
-          setSelectedProductIds(prev => prev.filter(id => id !== product.id));
           // Remove deleted product from local state immediately
           setProducts(prev => prev.filter(p => p.id !== product.id));
           // Then refresh from server after delay
@@ -527,7 +521,6 @@ const Products: React.FC = () => {
         try {
           await deleteAllProductsFromStore(selectedStore);
           showNotification('All products deleted from store successfully / تم حذف جميع المنتجات من المتجر بنجاح', 'success');
-          setSelectedProductIds([]);
           setTimeout(() => fetchProducts(), 2000);
         } catch (err: any) {
           console.error('Failed to delete all products from store', err);
@@ -540,34 +533,7 @@ const Products: React.FC = () => {
     });
   };
 
-  const handleDeleteSelected = () => {
-    if (selectedProductIds.length === 0) return;
-    setConfirmDialog({
-      isOpen: true,
-      title: 'Delete Selected Products / حذف المنتجات المحددة',
-      message: 'Are you sure you want to delete the selected products from this store? This cannot be undone. / هل أنت متأكد من حذف المنتجات المحددة من هذا المتجر؟ لا يمكن التراجع عن ذلك.',
-      onConfirm: async () => {
-        setLoading(true);
-        try {
-          for (const id of selectedProductIds) {
-            const product = products.find(p => p.id === id);
-            if (product) {
-              await deleteProductFromStore(product.id, selectedStore, product.barcode);
-            }
-          }
-          showNotification('Selected products deleted successfully / تم حذف المنتجات المحددة بنجاح', 'success');
-          setSelectedProductIds([]);
-          setTimeout(() => fetchProducts(), 2000);
-        } catch (err: any) {
-          console.error('Failed to delete selected products', err);
-          const msg = err.response?.data?.message || err.message || 'Unknown error';
-          showNotification(`Failed to delete selected products from store: ${msg} / فشل حذف المنتجات المحددة من المتجر: ${msg}`, 'error');
-        } finally {
-          setLoading(false);
-        }
-      }
-    });
-  };
+  ;
 
   const openEditProductModal = (product: Product, viewOnly = false) => {
     setIsViewOnly(viewOnly);
@@ -674,21 +640,11 @@ const Products: React.FC = () => {
     />
     <PageToolbar>
         <div style={{ display: 'flex', gap: '16px', flex: 1, alignItems: 'center' }}>
-          <div className="store-selector-wrapper">
-            <StoreIcon size={16} className="text-muted" />
-            <select 
-              value={selectedStore} 
-              onChange={(e) => setSelectedStore(e.target.value)}
-              className="glass-select"
-            >
-              <option value="">Select a Store... / اختر متجراً...</option>
-              {stores.map(store => (
-                <option key={store.storeId} value={store.storeId}>
-                  {store.storeName} {store.externalStoreId ? `(${store.externalStoreId})` : ''}
-                </option>
-              ))}
-            </select>
-          </div>
+          <StoreSelector 
+              stores={stores} 
+              selectedStore={selectedStore} 
+              onSelect={setSelectedStore} 
+            />
           <div className="global-search-bar">
             <Search size={16} className="text-muted" />
             <input
@@ -699,10 +655,7 @@ const Products: React.FC = () => {
             />
           </div>
           
-          <button className="btn-action btn-action-slate">
-            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon></svg>
-            Filter
-          </button>
+          
         </div>
         <ActionButtons
           onRefresh={() => fetchProducts()}
@@ -712,93 +665,12 @@ const Products: React.FC = () => {
           addLabel="Add Product"
           addLabelAr="إضافة منتج"
           loading={loading}
-          isSelectMode={isSelectMode}
           onCancelSelectMode={() => {
-            setIsSelectMode(false);
-            setSelectedProductIds([]);
-          }}
+            }}
         />
       </PageToolbar>
 
-      {selectedProductIds.length > 0 && (
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 24px', background: 'var(--glass-card)', borderBottom: '1px solid var(--glass-border)', margin: '0 24px 20px', borderRadius: '12px' }}>
-           <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-             <button className="btn-action btn-action-slate" style={{ background: 'var(--bg-secondary)' }}>
-                Bulk Actions <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
-             </button>
-             <span style={{ fontSize: '14px', color: 'var(--text-secondary)', fontWeight: 500 }}>
-               {selectedProductIds.length} Products Selected / {selectedProductIds.length} منتجات محددة
-             </span>
-           </div>
-           <div style={{ display: 'flex', gap: '12px' }}>
-             <button 
-                className="btn-action btn-action-orange" 
-                onClick={() => setShowImportExport(true)}
-              >
-                Export Selected / تصدير المحدد
-              </button>
-              <button 
-                className="btn-action btn-action-red" 
-                onClick={() => {
-                  setConfirmDialog({
-                    isOpen: true,
-                    title: 'Delete Selected Products / حذف المنتجات المحددة',
-                    message: `Are you sure you want to delete ${selectedProductIds.length} products from this store? / هل أنت متأكد من حذف ${selectedProductIds.length} منتجات من هذا المتجر؟`,
-                    onConfirm: async () => {
-                      setLoading(true);
-                      try {
-                        for (const id of selectedProductIds) {
-                          const product = products.find(p => p.id === id);
-                          if (product) {
-                            await deleteProductFromStore(product.id, selectedStore, product.barcode);
-                          }
-                        }
-                        showNotification('Selected products deleted successfully / تم حذف المنتجات المحددة بنجاح', 'success');
-                        setSelectedProductIds([]);
-                        setIsSelectMode(false);
-                        setTimeout(() => fetchProducts(), 2000);
-                      } catch (err) {
-                        showNotification(`Failed to delete selected products`, 'error');
-                      } finally {
-                        setLoading(false);
-                      }
-                    }
-                  });
-                }}
-              >
-                <Trash2 size={16} />
-                Delete Selected / حذف المحدد
-              </button>
-              <button 
-                className="btn-action btn-action-red" 
-                onClick={() => {
-                   setConfirmDialog({
-                    isOpen: true,
-                    title: 'Delete All Products / حذف كل المنتجات',
-                    message: `Delete ${products.length} products from ${stores.find(s => s.storeId === selectedStore)?.storeName}? This cannot be undone. / هل أنت متأكد من حذف كل المنتجات؟`,
-                    onConfirm: async () => {
-                      setLoading(true);
-                      try {
-                        await deleteAllProductsFromStore(selectedStore);
-                        showNotification('All products deleted successfully', 'success');
-                        setSelectedProductIds([]);
-                        setIsSelectMode(false);
-                        setTimeout(() => fetchProducts(), 2000);
-                      } catch (err) {
-                        showNotification(`Failed to delete all products`, 'error');
-                      } finally {
-                        setLoading(false);
-                      }
-                    }
-                  });
-                }}
-              >
-                <Trash2 size={16} />
-                Delete All Products / حذف الكل
-              </button>
-           </div>
-        </div>
-      )}
+      
 
     <ImportExportModal
       isOpen={showImportExport}
@@ -831,28 +703,6 @@ const Products: React.FC = () => {
       <div className="products-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '20px', width: '100%', marginBottom: '24px' }}>
         {products.map(product => (
           <div key={product.id} className="store-card glass-card" style={{ padding: '20px', borderRadius: '16px', border: '1px solid var(--glass-border)', display: 'flex', flexDirection: 'column', background: 'var(--glass-card)', transition: 'transform 0.2s, box-shadow 0.2s', position: 'relative' }}>
-            {isSelectMode && (
-              <input 
-                type="checkbox" 
-                checked={selectedProductIds.includes(product.id)}
-                onChange={(e) => {
-                  const checked = e.target.checked;
-                  setSelectedProductIds(prev => 
-                    checked ? [...prev, product.id] : prev.filter(id => id !== product.id)
-                  );
-                }}
-                style={{ 
-                  position: 'absolute', 
-                  top: '10px', 
-                  left: '10px', 
-                  width: '18px', 
-                  height: '18px', 
-                  cursor: 'pointer',
-                  accentColor: 'var(--primary-color)',
-                  zIndex: 10
-                }}
-              />
-            )}
             <div className="store-card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px', paddingLeft: '8px' }}>
               <div className="store-icon-wrapper" style={{ width: '38px', height: '38px', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(135deg, var(--primary-color), #8b5cf6)', color: 'white' }}>
                 <Package size={20} />

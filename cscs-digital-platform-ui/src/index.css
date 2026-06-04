@@ -3,3 +3,47 @@ body {
   margin: 0;
   padding: 0;
 }
+
+/* Global Search Input Standardization */
+.global-search-bar input {
+  min-width: var(--search-width) !important;
+  max-width: var(--search-width-lg) !important;
+  width: 100% !important;
+  height: 42px !important;
+  border-radius: 12px !important;
+}
+
+/* Enterprise Tabs Styling */
+.enterprise-tabs-container {
+  margin-bottom: 20px;
+}
+.enterprise-tab {
+  padding: 12px 24px;
+  background: transparent;
+  border: none;
+  border-bottom: 3px solid transparent;
+  color: var(--text-secondary);
+  font-weight: 500;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.enterprise-tab:hover {
+  background: rgba(0, 0, 0, 0.03);
+  color: var(--text-primary);
+}
+.dark .enterprise-tab:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+.enterprise-tab.active {
+  color: var(--primary-color);
+  border-bottom-color: var(--primary-color);
+  background: linear-gradient(to top, rgba(59, 130, 246, 0.05) 0%, transparent 100%);
+}
+.enterprise-tab .tab-ar {
+  font-size: 13px;
+  opacity: 0.8;
+}

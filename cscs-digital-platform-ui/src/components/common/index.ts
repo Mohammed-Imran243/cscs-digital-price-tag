@@ -7,3 +7,5 @@ export * from './StatusBadge';
 export * from './PagePagination';
 export * from './CardGridLayout';
 export * from './DataTable';
+
+export * from "./StoreSelector";

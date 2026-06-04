@@ -63,6 +63,13 @@ const Templates: React.FC = () => {
                         tabParam === 'store' ? 'store' :
                         tabParam === 'business_icon' ? 'business_icon' : 'store';
 
+  useEffect(() => {
+    if (!['store', 'store_icon', 'properties'].includes(activeMenuTab)) {
+      navigate('?tab=store', { replace: true });
+    }
+  }, [activeMenuTab, navigate]);
+
+
   // Sub-navigation State for Merchant Template Tab (Zkong Scenario tabs)
   const [merchantScenario, setMerchantScenario] = useState<number>(1); // 1: Single, 4: Multi, 3: Segment, 2: Unbind
 
@@ -156,6 +163,7 @@ const Templates: React.FC = () => {
 
   // Creation Modals & Submitting States
   const [isTemplateModalOpen, setIsTemplateModalOpen] = useState(false);
+  const [isStoreIconModalOpen, setIsStoreIconModalOpen] = useState(false);
   const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [previewTemplate, setPreviewTemplate] = useState<Template | null>(null);
@@ -674,7 +682,7 @@ const Templates: React.FC = () => {
       </div>
       <PageToolbar>
         <div style={{ display: 'flex', gap: '16px', flex: 1, alignItems: 'center' }}>
-          {(activeMenuTab === 'store' || activeMenuTab === 'store_icon') && (
+          {activeMenuTab === 'store' && (
             <StoreSelector
               stores={stores}
               selectedStore={selectedStore}
@@ -683,26 +691,28 @@ const Templates: React.FC = () => {
             />
           )}
           
-          <button 
-            className={`btn-action btn-action-slate ${showFilters ? 'active' : ''}`} 
-            onClick={() => setShowFilters(!showFilters)}
-            title="Filters / التصفية"
-            style={{ position: 'relative' }}
-          >
-            <Filter size={18} />
-            {isFilterActive && (
-              <span style={{
-                position: 'absolute',
-                top: '4px',
-                right: '4px',
-                width: '6px',
-                height: '6px',
-                borderRadius: '50%',
-                backgroundColor: '#3b82f6',
-                border: '1px solid var(--glass-border)'
-              }} />
-            )}
-          </button>
+          {activeMenuTab === 'store' && (
+            <button 
+              className={`btn-action btn-action-slate ${showFilters ? 'active' : ''}`} 
+              onClick={() => setShowFilters(!showFilters)}
+              title="Filters / التصفية"
+              style={{ position: 'relative' }}
+            >
+              <Filter size={18} />
+              {isFilterActive && (
+                <span style={{
+                  position: 'absolute',
+                  top: '4px',
+                  right: '4px',
+                  width: '6px',
+                  height: '6px',
+                  borderRadius: '50%',
+                  backgroundColor: '#3b82f6',
+                  border: '1px solid var(--glass-border)'
+                }} />
+              )}
+            </button>
+          )}
 
           <div className="global-search-bar">
             <Search size={16} className="text-muted" />
@@ -722,7 +732,7 @@ const Templates: React.FC = () => {
           }}
           onImport={activeMenuTab === 'store' ? () => setShowTemplateImportExport(true) : undefined}
           onExport={activeMenuTab === 'store' ? () => setShowTemplateImportExport(true) : undefined}
-          onAdd={activeMenuTab === 'store' ? () => setIsTemplateModalOpen(true) : undefined}
+          onAdd={activeMenuTab === 'store' ? () => setIsTemplateModalOpen(true) : activeMenuTab === 'store_icon' ? () => setIsStoreIconModalOpen(true) : undefined}
           addLabel="Add Store Template"
           addLabelAr="إضافة قالب متجر"
           loading={loading}
