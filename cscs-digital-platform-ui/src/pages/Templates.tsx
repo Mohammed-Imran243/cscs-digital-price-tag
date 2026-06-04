@@ -156,6 +156,7 @@ const Templates: React.FC = () => {
 
   // Creation Modals & Submitting States
   const [isTemplateModalOpen, setIsTemplateModalOpen] = useState(false);
+  const [isStoreIconModalOpen, setIsStoreIconModalOpen] = useState(false);
   const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [previewTemplate, setPreviewTemplate] = useState<Template | null>(null);
@@ -907,15 +908,6 @@ const Templates: React.FC = () => {
           {/* ================= SECTION 3: STORE ICONS ================= */}
           {activeMenuTab === 'store_icon' && (
             <div className="workspace-tab-content">
-              <div className="icon-actions-bar">
-                <button className="btn-primary sm-btn">
-                  <Plus size={16} />
-                  {(activeMenuTab as string) === 'business_icon'
-                    ? 'Add Merchant Icon / إضافة أيقونة التاجر'
-                    : 'Add Store Icon / إضافة أيقونة المتجر'}
-                </button>
-              </div>
-
               {/* Custom Folder Empty State Table */}
               <div className="zkong-table-container glass-card">
                 {loading ? (
