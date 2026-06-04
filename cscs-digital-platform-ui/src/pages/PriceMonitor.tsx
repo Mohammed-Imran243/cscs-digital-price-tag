@@ -242,3 +242,4 @@ const PriceMonitor: React.FC = () => {
 };
 
 export default PriceMonitor;
+

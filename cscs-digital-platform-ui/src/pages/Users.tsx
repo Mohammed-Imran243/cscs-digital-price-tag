@@ -653,70 +653,72 @@ const [showUserFilters, setShowUserFilters] = useState(false);
         </div>
       )}
 
-      {/* Header */}
-      <PageHeader title="User Management / إدارة المستخدمين"
-        titleAr="" />
-      <PageToolbar>
-        <div style={{ display: 'flex', gap: '16px', flex: 1, alignItems: 'center' }}>
-          
-          <div className="global-search-bar" style={{ flex: 1, minWidth: 'var(--search-min-width)' }}>
-          <Search size={16} className="text-muted" />
-          <input
-            type="text"
-            placeholder="Search users... / ابحث عن المستخدمين..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-        </div>
-        </div>
-        <ActionButtons
-          onRefresh={fetchData}
-          onAdd={() => setIsUserModalOpen(true)}
-          addLabel="Add User"
-          addLabelAr="إضافة مستخدم"
-          loading={loading}
-        />
-      </PageToolbar>
-      {/* Users Filter Panel */}
-      {showUserFilters && (
-        <div className="templates-filters glass-card" style={{ padding: '12px 16px', border: '1px solid var(--glass-border)', marginBottom: '16px', background: 'rgba(255,255,255,0.02)', display: 'flex', flexDirection: 'row', alignItems: 'flex-end', gap: '16px', flexWrap: 'wrap', borderRadius: '12px' }}>
-          <div className="filter-group" style={{ display: 'flex', flexDirection: 'column', gap: '4px', flex: '1 1 200px', minWidth: '150px' }}>
-            <label style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-secondary)' }}>Role / الدور</label>
-            <select value={filterRole} onChange={e => setFilterRole(e.target.value)} className="glass-select" style={{ height: '36px', borderRadius: '8px', fontSize: '13px' }}>
-              <option value="All">All Roles / جميع الأدوار</option>
-              {roles.map((r: any) => (
-                <option key={r.id} value={String(r.id)}>{r.roleName || r.name}</option>
-              ))}
-            </select>
+      <div className="sticky-page-header">
+        {/* Header */}
+        <PageHeader title="User Management / إدارة المستخدمين"
+          titleAr="" />
+        <PageToolbar>
+          <div style={{ display: 'flex', gap: '16px', flex: 1, alignItems: 'center' }}>
+            
+            <div className="global-search-bar" style={{ flex: 1, minWidth: 'var(--search-min-width)' }}>
+            <Search size={16} className="text-muted" />
+            <input
+              type="text"
+              placeholder={activeTab === 'roles' ? "Search roles... / ابحث عن الأدوار..." : "Search users... / ابحث عن المستخدمين..."}
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
           </div>
-          <button onClick={() => { setFilterRole('All'); }} style={{ background: 'none', border: 'none', color: 'var(--primary-color)', cursor: 'pointer', fontSize: '13px', fontWeight: 600, padding: '8px 12px', alignSelf: 'flex-end', whiteSpace: 'nowrap', marginLeft: 'auto' }}>
-            Reset Filters / إعادة تعيين
+          </div>
+          <ActionButtons
+            onRefresh={fetchData}
+            onAdd={activeTab === 'roles' ? handleOpenCreateRole : handleOpenCreateUser}
+            addLabel={activeTab === 'roles' ? "Add Role" : "Add User"}
+            addLabelAr={activeTab === 'roles' ? "إضافة دور" : "إضافة مستخدم"}
+            loading={loading}
+          />
+        </PageToolbar>
+        {/* Users Filter Panel */}
+        {showUserFilters && (
+          <div className="templates-filters glass-card" style={{ padding: '12px 16px', border: '1px solid var(--glass-border)', marginBottom: '16px', background: 'rgba(255,255,255,0.02)', display: 'flex', flexDirection: 'row', alignItems: 'flex-end', gap: '16px', flexWrap: 'wrap', borderRadius: '12px' }}>
+            <div className="filter-group" style={{ display: 'flex', flexDirection: 'column', gap: '4px', flex: '1 1 200px', minWidth: '150px' }}>
+              <label style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-secondary)' }}>Role / الدور</label>
+              <select value={filterRole} onChange={e => setFilterRole(e.target.value)} className="glass-select" style={{ height: '36px', borderRadius: '8px', fontSize: '13px' }}>
+                <option value="All">All Roles / جميع الأدوار</option>
+                {roles.map((r: any) => (
+                  <option key={r.id} value={String(r.id)}>{r.roleName || r.name}</option>
+                ))}
+              </select>
+            </div>
+            <button onClick={() => { setFilterRole('All'); }} style={{ background: 'none', border: 'none', color: 'var(--primary-color)', cursor: 'pointer', fontSize: '13px', fontWeight: 600, padding: '8px 12px', alignSelf: 'flex-end', whiteSpace: 'nowrap', marginLeft: 'auto' }}>
+              Reset Filters / إعادة تعيين
+            </button>
+          </div>
+        )}
+  
+        {/* Navigation Tabs */}
+        <div className="nav-tabs-container" style={{ margin: '0 24px', marginBottom: '8px' }}>
+          <button
+            className={`nav-tab ${activeTab === 'users' ? 'active' : ''}`}
+            onClick={() => {
+              setActiveTab('users');
+              setSearchTerm('');
+            }}
+          >
+            <UserIcon size={16} />
+            <span>Staff Users / الموظفين</span>
+          </button>
+          <button
+            className={`nav-tab ${activeTab === 'roles' ? 'active' : ''}`}
+            onClick={() => {
+              setActiveTab('roles');
+              setSearchTerm('');
+            }}
+          >
+            <Shield size={16} />
+            <span>{t('Security Roles', 'أدوار الأمان')}</span>
           </button>
         </div>
-      )}
-
-      {/* Navigation Tabs */}
-      <div className="nav-tabs-container" style={{ margin: '0 24px' }}>
-        <button
-          className={`nav-tab ${activeTab === 'users' ? 'active' : ''}`}
-          onClick={() => {
-            setActiveTab('users');
-            setSearchTerm('');
-          }}
-        >
-          <UserIcon size={16} />
-          <span>Staff Users / الموظفين</span>
-        </button>
-        <button
-          className={`nav-tab ${activeTab === 'roles' ? 'active' : ''}`}
-          onClick={() => {
-            setActiveTab('roles');
-            setSearchTerm('');
-          }}
-        >
-          <Shield size={16} />
-          <span>{t('Security Roles', 'أدوار الأمان')}</span>
-        </button>
       </div>
 
       {/* Content */}

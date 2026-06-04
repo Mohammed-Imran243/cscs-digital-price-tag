@@ -63,13 +63,6 @@ const Templates: React.FC = () => {
                         tabParam === 'store' ? 'store' :
                         tabParam === 'business_icon' ? 'business_icon' : 'store';
 
-  useEffect(() => {
-    if (!['store', 'store_icon', 'properties'].includes(activeMenuTab)) {
-      navigate('?tab=store', { replace: true });
-    }
-  }, [activeMenuTab, navigate]);
-
-
   // Sub-navigation State for Merchant Template Tab (Zkong Scenario tabs)
   const [merchantScenario, setMerchantScenario] = useState<number>(1); // 1: Single, 4: Multi, 3: Segment, 2: Unbind
 
@@ -163,7 +156,6 @@ const Templates: React.FC = () => {
 
   // Creation Modals & Submitting States
   const [isTemplateModalOpen, setIsTemplateModalOpen] = useState(false);
-  const [isStoreIconModalOpen, setIsStoreIconModalOpen] = useState(false);
   const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [previewTemplate, setPreviewTemplate] = useState<Template | null>(null);
@@ -634,64 +626,64 @@ const Templates: React.FC = () => {
         </div>
       )}
 
-      <PageHeader
-        title="Template Management"
-        titleAr="إدارة القوالب"
-      />
-      <div style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '16px' }}>
-        Templates &gt; <span style={{ color: 'var(--primary-color)', fontWeight: 600 }}>
-          {false && 'Merchant Template / قوالب التاجر'}
-          {activeMenuTab === 'store' && 'Store Template / قوالب المتجر'}
-          {activeMenuTab === 'store_icon' && 'Store Icon / أيقونة المتجر'}
-          {activeMenuTab === 'properties' && 'Template Properties / خصائص القالب'}
-        </span>
-      </div>
-      
-      {/* Top Navigation Tabs */}
-      <div style={{ display: 'flex', gap: '4px', marginBottom: '20px', background: 'var(--glass-card)', borderRadius: '12px', padding: '4px', border: '1px solid var(--glass-border)' }}>
-        <button
-          onClick={() => navigate('/templates?tab=store')}
-          style={{
-            flex: 1, padding: '10px 16px', borderRadius: '8px', border: 'none', cursor: 'pointer', fontWeight: 600, fontSize: '13px', transition: 'all 0.2s',
-            background: activeMenuTab === 'store' ? 'var(--primary-color)' : 'transparent',
-            color: activeMenuTab === 'store' ? '#ffffff' : 'var(--text-secondary)'
-          }}
-        >
-          Store Template / قوالب المتجر
-        </button>
-        <button
-          onClick={() => navigate('/templates?tab=store_icon')}
-          style={{
-            flex: 1, padding: '10px 16px', borderRadius: '8px', border: 'none', cursor: 'pointer', fontWeight: 600, fontSize: '13px', transition: 'all 0.2s',
-            background: activeMenuTab === 'store_icon' ? 'var(--primary-color)' : 'transparent',
-            color: activeMenuTab === 'store_icon' ? '#ffffff' : 'var(--text-secondary)'
-          }}
-        >
-          Store Icon / أيقونة المتجر
-        </button>
-        <button
-          onClick={() => navigate('/templates?tab=properties')}
-          style={{
-            flex: 1, padding: '10px 16px', borderRadius: '8px', border: 'none', cursor: 'pointer', fontWeight: 600, fontSize: '13px', transition: 'all 0.2s',
-            background: activeMenuTab === 'properties' ? 'var(--primary-color)' : 'transparent',
-            color: activeMenuTab === 'properties' ? '#ffffff' : 'var(--text-secondary)'
-          }}
-        >
-          Template Properties / خصائص القالب
-        </button>
-      </div>
-      <PageToolbar>
-        <div style={{ display: 'flex', gap: '16px', flex: 1, alignItems: 'center' }}>
-          {activeMenuTab === 'store' && (
-            <StoreSelector
-              stores={stores}
-              selectedStore={selectedStore}
-              onSelect={setSelectedStore}
-              loading={storesLoading}
-            />
-          )}
-          
-          {activeMenuTab === 'store' && (
+      <div className="sticky-page-header">
+        <PageHeader
+          title="Template Management"
+          titleAr="إدارة القوالب"
+        />
+        <div style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '16px' }}>
+          Templates &gt; <span style={{ color: 'var(--primary-color)', fontWeight: 600 }}>
+            {false && 'Merchant Template / قوالب التاجر'}
+            {activeMenuTab === 'store' && 'Store Template / قوالب المتجر'}
+            {activeMenuTab === 'store_icon' && 'Store Icon / أيقونة المتجر'}
+            {activeMenuTab === 'properties' && 'Template Properties / خصائص القالب'}
+          </span>
+        </div>
+        
+        {/* Top Navigation Tabs */}
+        <div style={{ display: 'flex', gap: '4px', marginBottom: '20px', background: 'var(--glass-card)', borderRadius: '12px', padding: '4px', border: '1px solid var(--glass-border)' }}>
+          <button
+            onClick={() => navigate('/templates?tab=store')}
+            style={{
+              flex: 1, padding: '10px 16px', borderRadius: '8px', border: 'none', cursor: 'pointer', fontWeight: 600, fontSize: '13px', transition: 'all 0.2s',
+              background: activeMenuTab === 'store' ? 'var(--primary-color)' : 'transparent',
+              color: activeMenuTab === 'store' ? '#ffffff' : 'var(--text-secondary)'
+            }}
+          >
+            Store Template / قوالب المتجر
+          </button>
+          <button
+            onClick={() => navigate('/templates?tab=store_icon')}
+            style={{
+              flex: 1, padding: '10px 16px', borderRadius: '8px', border: 'none', cursor: 'pointer', fontWeight: 600, fontSize: '13px', transition: 'all 0.2s',
+              background: activeMenuTab === 'store_icon' ? 'var(--primary-color)' : 'transparent',
+              color: activeMenuTab === 'store_icon' ? '#ffffff' : 'var(--text-secondary)'
+            }}
+          >
+            Store Icon / أيقونة المتجر
+          </button>
+          <button
+            onClick={() => navigate('/templates?tab=properties')}
+            style={{
+              flex: 1, padding: '10px 16px', borderRadius: '8px', border: 'none', cursor: 'pointer', fontWeight: 600, fontSize: '13px', transition: 'all 0.2s',
+              background: activeMenuTab === 'properties' ? 'var(--primary-color)' : 'transparent',
+              color: activeMenuTab === 'properties' ? '#ffffff' : 'var(--text-secondary)'
+            }}
+          >
+            Template Properties / خصائص القالب
+          </button>
+        </div>
+        <PageToolbar>
+          <div style={{ display: 'flex', gap: '16px', flex: 1, alignItems: 'center' }}>
+            {(activeMenuTab === 'store' || activeMenuTab === 'store_icon') && (
+              <StoreSelector
+                stores={stores}
+                selectedStore={selectedStore}
+                onSelect={setSelectedStore}
+                loading={storesLoading}
+              />
+            )}
+            
             <button 
               className={`btn-action btn-action-slate ${showFilters ? 'active' : ''}`} 
               onClick={() => setShowFilters(!showFilters)}
@@ -712,32 +704,32 @@ const Templates: React.FC = () => {
                 }} />
               )}
             </button>
-          )}
-
-          <div className="global-search-bar">
-            <Search size={16} className="text-muted" />
-            <input
-              type="text"
-              placeholder="Search templates... / ابحث عن القوالب..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
+  
+            <div className="global-search-bar">
+              <Search size={16} className="text-muted" />
+              <input
+                type="text"
+                placeholder="Search templates... / ابحث عن القوالب..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+            </div>
           </div>
-        </div>
-        
-        <ActionButtons
-          onRefresh={() => {
-            if (activeMenuTab === 'store') fetchTemplatesList();
-            else if (activeMenuTab === 'store_icon') fetchStoreIconsList();
-          }}
-          onImport={activeMenuTab === 'store' ? () => setShowTemplateImportExport(true) : undefined}
-          onExport={activeMenuTab === 'store' ? () => setShowTemplateImportExport(true) : undefined}
-          onAdd={activeMenuTab === 'store' ? () => setIsTemplateModalOpen(true) : activeMenuTab === 'store_icon' ? () => setIsStoreIconModalOpen(true) : undefined}
-          addLabel="Add Store Template"
-          addLabelAr="إضافة قالب متجر"
-          loading={loading}
-        />
-      </PageToolbar>
+          
+          <ActionButtons
+            onRefresh={() => {
+              if (activeMenuTab === 'store') fetchTemplatesList();
+              else if (activeMenuTab === 'store_icon') fetchStoreIconsList();
+            }}
+            onImport={activeMenuTab === 'store' ? () => setShowTemplateImportExport(true) : undefined}
+            onExport={activeMenuTab === 'store' ? () => setShowTemplateImportExport(true) : undefined}
+            onAdd={activeMenuTab === 'store' ? () => setIsTemplateModalOpen(true) : undefined}
+            addLabel="Add Store Template"
+            addLabelAr="إضافة قالب متجر"
+            loading={loading}
+          />
+        </PageToolbar>
+      </div>
 
       <ImportExportModal
         isOpen={showTemplateImportExport}
