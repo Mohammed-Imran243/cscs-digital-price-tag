@@ -107,8 +107,8 @@ public class ProductService {
                 for (int p = startZkongPage; p <= endZkongPage; p++) {
                     try {
                         String url = isStoreSpecific 
-                                ? "/zk/erp/item/list?page=" + p + "&size=" + zkongPageSize 
-                                : "/zk/item/list/" + p + "/0/" + zkongPageSize + "/" + storeId;
+                                ? "/zk/item/list/" + p + "/0/" + zkongPageSize + "/" + storeId
+                                : "/zk/erp/item/list?page=" + p + "&size=" + zkongPageSize;
                         Map<?, ?> resp = dragonEslApiClient.post(
                                 url,
                                 body,
@@ -146,45 +146,8 @@ public class ProductService {
                 return new PagedResponse<>(Collections.emptyList(), page, size, 0);
             }
 
-            if (storeId != null && !storeId.isBlank() 
-                && !storeId.trim().equals("0")) {
-                
-                for (Map<?, ?> response : responses) {
-                    Object dataObj = response.get("data");
-                    if (dataObj instanceof Map) {
-                        Map<String, Object> dataMap = (Map<String, Object>) dataObj;
-                        Object listObj = dataMap.get("list");
-                        if (listObj == null) {
-                            listObj = dataMap.get("rows");
-                        }
-                        if (listObj instanceof List) {
-                            List<Map<String, Object>> allItems = (List<Map<String, Object>>) listObj;
-                            try {
-                                allItems.removeIf(item -> {
-                                    Object itemStoreId = item.get("storeId");
-                                    if (itemStoreId == null) return true;
-                                    String sid = itemStoreId.toString().trim();
-                                    return sid.equals("0") || sid.isBlank();
-                                });
-                            } catch (UnsupportedOperationException e) {
-                                List<Map<String, Object>> mutableList = new ArrayList<>(allItems);
-                                mutableList.removeIf(item -> {
-                                    Object itemStoreId = item.get("storeId");
-                                    if (itemStoreId == null) return true;
-                                    String sid = itemStoreId.toString().trim();
-                                    return sid.equals("0") || sid.isBlank();
-                                });
-                                dataMap.put("list", mutableList);
-                                if (dataMap.containsKey("rows")) {
-                                    dataMap.put("rows", mutableList);
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-
-            PagedResponse<ProductResponse> pagedResponse = mergeAndParseResponses(responses, page, size, barcodeFilter, searchLower, localStart);
+            // Filter logic has been moved inside mergeAndParseResponses
+            PagedResponse<ProductResponse> pagedResponse = mergeAndParseResponses(responses, page, size, barcodeFilter, searchLower, localStart, storeId);
 
             if (storeId != null && !storeId.isBlank() 
                 && !storeId.trim().equals("0")) {
@@ -193,27 +156,7 @@ public class ProductService {
                 if (barcodeFilter != null || searchLower != null) {
                     totalCount = pagedResponse.getTotalElements();
                 } else {
-                    Set<String> uniqueIds = new HashSet<>();
-                    for (Map<?, ?> response : responses) {
-                        Object dataObj = response.get("data");
-                        if (dataObj instanceof Map) {
-                            Map<String, Object> dataMap = (Map<String, Object>) dataObj;
-                            Object listObj = dataMap.get("list");
-                            if (listObj == null) {
-                                listObj = dataMap.get("rows");
-                            }
-                            if (listObj instanceof List) {
-                                List<Map<String, Object>> list = (List<Map<String, Object>>) listObj;
-                                for (Map<String, Object> item : list) {
-                                    Object idObj = item.get("id");
-                                    if (idObj != null) {
-                                        uniqueIds.add(idObj.toString());
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    totalCount = uniqueIds.size();
+                    totalCount = pagedResponse.getTotalElements(); // Simplified, since we now filter accurately
                 }
                 
                 pagedResponse.setTotalElements(totalCount);
@@ -232,7 +175,7 @@ public class ProductService {
 
     @SuppressWarnings("unchecked")
     private PagedResponse<ProductResponse> mergeAndParseResponses(
-            List<Map<?, ?>> responses, int page, int size, String barcodeFilter, String searchLower, int localStart) {
+            List<Map<?, ?>> responses, int page, int size, String barcodeFilter, String searchLower, int localStart, String storeId) {
         
         Map<String, ProductResponse> deduplicated = new LinkedHashMap<>();
         long totalElements = 0;
@@ -248,6 +191,15 @@ public class ProductService {
                 if (listObj instanceof List) {
                     List<Map<String, Object>> list = (List<Map<String, Object>>) listObj;
                     for (Map<String, Object> rawItem : list) {
+                        
+                        // Apply Store Filtering!
+                        if (storeId != null && !storeId.isBlank() && !storeId.trim().equals("0")) {
+                            Object itemStoreId = rawItem.get("storeId");
+                            if (itemStoreId == null || !itemStoreId.toString().trim().equals(storeId.trim())) {
+                                continue;
+                            }
+                        }
+
                         ProductResponse p = mapFromRawMap(rawItem);
                         if (p != null && p.getId() != null) {
                             deduplicated.put(p.getId(), p);
@@ -908,8 +860,8 @@ public class ProductService {
         try {
             boolean isStoreSpecific = storeId != null && !storeId.isBlank() && !storeId.trim().equals("0");
             String url = isStoreSpecific 
-                    ? "/zk/erp/item/list?page=" + page + "&size=" + size 
-                    : "/zk/item/list/" + page + "/0/" + size + "/" + storeId;
+                    ? "/zk/item/list/" + page + "/0/" + size + "/" + storeId
+                    : "/zk/erp/item/list?page=" + page + "&size=" + size;
             return dragonEslApiClient.post(
                     url,
                     barcodeBody,
@@ -945,8 +897,8 @@ public class ProductService {
         try {
             boolean isStoreSpecific = storeId != null && !storeId.isBlank() && !storeId.trim().equals("0");
             String url = isStoreSpecific 
-                    ? "/zk/erp/item/list?page=" + page + "&size=" + size 
-                    : "/zk/item/list/" + page + "/0/" + size + "/" + storeId;
+                    ? "/zk/item/list/" + page + "/0/" + size + "/" + storeId
+                    : "/zk/erp/item/list?page=" + page + "&size=" + size;
             return dragonEslApiClient.post(
                     url,
                     titleBody,

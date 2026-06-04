@@ -724,9 +724,9 @@ const Templates: React.FC = () => {
             }}
             onImport={activeMenuTab === 'store' ? () => setShowTemplateImportExport(true) : undefined}
             onExport={activeMenuTab === 'store' ? () => setShowTemplateImportExport(true) : undefined}
-            onAdd={activeMenuTab === 'store' ? () => setIsTemplateModalOpen(true) : undefined}
-            addLabel="Add Store Template"
-            addLabelAr="إضافة قالب متجر"
+            onAdd={activeMenuTab === 'store' ? () => setIsTemplateModalOpen(true) : activeMenuTab === 'store_icon' ? () => setIsStoreIconModalOpen(true) : undefined}
+            addLabel={activeMenuTab === 'store_icon' ? 'Add Store Icon' : 'Add Store Template'}
+            addLabelAr={activeMenuTab === 'store_icon' ? '\u0625\u0636\u0627\u0641\u0629 \u0623\u064A\u0642\u0648\u0646\u0629 \u0627\u0644\u0645\u062A\u062C\u0631' : '\u0625\u0636\u0627\u0641\u0629 \u0642\u0627\u0644\u0628 \u0645\u062A\u062C\u0631'}
             loading={loading}
           />
         </PageToolbar>

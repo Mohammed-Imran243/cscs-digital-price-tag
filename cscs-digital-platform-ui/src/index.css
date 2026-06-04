@@ -47,3 +47,22 @@ body {
   font-size: 13px;
   opacity: 0.8;
 }
+
+.icon-action {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  padding: 6px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.icon-action:hover {
+  background: var(--bg-accent);
+  color: var(--primary-color);
+}
+.icon-action.danger:hover {
+  background: rgba(239, 68, 68, 0.1);
+  color: var(--danger-color);
+}
+

@@ -815,10 +815,10 @@ const [showUserFilters, setShowUserFilters] = useState(false);
                   headerAr: 'الإجراءات',
                   render: (user: User) => (
                     <div className="table-actions">
-                      <button className="icon-action" onClick={() => handleOpenEditUser(user)} title={t('Edit User', 'تعديل المستخدم')}>
+                      <button className="icon-action" onClick={() => handleOpenEditUser(user)} title="Edit User">
                         <Edit2 size={16} />
                       </button>
-                      <button className="icon-action danger" onClick={() => user.id && handleUserDelete(user.id)} title={t('Delete User', 'حذف المستخدم')}>
+                      <button className="icon-action danger" onClick={() => user.id && handleUserDelete(user.id)} title="Delete User">
                         <Trash2 size={16} />
                       </button>
                     </div>

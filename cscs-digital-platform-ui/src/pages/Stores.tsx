@@ -327,12 +327,16 @@ const Stores: React.FC = () => {
                   <button className="icon-action" onClick={() => openEditModal(store)} title="Edit Store">
                     <Edit2 size={18} />
                   </button>
-                  <button className="icon-action" onClick={() => handleDisable(store.storeId)} title="Disable Store">
-                    <AlertTriangle size={18} />
-                  </button>
-                  <button className="icon-action danger" onClick={() => setConfirmDialog({ isOpen: true, title: 'Delete Store / حذف المتجر', message: 'Are you sure you want to delete this store? / هل أنت متأكد أنك تريد حذف هذا المتجر؟', onConfirm: () => handleDelete(store.storeId) })} title="Delete Store">
-                    <Trash2 size={18} />
-                  </button>
+                  {store.status === 'ACTIVE' ? (
+                    <button className="icon-action" onClick={() => handleDisable(store.storeId)} title="Disable Store / تعطيل المتجر">
+                      <Power size={18} className="text-warning" style={{ color: '#f59e0b' }} />
+                    </button>
+                  ) : (
+                    <button className="icon-action" onClick={() => handleEnable(store.storeId)} title="Enable Store / تفعيل المتجر">
+                      <Power size={18} className="text-success" style={{ color: '#10b981' }} />
+                    </button>
+                  )}
+
                 </div>
               </div>
             ))}

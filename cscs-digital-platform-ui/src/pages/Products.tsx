@@ -897,18 +897,20 @@ const Products: React.FC = () => {
               </div>
             </div>
 
-            <div className="store-card-actions" style={{ display: 'flex', justifyContent: 'space-between', gap: '6px', paddingTop: '12px', borderTop: '1px solid var(--glass-border)', marginTop: '12px' }}>
+            <div className="store-card-actions" style={{ display: 'flex', justifyContent: 'flex-end', gap: '6px', paddingTop: '12px', borderTop: '1px solid var(--glass-border)', marginTop: '12px' }}>
                 <button 
-                  className="card-action-btn" 
+                  className="icon-action" 
                   onClick={() => openEditProductModal(product)}
+                  title="Edit Product"
                 >
-                  <Edit2 size={14} /> Edit
+                  <Edit2 size={16} />
                 </button>
                 <button 
-                  className="card-action-btn delete-action" 
+                  className="icon-action danger" 
                   onClick={() => handleDeleteStoreOnly(product)}
+                  title="Delete Product"
                 >
-                  <Trash2 size={14} /> Delete
+                  <Trash2 size={16} />
                 </button>
               </div>
           </div>

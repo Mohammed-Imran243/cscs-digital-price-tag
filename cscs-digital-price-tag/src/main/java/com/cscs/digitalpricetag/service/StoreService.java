@@ -280,11 +280,35 @@ public class StoreService {
                 throw new DragonEslException("Store must have a database ID to be deleted", HttpStatus.BAD_REQUEST);
             }
 
-            Map<?, ?> response = dragonEslApiClient.post(
-                    "/zk/store/delete/" + store.getId(),
-                    new HashMap<>(), // empty body
-                    Map.class
-            );
+            List<Long> body = new ArrayList<>();
+            if (store.getId() != null) {
+                try {
+                    body.add(Long.parseLong(store.getId().trim()));
+                } catch (NumberFormatException e) {
+                    // Ignore or handle
+                }
+            }
+
+            Map<?, ?> response = null;
+            try {
+                response = dragonEslApiClient.post("/zk/store/batchDeleteStore", body, Map.class);
+            } catch (DragonEslException ex) {
+                if (ex.getMessage() != null && ex.getMessage().contains("404")) {
+                    try {
+                        response = dragonEslApiClient.post("/zk/store/deleteStore", body, Map.class);
+                    } catch (DragonEslException ex2) {
+                        if (ex2.getMessage() != null && ex2.getMessage().contains("404")) {
+                            response = dragonEslApiClient.post("/zk/store/batchDelete", body, Map.class);
+                        } else {
+                            throw ex2;
+                        }
+                    }
+                } else {
+                    throw ex;
+                }
+            }
+
+            log.info("Zkong delete store response: {}", response);
 
             if (response == null) {
                 throw new DragonEslException("No response from Dragon ESL for delete", HttpStatus.BAD_GATEWAY);
@@ -302,8 +326,8 @@ public class StoreService {
         } catch (DragonEslException e) {
             throw e;
         } catch (Exception e) {
-            log.error("Error deleting store: {}", e.getMessage());
-            throw new DragonEslException("Store delete failed: " + e.getMessage(), HttpStatus.BAD_GATEWAY);
+            log.error("Failed to delete store from Dragon ESL API: {}", e.getMessage(), e);
+            throw new DragonEslException("Failed to delete store: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
