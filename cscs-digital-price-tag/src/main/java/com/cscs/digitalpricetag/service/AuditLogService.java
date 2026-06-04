@@ -33,7 +33,9 @@ public class AuditLogService {
             String startDate,
             String endDate,
             int page,
-            int size) {
+            int size,
+            Integer operation,
+            Integer status) {
 
         try {
             List<Long> targetStoreIds = new ArrayList<>();
@@ -67,14 +69,14 @@ public class AuditLogService {
 
             if (targetStoreIds.size() == 1) {
                 long[] totalHolder = new long[1];
-                List<AuditLogResponse> storeLogs = getMappedLogsForStore(targetStoreIds.get(0), startDate, endDate, page, size, totalHolder);
+                List<AuditLogResponse> storeLogs = getMappedLogsForStore(targetStoreIds.get(0), startDate, endDate, page, size, totalHolder, operation, status);
                 mergedLogs.addAll(storeLogs);
                 totalElementsAccumulator = totalHolder[0];
             } else {
                 int targetSize = (page + 1) * size;
                 for (Long tid : targetStoreIds) {
                     long[] totalHolder = new long[1];
-                    List<AuditLogResponse> storeLogs = getMappedLogsForStore(tid, startDate, endDate, 0, targetSize, totalHolder);
+                    List<AuditLogResponse> storeLogs = getMappedLogsForStore(tid, startDate, endDate, 0, targetSize, totalHolder, operation, status);
                     mergedLogs.addAll(storeLogs);
                     totalElementsAccumulator += totalHolder[0];
                 }
@@ -106,20 +108,26 @@ public class AuditLogService {
         }
     }
 
-    private List<AuditLogResponse> getMappedLogsForStore(Long storeIdLong, String startDate, String endDate, int page, int size, long[] totalElementsHolder) {
+    private List<AuditLogResponse> getMappedLogsForStore(Long storeIdLong, String startDate, String endDate, int page, int size, long[] totalElementsHolder, Integer operation, Integer status) {
         try {
             java.util.Map<String, Object> requestBody = new java.util.HashMap<>();
             requestBody.put("storeId", storeIdLong);
 
             if (startDate != null && endDate != null && !startDate.isBlank() && !endDate.isBlank()) {
-                requestBody.put("createdTime", startDate.trim() + " 00:00:00," + endDate.trim() + " 23:59:59");
+                requestBody.put("createdTime", startDate.trim() + "," + endDate.trim());
             } else {
                 java.time.LocalDate today = java.time.LocalDate.now();
-                java.time.LocalDate ninetyDaysAgo = today.minusDays(90);
-                requestBody.put("createdTime", ninetyDaysAgo.toString() + " 00:00:00," + today.toString() + " 23:59:59");
+                java.time.LocalDate sevenDaysAgo = today.minusDays(7);
+                requestBody.put("createdTime", sevenDaysAgo.toString() + "," + today.toString());
             }
 
             requestBody.put("feedBackTimeOrder", "desc");
+            if (operation != null) {
+                requestBody.put("operation", operation);
+            }
+            if (status != null) {
+                requestBody.put("status", status);
+            }
 
             String url = String.format("/zk/erp/log/listLog?page=%d&size=%d", page, size);
             log.info("Querying ZKong listLog for store {}: URL={}, body={}", storeIdLong, url, requestBody);
@@ -179,78 +187,83 @@ public class AuditLogService {
                         Object storeIdVal = item.get("storeId");
                         dto.setStoreId(storeIdVal != null ? storeIdVal.toString() : null);
 
-                        // Retrieve the product's original price to calculate the discount amount
-                        String barcode = dto.getItemBarCode();
-                        String logStoreId = dto.getStoreId() != null ? dto.getStoreId() : String.valueOf(storeIdLong);
-                        String originalPrice = "0";
-                        
-                        if (barcode != null && !barcode.isBlank()) {
-                            try {
-                                java.util.Map<String, Object> queryBody = new java.util.HashMap<>();
+                        if (operation != null && operation == 4) {
+                            // Retrieve the product's original price to calculate the discount amount
+                            String barcode = dto.getItemBarCode();
+                            String logStoreId = dto.getStoreId() != null ? dto.getStoreId() : String.valueOf(storeIdLong);
+                            String originalPrice = "0";
+                            
+                            if (barcode != null && !barcode.isBlank()) {
                                 try {
-                                    queryBody.put("storeId", Long.parseLong(logStoreId));
-                                } catch (NumberFormatException e) {
-                                    queryBody.put("storeId", logStoreId);
-                                }
-                                queryBody.put("barCode", barcode);
-                                queryBody.put("pcBarCode", barcode);
-                                
-                                java.util.Map<?, ?> prodResp = dragonEslApiClient.post(
-                                    "/zk/item/list/1/0/1/" + logStoreId,
-                                    queryBody,
-                                    java.util.Map.class
-                                );
-                                
-                                if (prodResp != null && Boolean.TRUE.equals(prodResp.get("success"))) {
-                                    java.util.Map<?, ?> dataMap = (java.util.Map<?, ?>) prodResp.get("data");
-                                    if (dataMap != null) {
-                                        java.util.List<java.util.Map<String, Object>> prodList = (java.util.List<java.util.Map<String, Object>>) dataMap.get("list");
-                                        if (prodList == null) {
-                                            prodList = (java.util.List<java.util.Map<String, Object>>) dataMap.get("rows");
-                                        }
-                                        if (prodList != null && !prodList.isEmpty()) {
-                                            java.util.Map<String, Object> rawProduct = prodList.get(0);
-                                            Object origPriceVal = rawProduct.get("originalPrice");
-                                            if (origPriceVal == null) {
-                                                origPriceVal = rawProduct.get("custFeature2");
+                                    java.util.Map<String, Object> queryBody = new java.util.HashMap<>();
+                                    try {
+                                        queryBody.put("storeId", Long.parseLong(logStoreId));
+                                    } catch (NumberFormatException e) {
+                                        queryBody.put("storeId", logStoreId);
+                                    }
+                                    queryBody.put("barCode", barcode);
+                                    queryBody.put("pcBarCode", barcode);
+                                    
+                                    java.util.Map<?, ?> prodResp = dragonEslApiClient.post(
+                                        "/zk/item/list/1/0/1/" + logStoreId,
+                                        queryBody,
+                                        java.util.Map.class
+                                    );
+                                    
+                                    if (prodResp != null && Boolean.TRUE.equals(prodResp.get("success"))) {
+                                        java.util.Map<?, ?> dataMap = (java.util.Map<?, ?>) prodResp.get("data");
+                                        if (dataMap != null) {
+                                            java.util.List<java.util.Map<String, Object>> prodList = (java.util.List<java.util.Map<String, Object>>) dataMap.get("list");
+                                            if (prodList == null) {
+                                                prodList = (java.util.List<java.util.Map<String, Object>>) dataMap.get("rows");
                                             }
-                                            if (origPriceVal != null) {
-                                                originalPrice = origPriceVal.toString();
+                                            if (prodList != null && !prodList.isEmpty()) {
+                                                java.util.Map<String, Object> rawProduct = prodList.get(0);
+                                                Object origPriceVal = rawProduct.get("originalPrice");
+                                                if (origPriceVal == null) {
+                                                    origPriceVal = rawProduct.get("custFeature2");
+                                                }
+                                                if (origPriceVal != null) {
+                                                    originalPrice = origPriceVal.toString();
+                                                }
                                             }
                                         }
                                     }
+                                } catch (Exception e) {
+                                    log.warn("Failed to fetch originalPrice for barcode: " + barcode, e);
                                 }
-                            } catch (Exception e) {
-                                log.warn("Failed to fetch originalPrice for barcode: " + barcode, e);
                             }
+                            
+                            dto.setOriginalPrice(originalPrice);
+                            
+                            // Calculate discountAmount = originalPrice - price
+                            double price = 0.0;
+                            double orig = 0.0;
+                            try {
+                                if (dto.getPrice() != null) price = Double.parseDouble(dto.getPrice());
+                                if (originalPrice != null) orig = Double.parseDouble(originalPrice);
+                            } catch (NumberFormatException e) {
+                                // ignore
+                            }
+                            
+                            double discount = Math.max(0.0, orig - price);
+                            dto.setDiscountAmount(String.format("%.2f", discount));
+                        } else {
+                            dto.setOriginalPrice("0");
+                            dto.setDiscountAmount("0.00");
                         }
-                        
-                        dto.setOriginalPrice(originalPrice);
-                        
-                        // Calculate discountAmount = originalPrice - price
-                        double price = 0.0;
-                        double orig = 0.0;
-                        try {
-                            if (dto.getPrice() != null) price = Double.parseDouble(dto.getPrice());
-                            if (originalPrice != null) orig = Double.parseDouble(originalPrice);
-                        } catch (NumberFormatException e) {
-                            // ignore
-                        }
-                        
-                        double discount = Math.max(0.0, orig - price);
-                        dto.setDiscountAmount(String.format("%.2f", discount));
 
                         Object opVal = item.get("operation");
-                        Integer operation = null;
+                        Integer opCode = null;
                         if (opVal instanceof Number) {
-                            operation = ((Number) opVal).intValue();
+                            opCode = ((Number) opVal).intValue();
                         }
-                        dto.setOperation(operation);
+                        dto.setOperation(opCode);
                         
                         // Map operation label
                         String operationLabel = "Other";
-                        if (operation != null) {
-                            switch (operation) {
+                        if (opCode != null) {
+                            switch (opCode) {
                                 case 1: operationLabel = "Bind"; break;
                                 case 2: operationLabel = "Unbind"; break;
                                 case 3: operationLabel = "Force Refresh"; break;
@@ -264,16 +277,16 @@ public class AuditLogService {
                         dto.setOperationText(operationLabel);
 
                         Object statusVal = item.get("status");
-                        Integer status = null;
+                        Integer statusNum = null;
                         if (statusVal instanceof Number) {
-                            status = ((Number) statusVal).intValue();
+                            statusNum = ((Number) statusVal).intValue();
                         }
-                        dto.setStatus(status);
+                        dto.setStatus(statusNum);
 
                         // Map status label
                         String statusLabel = "Failed";
-                        if (status != null) {
-                            switch (status) {
+                        if (statusNum != null) {
+                            switch (statusNum) {
                                 case 2: statusLabel = "Success"; break;
                                 case 3: statusLabel = "Failed - Timeout"; break;
                                 case 9: statusLabel = "Failed - Tag Offline"; break;

@@ -3,15 +3,14 @@ import {
   RefreshCw,
   ClipboardList,
   AlertTriangle,
-  Calendar,
   Store as StoreIcon,
-  Tag,
   Clock,
   CheckCircle2,
   XCircle,
   User,
   Loader2,
-  Search
+  Search,
+  Filter
 } from 'lucide-react';
 import { storeService } from '../services/storeService';
 import type { Store } from '../services/storeService';
@@ -47,6 +46,8 @@ const AuditLogs: React.FC = () => {
     return new Date().toISOString().split('T')[0];
   });
   const [selectedOperation, setSelectedOperation] = useState<number | ''>('');
+  const [selectedStatus, setSelectedStatus] = useState('');
+  const [showFilters, setShowFilters] = useState(false);
 
   // Pagination states
   const [currentPage, setCurrentPage] = useState(1);
@@ -64,7 +65,7 @@ const AuditLogs: React.FC = () => {
     return () => clearTimeout(handler);
   }, [searchQuery]);
 
-  // Fetch stores on mount, then immediately load logs for the first store
+  // Fetch stores on mount
   useEffect(() => {
     const fetchStores = async () => {
       setStoresLoading(true);
@@ -72,26 +73,6 @@ const AuditLogs: React.FC = () => {
       try {
         const response = await storeService.getAllStores();
         setStores(response || []);
-        if (response && response.length > 0) {
-          const firstStoreId = response[0].storeId || response[0].id || '';
-          setSelectedStoreId(firstStoreId);
-          // Directly fetch logs for the first store immediately after login
-          // (useEffect may not re-fire if selectedStoreId was already the same value)
-          if (firstStoreId) {
-            setLogsLoading(true);
-            try {
-              const logsResponse = await getAuditLogs(firstStoreId, startDate, endDate, 0, pageSize, undefined);
-              setLogs(logsResponse.content || []);
-              setTotalCount(logsResponse.totalElements || 0);
-            } catch (logErr: any) {
-              setError(logErr.message || 'Failed to retrieve audit logs.');
-              setLogs([]);
-              setTotalCount(0);
-            } finally {
-              setLogsLoading(false);
-            }
-          }
-        }
       } catch (err: any) {
         setError(err.message || 'Failed to fetch stores list.');
         console.error(err);
@@ -102,9 +83,8 @@ const AuditLogs: React.FC = () => {
     fetchStores();
   }, []);
 
-  // Fetch logs whenever store, dates, operation changes
+  // Fetch logs whenever store, dates, operation, status changes
   const fetchLogs = async () => {
-    if (!selectedStoreId) return;
     setLogsLoading(true);
     setError('');
     try {
@@ -115,7 +95,8 @@ const AuditLogs: React.FC = () => {
         endDate,
         0,
         2000,
-        selectedOperation === '' ? undefined : selectedOperation
+        selectedOperation === '' ? undefined : selectedOperation,
+        selectedStatus === '' ? undefined : Number(selectedStatus)
       );
       setLogs(response.content || []);
     } catch (err: any) {
@@ -130,7 +111,7 @@ const AuditLogs: React.FC = () => {
 
   useEffect(() => {
     fetchLogs();
-  }, [selectedStoreId, startDate, endDate, selectedOperation]);
+  }, [selectedStoreId, startDate, endDate, selectedOperation, selectedStatus]);
 
   // Reset page to 1 when filters change
   const handleStoreChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -151,6 +132,21 @@ const AuditLogs: React.FC = () => {
   const handleOperationChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const val = e.target.value;
     setSelectedOperation(val === '' ? '' : Number(val));
+    setCurrentPage(1);
+  };
+
+  const handleStatusChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setSelectedStatus(e.target.value);
+    setCurrentPage(1);
+  };
+
+  const handleResetFilters = () => {
+    const d = new Date();
+    d.setDate(d.getDate() - 7);
+    setStartDate(d.toISOString().split('T')[0]);
+    setEndDate(new Date().toISOString().split('T')[0]);
+    setSelectedOperation('');
+    setSelectedStatus('');
     setCurrentPage(1);
   };
 
@@ -260,6 +256,25 @@ const AuditLogs: React.FC = () => {
         title="Audit Logs"
         titleAr="سجلات التدقيق"
         actions={<>
+          {/* Store Location Selection - Compact Inline (FIX 3 & 4) */}
+          <div className="store-selector-wrapper">
+            <StoreIcon size={16} className="text-muted" />
+            {storesLoading ? (
+              <span style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>Loading...</span>
+            ) : (
+              <select 
+                value={selectedStoreId} 
+                onChange={handleStoreChange}
+              >
+                <option value="">All Stores / جميع الفروع</option>
+                {stores.map(store => (
+                  <option key={store.storeId} value={store.storeId}>
+                    {store.storeName} {store.externalStoreId ? `(${store.externalStoreId})` : ''}
+                  </option>
+                ))}
+              </select>
+            )}
+          </div>
           <div className="global-search-bar">
             <Search size={16} className="text-muted" />
             <input 
@@ -272,9 +287,31 @@ const AuditLogs: React.FC = () => {
           <button 
             className="btn-secondary" 
             onClick={fetchLogs} 
-            disabled={logsLoading || !selectedStoreId}
+            disabled={logsLoading}
           >
             <RefreshCw size={18} className={logsLoading ? 'animate-spin' : ''} /> Refresh / تحديث
+          </button>
+          <button 
+            className={`btn-secondary filter-icon-btn ${showFilters ? 'active' : ''}`} 
+            onClick={() => setShowFilters(!showFilters)}
+            title="Filters / التصفية"
+          >
+            <Filter size={18} />
+            {(() => {
+              const isFilterActive = selectedOperation !== '' || selectedStatus !== '';
+              return isFilterActive && (
+                <span style={{
+                  position: 'absolute',
+                  top: '4px',
+                  right: '4px',
+                  width: '6px',
+                  height: '6px',
+                  borderRadius: '50%',
+                  backgroundColor: '#3b82f6',
+                  border: '1px solid var(--glass-border)'
+                }} />
+              );
+            })()}
           </button>
         </>}
       />
@@ -285,89 +322,120 @@ const AuditLogs: React.FC = () => {
         </div>
       )}
 
-      {/* Filter panel */}
-      <div className="audit-logs-filters glass-card">
-        <div className="filter-group">
-          <label>
-            <StoreIcon size={16} /> Store Location <span className="required-asterisk">*</span> / موقع المتجر <span className="required-asterisk">*</span>
-          </label>
-          {storesLoading ? (
-            <div className="filter-loader">
-              <Loader2 className="animate-spin" size={16} /> Loading stores... / جاري تحميل المتاجر...
-            </div>
-          ) : (
+      {/* Collapsible Advanced Filter Panel */}
+      {showFilters && (
+        <div 
+          className="audit-logs-filters glass-card"
+          style={{
+            padding: '12px 16px',
+            border: '1px solid var(--glass-border)',
+            marginBottom: '16px',
+            background: 'rgba(255, 255, 255, 0.02)',
+            display: 'flex',
+            flexDirection: 'row',
+            alignItems: 'flex-end',
+            gap: '16px',
+            flexWrap: 'nowrap',
+            borderRadius: '12px'
+          }}
+        >
+          {/* Start Date */}
+          <div className="filter-group" style={{ display: 'flex', flexDirection: 'column', gap: '4px', flex: '1 1 150px', minWidth: '120px' }}>
+            <label style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-secondary)' }}>
+              Start Date / تاريخ البدء
+            </label>
+            <input 
+              type="date" 
+              value={startDate} 
+              onChange={handleStartDateChange}
+              className="glass-input" 
+              style={{ width: '100%', height: '36px', padding: '6px 12px', borderRadius: '8px', fontSize: '13px' }}
+            />
+          </div>
+
+          {/* End Date */}
+          <div className="filter-group" style={{ display: 'flex', flexDirection: 'column', gap: '4px', flex: '1 1 150px', minWidth: '120px' }}>
+            <label style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-secondary)' }}>
+              End Date / تاريخ الانتهاء
+            </label>
+            <input 
+              type="date" 
+              value={endDate} 
+              onChange={handleEndDateChange}
+              className="glass-input" 
+              style={{ width: '100%', height: '36px', padding: '6px 12px', borderRadius: '8px', fontSize: '13px' }}
+            />
+          </div>
+
+          {/* Operation Type */}
+          <div className="filter-group" style={{ display: 'flex', flexDirection: 'column', gap: '4px', flex: '1 1 200px', minWidth: '150px' }}>
+            <label style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-secondary)' }}>
+              Operation Type / نوع العملية
+            </label>
             <select 
-              value={selectedStoreId} 
-              onChange={handleStoreChange}
+              value={selectedOperation} 
+              onChange={handleOperationChange}
               className="glass-select"
+              style={{ width: '100%', height: '36px', padding: '6px 12px', borderRadius: '8px', fontSize: '13px' }}
             >
-              <option value="" disabled>-- Select a store / اختر فرعاً --</option>
-              {stores.map(store => (
-                <option key={store.storeId} value={store.storeId}>
-                  {store.storeName} {store.externalStoreId ? `(${store.externalStoreId})` : ''}
-                </option>
-              ))}
+              <option value="">All Operations / جميع العمليات</option>
+              <option value={1}>Bind Tag / ربط الشاشة</option>
+              <option value={2}>Unbind Tag / إلغاء ربط الشاشة</option>
+              <option value={3}>Force Refresh / تحديث الشاشة فوراً</option>
+              <option value={4}>Product Change / تغيير المنتج</option>
+              <option value={5}>Template Change / تغيير القالب</option>
+              <option value={13}>Force LED Flash / وميض إضاءة LED</option>
+              <option value={14}>Smart Reissue / إعادة إصدار ذكي</option>
             </select>
-          )}
-        </div>
+          </div>
 
-        <div className="filter-group">
-          <label>
-            <Calendar size={16} /> Start Date <span className="required-asterisk">*</span> / تاريخ البدء <span className="required-asterisk">*</span>
-          </label>
-          <input 
-            type="date" 
-            value={startDate} 
-            onChange={handleStartDateChange}
-            className="glass-input" 
-          />
-        </div>
+          {/* Status */}
+          <div className="filter-group" style={{ display: 'flex', flexDirection: 'column', gap: '4px', flex: '1 1 200px', minWidth: '150px' }}>
+            <label style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-secondary)' }}>
+              Status / الحالة
+            </label>
+            <select 
+              value={selectedStatus} 
+              onChange={handleStatusChange}
+              className="glass-select"
+              style={{ width: '100%', height: '36px', padding: '6px 12px', borderRadius: '8px', fontSize: '13px' }}
+            >
+              <option value="">All Statuses / جميع الحالات</option>
+              <option value="2">Success / نجح</option>
+              <option value="3">Failed - Timeout / فشل - انتهاء الوقت</option>
+              <option value="9">Failed - Tag Offline / فشل - الشاشة غير متصلة</option>
+              <option value="10">Failed - No AP / فشل - لا يوجد AP</option>
+            </select>
+          </div>
 
-        <div className="filter-group">
-          <label>
-            <Calendar size={16} /> End Date <span className="required-asterisk">*</span> / تاريخ الانتهاء <span className="required-asterisk">*</span>
-          </label>
-          <input 
-            type="date" 
-            value={endDate} 
-            onChange={handleEndDateChange}
-            className="glass-input" 
-          />
-        </div>
-
-        <div className="filter-group">
-          <label>
-            <Tag size={16} /> Operation Type / نوع العملية
-          </label>
-          <select 
-            value={selectedOperation} 
-            onChange={handleOperationChange}
-            className="glass-select"
+          {/* Reset Button */}
+          <button 
+            onClick={handleResetFilters}
+            style={{
+              background: 'none',
+              border: 'none',
+              color: 'var(--primary-color)',
+              cursor: 'pointer',
+              fontSize: '13px',
+              fontWeight: 600,
+              padding: '8px 12px',
+              alignSelf: 'flex-end',
+              whiteSpace: 'nowrap',
+              transition: 'color 0.2s',
+              marginLeft: 'auto'
+            }}
+            className="reset-filters-btn"
           >
-            <option value="">All Operations / جميع العمليات</option>
-            <option value={1}>Bind Tag / ربط الشاشة</option>
-            <option value={2}>Unbind Tag / إلغاء ربط الشاشة</option>
-            <option value={3}>Force Refresh / تحديث الشاشة فوراً</option>
-            <option value={4}>Product Change / تغيير المنتج</option>
-            <option value={5}>Template Change / تغيير القالب</option>
-            <option value={13}>Force LED Flash / وميض إضاءة LED</option>
-            <option value={14}>Smart Reissue / إعادة إصدار ذكي</option>
-          </select>
+            Reset Filters / إعادة تعيين
+          </button>
         </div>
-
-      </div>
+      )}
 
       {/* Main content display */}
-      {!selectedStoreId ? (
-        <div className="audit-logs-empty-state glass-card">
-          <StoreIcon size={48} />
-          <h3>No Store Selected / لم يتم اختيار فرع</h3>
-          <p>Please select a store from the dropdown menu to fetch its audit logs. / يرجى اختيار فرع من القائمة المنسدلة لجلب سجلات المراجعة الخاصة به.</p>
-        </div>
-      ) : logsLoading && logs.length === 0 ? (
+      {logsLoading && logs.length === 0 ? (
         <div className="audit-logs-loading-state">
           <Loader2 className="animate-spin" size={40} />
-          <p>Loading audit logs from Dragon ESL... / جاري تحميل سجلات المراجعة من Dragon ESL...</p>
+          <p>Loading logs... / جاري تحميل السجلات...</p>
         </div>
       ) : error ? (
         <div className="audit-logs-error-state glass-card">
@@ -379,7 +447,7 @@ const AuditLogs: React.FC = () => {
         <div className="audit-logs-empty-state glass-card">
           <ClipboardList size={48} />
           <h3>No Logs Found / لم يتم العثور على سجلات</h3>
-          <p>There are no recorded operation logs for this store in the selected date range. / لا توجد سجلات عمليات مسجلة لهذا المتجر في النطاق الزمني المحدد.</p>
+          <p>There are no recorded operation logs in the selected date range. / لا توجد سجلات عمليات مسجلة في النطاق الزمني المحدد.</p>
         </div>
       ) : (
         <>
@@ -520,6 +588,45 @@ const AuditLogs: React.FC = () => {
       )}
 
       <style>{`
+        .store-selector-wrapper {
+          display: flex;
+          align-items: center;
+          padding: 8px 12px;
+          gap: 8px;
+          background: rgba(255, 255, 255, 0.05);
+          border: 1px solid var(--glass-border);
+          border-radius: 12px;
+          backdrop-filter: blur(10px);
+          box-shadow: var(--shadow-sm);
+        }
+
+        .store-selector-wrapper select {
+          background: transparent;
+          border: none;
+          color: var(--text-primary);
+          font-size: 14px;
+          font-weight: 600;
+          outline: none;
+          cursor: pointer;
+          max-width: 280px;
+          width: fit-content;
+        }
+
+        .store-selector-wrapper select option {
+          background: var(--bg-primary);
+          color: var(--text-primary);
+        }
+
+        .filter-icon-btn {
+          position: relative;
+          width: 42px !important;
+          height: 42px !important;
+          padding: 10px !important;
+          display: inline-flex !important;
+          align-items: center !important;
+          justify-content: center !important;
+        }
+
         .audit-logs-container {
           padding: 24px;
           display: flex;

@@ -31,7 +31,9 @@ import {
   FolderOpen,
   Edit,
   Upload,
-  Copy
+  Copy,
+  Filter,
+  Store as StoreIcon
 } from 'lucide-react';
 
 import ImportExportModal from '../components/ImportExportModal';
@@ -79,6 +81,7 @@ const Templates: React.FC = () => {
   const [filterColor, setFilterColor] = useState<string>('All');
   const [filterCategory, setFilterCategory] = useState<string>('All');
   const [filterType, setFilterType] = useState<string>('All');
+  const [showFilters, setShowFilters] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('');
   // Main Templates Data
@@ -93,7 +96,7 @@ const Templates: React.FC = () => {
       result = result.filter(t => {
         const specificModelObj = (t as any).modelId ? models.find(m => m.id === parseInt((t as any).modelId, 10)) : null;
         const displayModel = specificModelObj ? specificModelObj.model : (t.modelList?.join(', ') || 'ZKC29S');
-        const tColor = specificModelObj ? specificModelObj.color : t.color;
+        const tColor = specificModelObj ? specificModelObj.color : (t as any).color;
         
         let colorStr = 'bw black white';
         if (tColor === 2 || tColor === 4) colorStr += ' red';
@@ -584,6 +587,18 @@ const Templates: React.FC = () => {
   const selectedResModels = selectedSizeModels.filter(m => m.resolution === newTemplate.resolution);
   const availableModalColors = Array.from(new Set(selectedResModels.map(m => m.color))).filter(Boolean);
 
+  const isFilterActive = filterSize.toLowerCase() !== 'all' || 
+                         filterColor.toLowerCase() !== 'all' || 
+                         filterCategory.toLowerCase() !== 'all' || 
+                         filterType.toLowerCase() !== 'all';
+
+  const handleResetFilters = () => {
+    setFilterSize('All');
+    setFilterColor('All');
+    setFilterCategory('All');
+    setFilterType('All');
+  };
+
   return (
     <div className="templates-dashboard">
       {/* Toast Notification */}
@@ -622,6 +637,26 @@ const Templates: React.FC = () => {
               {activeMenuTab === 'properties' && 'Template Properties / خصائص القالب'}
             </span>
           </div>
+          {(activeMenuTab === 'store' || activeMenuTab === 'store_icon') && (
+            <div className="store-selector-wrapper">
+              <StoreIcon size={16} className="text-muted" />
+              {storesLoading ? (
+                <span style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>Loading...</span>
+              ) : (
+                <select 
+                  value={selectedStore} 
+                  onChange={e => setSelectedStore(e.target.value)}
+                >
+                  <option value="">Select a Store... / اختر متجراً</option>
+                  {stores.map(s => (
+                    <option key={s.storeId} value={s.storeId}>
+                      {s.storeName} {s.externalStoreId ? `(${s.externalStoreId})` : ''}
+                    </option>
+                  ))}
+                </select>
+              )}
+            </div>
+          )}
           <div className="global-search-bar">
             <Search size={16} className="text-muted" />
             <input
@@ -633,6 +668,25 @@ const Templates: React.FC = () => {
           </div>
           <button className="btn-secondary" onClick={fetchTemplatesList} disabled={loading}>
             <RefreshCw size={18} className={loading ? 'animate-spin' : ''} /> Refresh / تحديث
+          </button>
+          <button 
+            className={`btn-secondary filter-icon-btn ${showFilters ? 'active' : ''}`} 
+            onClick={() => setShowFilters(!showFilters)}
+            title="Filters / التصفية"
+          >
+            <Filter size={18} />
+            {isFilterActive && (
+              <span style={{
+                position: 'absolute',
+                top: '4px',
+                right: '4px',
+                width: '6px',
+                height: '6px',
+                borderRadius: '50%',
+                backgroundColor: '#3b82f6',
+                border: '1px solid var(--glass-border)'
+              }} />
+            )}
           </button>
           <button className="btn-secondary" onClick={() => setShowTemplateImportExport(true)}>
             <Upload size={18} /> Import / Export
@@ -662,6 +716,119 @@ const Templates: React.FC = () => {
         {/* Right Content Workspace */}
         <main className="content-workspace">
           
+          {/* Store Location Selection - Always Visible (only for store / store_icon tabs) */}
+          {/* Collapsible Advanced Filter Panel */}
+          {(activeMenuTab === 'merchant' || activeMenuTab === 'store') && showFilters && (
+            <div 
+              className="templates-filters glass-card"
+              style={{
+                padding: '12px 16px',
+                border: '1px solid var(--glass-border)',
+                marginBottom: '16px',
+                background: 'rgba(255, 255, 255, 0.02)',
+                display: 'flex',
+                flexDirection: 'row',
+                alignItems: 'flex-end',
+                gap: '16px',
+                flexWrap: 'nowrap',
+                borderRadius: '12px'
+              }}
+            >
+              {/* Size */}
+              <div className="filter-group" style={{ display: 'flex', flexDirection: 'column', gap: '4px', flex: '1 1 150px', minWidth: '120px' }}>
+                <label style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-secondary)' }}>
+                  Size / الحجم
+                </label>
+                <select 
+                  value={filterSize} 
+                  onChange={e => setFilterSize(e.target.value)} 
+                  className="glass-select"
+                  style={{ width: '100%', height: '36px', padding: '6px 12px', borderRadius: '8px', fontSize: '13px' }}
+                >
+                  <option value="All">All / الكل</option>
+                  {uniqueSizes.map(s => <option key={s} value={s}>{s}</option>)}
+                </select>
+              </div>
+
+              {/* Color */}
+              <div className="filter-group" style={{ display: 'flex', flexDirection: 'column', gap: '4px', flex: '1 1 150px', minWidth: '120px' }}>
+                <label style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-secondary)' }}>
+                  Color / اللون
+                </label>
+                <select 
+                  value={filterColor} 
+                  onChange={e => setFilterColor(e.target.value)} 
+                  className="glass-select"
+                  style={{ width: '100%', height: '36px', padding: '6px 12px', borderRadius: '8px', fontSize: '13px' }}
+                >
+                  <option value="All">All / الكل</option>
+                  {uniqueColors.map(colorCode => {
+                    const config = COLOR_MAPPINGS[colorCode];
+                    if (!config) return null;
+                    return (
+                      <option key={colorCode} value={config.key}>
+                        {config.label}
+                      </option>
+                    );
+                  })}
+                </select>
+              </div>
+
+              {/* Template Category */}
+              <div className="filter-group" style={{ display: 'flex', flexDirection: 'column', gap: '4px', flex: '1 1 180px', minWidth: '140px' }}>
+                <label style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-secondary)' }}>
+                  Template Category / تصنيف القالب
+                </label>
+                <select 
+                  value={filterCategory} 
+                  onChange={e => setFilterCategory(e.target.value)} 
+                  className="glass-select"
+                  style={{ width: '100%', height: '36px', padding: '6px 12px', borderRadius: '8px', fontSize: '13px' }}
+                >
+                  <option value="All">All / الكل</option>
+                  {categories.map(c => <option key={c.id} value={c.categoryName}>{c.categoryName}</option>)}
+                </select>
+              </div>
+
+              {/* Template Type */}
+              <div className="filter-group" style={{ display: 'flex', flexDirection: 'column', gap: '4px', flex: '1 1 180px', minWidth: '140px' }}>
+                <label style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-secondary)' }}>
+                  Template Type / نوع القالب
+                </label>
+                <select 
+                  value={filterType} 
+                  onChange={e => setFilterType(e.target.value)} 
+                  className="glass-select"
+                  style={{ width: '100%', height: '36px', padding: '6px 12px', borderRadius: '8px', fontSize: '13px' }}
+                >
+                  <option value="All">All / الكل</option>
+                  {templateTypes.map(t => <option key={t} value={t}>{t}</option>)}
+                </select>
+              </div>
+
+              {/* Reset Filters Button */}
+              <button 
+                onClick={handleResetFilters}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: 'var(--primary-color)',
+                  cursor: 'pointer',
+                  fontSize: '13px',
+                  fontWeight: 600,
+                  padding: '8px 12px',
+                  alignSelf: 'flex-end',
+                  whiteSpace: 'nowrap',
+                  transition: 'color 0.2s',
+                  marginLeft: 'auto'
+                }}
+                className="reset-filters-btn"
+              >
+                Reset Filters / إعادة تعيين
+              </button>
+            </div>
+          )}
+          
           {/* ================= SECTION 1: MERCHANT TEMPLATES ================= */}
           {activeMenuTab === 'merchant' && (
             <div className="workspace-tab-content">
@@ -683,48 +850,7 @@ const Templates: React.FC = () => {
                 */}
               </div>
 
-              {/* Zkong styled Filter Bar */}
-              <div className="filters-form glass-card">
-                <div className="filter-input-group">
-                  <label>Size / الحجم</label>
-                  <select value={filterSize} onChange={e => setFilterSize(e.target.value)}>
-                    <option value="All">Select All / تحديد الكل</option>
-                    {uniqueSizes.map(s => <option key={s} value={s}>{s}</option>)}
-                  </select>
-                </div>
-
-                <div className="filter-input-group">
-                  <label>Color / اللون</label>
-                  <select value={filterColor} onChange={e => setFilterColor(e.target.value)}>
-                    <option value="All">All / الكل</option>
-                    {uniqueColors.map(colorCode => {
-                      const config = COLOR_MAPPINGS[colorCode];
-                      if (!config) return null;
-                      return (
-                        <option key={colorCode} value={config.key}>
-                          {config.label}
-                        </option>
-                      );
-                    })}
-                  </select>
-                </div>
-
-                <div className="filter-input-group">
-                  <label>Template Category / تصنيف القالب</label>
-                  <select value={filterCategory} onChange={e => setFilterCategory(e.target.value)}>
-                    <option value="All">Select All / تحديد الكل</option>
-                    {categories.map(c => <option key={c.id} value={c.categoryName}>{c.categoryName}</option>)}
-                  </select>
-                </div>
-
-                <div className="filter-input-group">
-                  <label>Template Type / نوع القالب</label>
-                  <select value={filterType} onChange={e => setFilterType(e.target.value)}>
-                    <option value="All">Select All / تحديد الكل</option>
-                    {templateTypes.map(t => <option key={t} value={t}>{t}</option>)}
-                  </select>
-                </div>
-              </div>
+              {/* Filters are now rendered inside the collapsible advanced panel above */}
 
               {/* Action Buttons */}
               <div className="actions-row">
@@ -747,59 +873,7 @@ const Templates: React.FC = () => {
           {/* ================= SECTION 2: STORE TEMPLATES ================= */}
           {activeMenuTab === 'store' && (
             <div className="workspace-tab-content">
-              {/* Store Filter Bar */}
-              <div className="filters-form glass-card store-filters-layout">
-                <div className="filter-input-group flex-row-item">
-                  <label className="bold-label">Store Select / اختيار المتجر</label>
-                  <select 
-                    className="styled-select" 
-                    value={selectedStore} 
-                    onChange={e => setSelectedStore(e.target.value)}
-                  >
-                    {stores.map(s => <option key={s.storeId} value={s.storeId}>{s.storeName} {s.externalStoreId ? `(${s.externalStoreId})` : ''}</option>)}
-                  </select>
-                </div>
-
-                <div className="filter-input-group">
-                  <label>Size / الحجم</label>
-                  <select value={filterSize} onChange={e => setFilterSize(e.target.value)}>
-                    <option value="All">Select All / تحديد الكل</option>
-                    {uniqueSizes.map(s => <option key={s} value={s}>{s}</option>)}
-                  </select>
-                </div>
-
-                <div className="filter-input-group">
-                  <label>Color / اللون</label>
-                  <select value={filterColor} onChange={e => setFilterColor(e.target.value)}>
-                    <option value="All">All / الكل</option>
-                    {uniqueColors.map(colorCode => {
-                      const config = COLOR_MAPPINGS[colorCode];
-                      if (!config) return null;
-                      return (
-                        <option key={colorCode} value={config.key}>
-                          {config.label}
-                        </option>
-                      );
-                    })}
-                  </select>
-                </div>
-
-                <div className="filter-input-group">
-                  <label>Template Category / تصنيف القالب</label>
-                  <select value={filterCategory} onChange={e => setFilterCategory(e.target.value)}>
-                    <option value="All">Select All / تحديد الكل</option>
-                    {categories.map(c => <option key={c.id} value={c.categoryName}>{c.categoryName}</option>)}
-                  </select>
-                </div>
-
-                <div className="filter-input-group">
-                  <label>Template Type / نوع القالب</label>
-                  <select value={filterType} onChange={e => setFilterType(e.target.value)}>
-                    <option value="All">Select All / تحديد الكل</option>
-                    {templateTypes.map(t => <option key={t} value={t}>{t}</option>)}
-                  </select>
-                </div>
-              </div>
+              {/* Filters are now rendered inside the collapsible advanced panel above */}
 
               {/* Action Buttons */}
               <div className="actions-row">
@@ -823,18 +897,6 @@ const Templates: React.FC = () => {
           {activeMenuTab === 'store_icon' && (
             <div className="workspace-tab-content">
               <div className="icon-actions-bar">
-                {activeMenuTab === 'store_icon' && (
-                  <div className="store-selector-row">
-                    <label>Store Select / اختيار المتجر: </label>
-                    <select 
-                      value={selectedStore} 
-                      onChange={e => setSelectedStore(e.target.value)}
-                      className="glass-input sm-input"
-                    >
-                      {stores.map(s => <option key={s.storeId} value={s.storeId}>{s.storeName} {s.externalStoreId ? `(${s.externalStoreId})` : ''}</option>)}
-                    </select>
-                  </div>
-                )}
                 <button className="btn-primary sm-btn">
                   <Plus size={16} />
                   {(activeMenuTab as string) === 'business_icon'
@@ -1218,7 +1280,7 @@ const Templates: React.FC = () => {
                 <label>Model / الطراز</label>
                 <div className="glass-input" style={{ padding: '10px 14px', color: 'var(--text-muted)', fontSize: '14px', background: 'rgba(255,255,255,0.02)' }}>
                   {newTemplate.size
-                    ? models.filter(m => m.size === newTemplate.size && m.resolution === newTemplate.resolution && m.color === newTemplate.color).map(m => m.model).join(', ') || 'No model available'
+                    ? models.filter(m => m.size === newTemplate.size && m.resolution === newTemplate.resolution && (m.color as any) == newTemplate.color).map(m => m.model).join(', ') || 'No model available'
                     : 'Select size first / اختر الحجم أولاً'}
                 </div>
               </div>
@@ -1446,6 +1508,45 @@ const Templates: React.FC = () => {
         .templates-dashboard {
           padding: 24px;
           min-height: 100vh;
+        }
+
+        .store-selector-wrapper {
+          display: flex;
+          align-items: center;
+          padding: 8px 12px;
+          gap: 8px;
+          background: rgba(255, 255, 255, 0.05);
+          border: 1px solid var(--glass-border);
+          border-radius: 12px;
+          backdrop-filter: blur(10px);
+          box-shadow: var(--shadow-sm);
+        }
+
+        .store-selector-wrapper select {
+          background: transparent;
+          border: none;
+          color: var(--text-primary);
+          font-size: 14px;
+          font-weight: 600;
+          outline: none;
+          cursor: pointer;
+          max-width: 280px;
+          width: fit-content;
+        }
+
+        .store-selector-wrapper select option {
+          background: var(--bg-primary);
+          color: var(--text-primary);
+        }
+
+        .filter-icon-btn {
+          position: relative;
+          width: 42px !important;
+          height: 42px !important;
+          padding: 10px !important;
+          display: inline-flex !important;
+          align-items: center !important;
+          justify-content: center !important;
         }
 
         .top-breadcrumb {
@@ -2482,7 +2583,7 @@ const Templates: React.FC = () => {
                 const isEnabled = t.status === '1';
                 const specificModelObj = (t as any).modelId ? models.find(m => m.id === parseInt((t as any).modelId, 10)) : null;
                 const displayModel = specificModelObj ? specificModelObj.model : (t.modelList?.join(', ') || 'ZKC29S');
-                const tColor = specificModelObj ? specificModelObj.color : t.color;
+                const tColor = specificModelObj ? specificModelObj.color : (t as any).color;
                 const specs = getEslModelSpecs(t.size, specificModelObj ? specificModelObj.model : t.modelList?.[0]);
                 
                 return (

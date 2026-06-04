@@ -29,7 +29,8 @@ export const getAuditLogs = async (
   endDate: string,
   page = 0,
   size = 10,
-  operation?: number
+  operation?: number,
+  status?: number
 ): Promise<PagedResponse<AuditLog>> => {
   const params = new URLSearchParams({
     storeId,
@@ -39,8 +40,12 @@ export const getAuditLogs = async (
     size: size.toString(),
   });
 
-  if (operation !== undefined && operation !== null) {
+  if (operation !== undefined) {
     params.append('operation', operation.toString());
+  }
+
+  if (status !== undefined) {
+    params.append('status', status.toString());
   }
 
   const response = await api.get(`/audit-logs?${params.toString()}`);

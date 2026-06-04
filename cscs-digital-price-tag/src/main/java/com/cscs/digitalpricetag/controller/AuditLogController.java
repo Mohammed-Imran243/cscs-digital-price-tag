@@ -24,9 +24,11 @@ public class AuditLogController {
             @RequestParam(required = false) String startDate,
             @RequestParam(required = false) String endDate,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) Integer operation,
+            @RequestParam(required = false) Integer status) {
 
-        PagedResponse<AuditLogResponse> logs = auditLogService.getPriceChangeLogs(storeId, startDate, endDate, page, size);
+        PagedResponse<AuditLogResponse> logs = auditLogService.getPriceChangeLogs(storeId, startDate, endDate, page, size, operation, status);
         return ResponseEntity.ok(ApiResponse.success("Audit logs fetched successfully", logs));
     }
 }
