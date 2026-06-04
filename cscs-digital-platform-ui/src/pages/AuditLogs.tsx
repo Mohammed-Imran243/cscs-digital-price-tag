@@ -252,6 +252,7 @@ const AuditLogs: React.FC = () => {
 
   return (
     <div className="audit-logs-container">
+          <div className="sticky-page-header">
       <PageHeader
         title="Audit Logs"
         titleAr="سجلات التدقيق"
@@ -270,8 +271,72 @@ const AuditLogs: React.FC = () => {
           onRefresh={fetchLogs}
           onExport={() => {}}
           
+          title="Audit Logs"
+          titleAr="سجلات التدقيق"
         />
-      </PageToolbar>
+        <PageToolbar>
+          <div style={{ display: 'flex', gap: '16px', flex: 1, alignItems: 'center' }}>
+            <div className="store-selector-wrapper">
+              <StoreIcon size={16} className="text-muted" />
+              {storesLoading ? (
+                <span style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>Loading...</span>
+              ) : (
+                <select 
+                  value={selectedStoreId} 
+                  onChange={handleStoreChange}
+                  className="glass-select"
+                >
+                  <option value="">All Stores / جميع الفروع</option>
+                  {stores.map(store => (
+                    <option key={store.storeId} value={store.storeId}>
+                      {store.storeName} {store.externalStoreId ? `(${store.externalStoreId})` : ''}
+                    </option>
+                  ))}
+                </select>
+              )}
+            </div>
+  
+            <button 
+              className={`btn-action btn-action-slate ${showFilters ? 'active' : ''}`} 
+              onClick={() => setShowFilters(!showFilters)}
+              title="Filters / التصفية"
+              style={{ position: 'relative' }}
+            >
+              <Filter size={18} />
+              {(() => {
+                const isFilterActive = selectedOperation !== '' || selectedStatus !== '';
+                return isFilterActive && (
+                  <span style={{
+                    position: 'absolute',
+                    top: '4px',
+                    right: '4px',
+                    width: '6px',
+                    height: '6px',
+                    borderRadius: '50%',
+                    backgroundColor: '#3b82f6',
+                    border: '1px solid var(--glass-border)'
+                  }} />
+                );
+              })()}
+            </button>
+  
+            <div className="global-search-bar">
+              <Search size={16} className="text-muted" />
+              <input 
+                type="text" 
+                placeholder="Search logs... / بحث في السجلات..." 
+                value={searchQuery} 
+                onChange={(e) => setSearchQuery(e.target.value)} 
+              />
+            </div>
+          </div>
+  
+          <ActionButtons
+            onRefresh={fetchLogs}
+            loading={logsLoading}
+          />
+        </PageToolbar>
+    </div>
       {/* Toast Notification */}
       {notification && (
         <div className={`toast-notification ${notification.type} glass-card`}>

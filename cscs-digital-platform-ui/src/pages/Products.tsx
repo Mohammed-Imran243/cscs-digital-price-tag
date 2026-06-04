@@ -667,58 +667,60 @@ const Products: React.FC = () => {
       </div>
     )}
 
-    {/* Page Header */}
-    <PageHeader
-      title="Product Management"
-      titleAr="إدارة المنتجات"
-    />
-    <PageToolbar>
-        <div style={{ display: 'flex', gap: '16px', flex: 1, alignItems: 'center' }}>
-          <div className="store-selector-wrapper">
-            <StoreIcon size={16} className="text-muted" />
-            <select 
-              value={selectedStore} 
-              onChange={(e) => setSelectedStore(e.target.value)}
-              className="glass-select"
-            >
-              <option value="">Select a Store... / اختر متجراً...</option>
-              {stores.map(store => (
-                <option key={store.storeId} value={store.storeId}>
-                  {store.storeName} {store.externalStoreId ? `(${store.externalStoreId})` : ''}
-                </option>
-              ))}
-            </select>
+    <div className="sticky-page-header">
+      {/* Page Header */}
+      <PageHeader
+        title="Product Management"
+        titleAr="إدارة المنتجات"
+      />
+      <PageToolbar>
+          <div style={{ display: 'flex', gap: '16px', flex: 1, alignItems: 'center' }}>
+            <div className="store-selector-wrapper">
+              <StoreIcon size={16} className="text-muted" />
+              <select 
+                value={selectedStore} 
+                onChange={(e) => setSelectedStore(e.target.value)}
+                className="glass-select"
+              >
+                <option value="">Select a Store... / اختر متجراً...</option>
+                {stores.map(store => (
+                  <option key={store.storeId} value={store.storeId}>
+                    {store.storeName} {store.externalStoreId ? `(${store.externalStoreId})` : ''}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="global-search-bar">
+              <Search size={16} className="text-muted" />
+              <input
+                type="text"
+                placeholder="Search products... / ابحث عن المنتجات..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+              />
+            </div>
+            
+            <button className="btn-action btn-action-slate">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon></svg>
+              Filter
+            </button>
           </div>
-          <div className="global-search-bar">
-            <Search size={16} className="text-muted" />
-            <input
-              type="text"
-              placeholder="Search products... / ابحث عن المنتجات..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-            />
-          </div>
-          
-          <button className="btn-action btn-action-slate">
-            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon></svg>
-            Filter
-          </button>
-        </div>
-        <ActionButtons
-          onRefresh={() => fetchProducts()}
-          onImport={() => setShowImportExport(true)}
-          onExport={() => setShowImportExport(true)}
-          onAdd={() => setIsModalOpen(true)}
-          addLabel="Add Product"
-          addLabelAr="إضافة منتج"
-          loading={loading}
-          isSelectMode={isSelectMode}
-          onCancelSelectMode={() => {
-            setIsSelectMode(false);
-            setSelectedProductIds([]);
-          }}
-        />
-      </PageToolbar>
+          <ActionButtons
+            onRefresh={() => fetchProducts()}
+            onImport={() => setShowImportExport(true)}
+            onExport={() => setShowImportExport(true)}
+            onAdd={() => setIsModalOpen(true)}
+            addLabel="Add Product"
+            addLabelAr="إضافة منتج"
+            loading={loading}
+            isSelectMode={isSelectMode}
+            onCancelSelectMode={() => {
+              setIsSelectMode(false);
+              setSelectedProductIds([]);
+            }}
+          />
+        </PageToolbar>
+      </div>
 
       {selectedProductIds.length > 0 && (
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 24px', background: 'var(--glass-card)', borderBottom: '1px solid var(--glass-border)', margin: '0 24px 20px', borderRadius: '12px' }}>
@@ -1349,10 +1351,13 @@ const Products: React.FC = () => {
           margin-bottom: 24px;
         }
         
-        .page-header {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
+        .sticky-page-header {
+          position: sticky;
+          top: -8px;
+          z-index: 10;
+          background-color: var(--bg-primary);
+          padding-top: 8px;
+          margin-top: -8px;
           margin-bottom: 24px;
         }
 

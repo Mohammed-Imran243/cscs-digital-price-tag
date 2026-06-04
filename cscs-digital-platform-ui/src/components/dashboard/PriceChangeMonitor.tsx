@@ -64,17 +64,32 @@ const PriceChangeMonitor: React.FC = () => {
   const formatTimeAgo = (dateStr: string): string => {
     if (!dateStr) return '';
     const date = new Date(dateStr);
+    
+    // Safety check for invalid dates from mock data
+    if (isNaN(date.getTime())) return 'Unknown time / وقت غير معروف';
+
     const now = new Date();
-    const diffMs = now.getTime() - date.getTime();
-    const diffMins = Math.floor(diffMs / 60000);
-    const diffHours = Math.floor(diffMs / 3600000);
-    const diffDays = Math.floor(diffMs / 86400000);
-    if (diffMins < 1) return 'just now / الآن';
-    if (diffMins < 60)
-      return diffMins + ' mins ago / منذ ' + diffMins + ' دقيقة';
-    if (diffHours < 24)
-      return diffHours + ' hrs ago / منذ ' + diffHours + ' ساعة';
-    return diffDays + ' days ago / منذ ' + diffDays + ' يوم';
+    const diffMs = Math.max(0, now.getTime() - date.getTime());
+    
+    const seconds = Math.floor(diffMs / 1000);
+    if (seconds < 60) return 'just now / الآن';
+    
+    let interval = seconds / 31536000;
+    if (interval >= 1) return Math.floor(interval) + " years ago / منذ " + Math.floor(interval) + " سنوات";
+    
+    interval = seconds / 2592000;
+    if (interval >= 1) return Math.floor(interval) + " months ago / منذ " + Math.floor(interval) + " أشهر";
+    
+    interval = seconds / 86400;
+    if (interval >= 1) return Math.floor(interval) + " days ago / منذ " + Math.floor(interval) + " أيام";
+    
+    interval = seconds / 3600;
+    if (interval >= 1) return Math.floor(interval) + " hours ago / منذ " + Math.floor(interval) + " ساعات";
+    
+    interval = seconds / 60;
+    if (interval >= 1) return Math.floor(interval) + " mins ago / منذ " + Math.floor(interval) + " دقيقة";
+    
+    return 'just now / الآن';
   };
 
   const getStoreName = (storeId?: string, operator?: string) => {

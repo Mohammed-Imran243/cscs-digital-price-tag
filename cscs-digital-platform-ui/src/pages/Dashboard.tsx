@@ -382,6 +382,14 @@ const Dashboard: React.FC = () => {
 
         /* ── Header ── */
         .dashboard-header {
+          position: sticky;
+          top: -8px;
+          z-index: 10;
+          background-color: var(--bg-primary);
+          padding-top: 8px;
+          padding-bottom: 8px;
+          margin-top: -8px;
+          margin-bottom: 16px;
           display: flex;
           justify-content: space-between;
           align-items: flex-start;
