@@ -1,4 +1,6 @@
-import React from 'react';
+const fs = require('fs');
+
+const content = `import React from 'react';
 import type { ReactNode } from 'react';
 import { Plus, RefreshCw, Upload, Download, Trash2, Link, Unlink, Filter, ListChecks } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageContext';
@@ -173,3 +175,6 @@ export const ActionButtons: React.FC<ActionButtonsProps> = ({
     </div>
   );
 };
+`;
+
+fs.writeFileSync('src/components/common/ActionButtons.tsx', content);

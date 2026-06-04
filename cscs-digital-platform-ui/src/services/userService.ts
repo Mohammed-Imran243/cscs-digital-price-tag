@@ -31,8 +31,9 @@ export interface PermissionMenu {
 }
 
 export const userService = {
-  listUsers: async (pageNum = 1, pageSize = 10) => {
-    const response = await api.get(`/users?pageNum=${pageNum}&pageSize=${pageSize}`);
+  listUsers: async (pageNum = 1, pageSize = 10, storeId?: string) => {
+    const storeParam = storeId ? `&storeId=${storeId}` : '';
+    const response = await api.get(`/users?pageNum=${pageNum}&pageSize=${pageSize}${storeParam}`);
     return unwrapResponse<any>(response);
   },
 

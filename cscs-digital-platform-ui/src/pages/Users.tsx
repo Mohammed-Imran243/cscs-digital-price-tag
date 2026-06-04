@@ -1,3 +1,5 @@
+import { StoreSelector } from '../components/common/StoreSelector';
+import { Store as StoreIcon } from 'lucide-react';
 import React, { useState, useEffect } from 'react';
 import { Plus, Search, Shield, User as UserIcon, Edit2, Trash2, Key, Calendar, RefreshCw, Loader2, X, CheckSquare, Square, Info, ChevronDown, ChevronRight, ChevronLeft, MinusSquare } from 'lucide-react';
 import { userService } from '../services/userService';
@@ -72,6 +74,30 @@ const Users: React.FC = () => {
   const setActiveTab = (tab: 'users' | 'roles') => {
     navigate(`/users?tab=${tab}`, { replace: true });
   };
+  
+  const [stores, setStores] = useState<any[]>([]);
+  const [selectedStore, setSelectedStore] = useState<string>('');
+  const [storesLoading, setStoresLoading] = useState(false);
+  
+  useEffect(() => {
+    const loadStores = async () => {
+      setStoresLoading(true);
+      try {
+        const response = await storeService.listStores(1, 100);
+        const storeList = response.content || [];
+        setStores(storeList);
+      } catch (err) {
+        console.error('Failed to load stores for users', err);
+      } finally {
+        setStoresLoading(false);
+      }
+    };
+    loadStores();
+  }, []);
+  
+const [showUserFilters, setShowUserFilters] = useState(false);
+  const [filterRole, setFilterRole] = useState<string>('All');
+  const activeUserFilterCount = [filterRole !== 'All'].filter(Boolean).length;
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   
@@ -276,7 +302,7 @@ const Users: React.FC = () => {
     setError('');
     try {
       if (activeTab === 'users') {
-        const usersRes = await userService.listUsers(1, 100);
+        const usersRes = await userService.listUsers(1, 100, selectedStore);
         const rawData = usersRes;
         const userList = rawData?.userVos || rawData?.userRoleStoreList || (Array.isArray(rawData) ? rawData : (rawData?.list || []));
         
@@ -335,7 +361,7 @@ const Users: React.FC = () => {
 
   useEffect(() => {
     fetchData();
-  }, [activeTab]);
+  }, [activeTab, selectedStore]);
 
   // Pre-load roles list when user modal is opened
   const loadRolesDropdown = async () => {
@@ -628,28 +654,46 @@ const Users: React.FC = () => {
       )}
 
       {/* Header */}
-      <PageHeader title="User Management" titleAr="إدارة المستخدمين" />
+      <PageHeader title="User Management / إدارة المستخدمين"
+        titleAr="" />
       <PageToolbar>
         <div style={{ display: 'flex', gap: '16px', flex: 1, alignItems: 'center' }}>
-          <div className="global-search-bar">
-            <Search size={16} className="text-muted" />
-            <input 
-              type="text" 
-              placeholder={activeTab === 'users' ? "Search by account or name... / ابحث بالحساب أو الاسم..." : "Search by role name... / ابحث باسم الدور..."}
-              value={searchTerm} 
-              onChange={(e) => setSearchTerm(e.target.value)} 
-            />
-          </div>
+          
+          <div className="global-search-bar" style={{ flex: 1, minWidth: 'var(--search-min-width)' }}>
+          <Search size={16} className="text-muted" />
+          <input
+            type="text"
+            placeholder="Search users... / ابحث عن المستخدمين..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
         </div>
-        
+        </div>
         <ActionButtons
           onRefresh={fetchData}
+          onAdd={() => setIsUserModalOpen(true)}
+          addLabel="Add User"
+          addLabelAr="إضافة مستخدم"
           loading={loading}
-          onAdd={activeTab === 'users' ? handleOpenCreateUser : handleOpenCreateRole}
-          addLabel={activeTab === 'users' ? 'Create User' : 'Create Role'}
-          addLabelAr={activeTab === 'users' ? 'إضافة مستخدم' : 'إضافة دور'}
         />
       </PageToolbar>
+      {/* Users Filter Panel */}
+      {showUserFilters && (
+        <div className="templates-filters glass-card" style={{ padding: '12px 16px', border: '1px solid var(--glass-border)', marginBottom: '16px', background: 'rgba(255,255,255,0.02)', display: 'flex', flexDirection: 'row', alignItems: 'flex-end', gap: '16px', flexWrap: 'wrap', borderRadius: '12px' }}>
+          <div className="filter-group" style={{ display: 'flex', flexDirection: 'column', gap: '4px', flex: '1 1 200px', minWidth: '150px' }}>
+            <label style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-secondary)' }}>Role / الدور</label>
+            <select value={filterRole} onChange={e => setFilterRole(e.target.value)} className="glass-select" style={{ height: '36px', borderRadius: '8px', fontSize: '13px' }}>
+              <option value="All">All Roles / جميع الأدوار</option>
+              {roles.map((r: any) => (
+                <option key={r.id} value={String(r.id)}>{r.roleName || r.name}</option>
+              ))}
+            </select>
+          </div>
+          <button onClick={() => { setFilterRole('All'); }} style={{ background: 'none', border: 'none', color: 'var(--primary-color)', cursor: 'pointer', fontSize: '13px', fontWeight: 600, padding: '8px 12px', alignSelf: 'flex-end', whiteSpace: 'nowrap', marginLeft: 'auto' }}>
+            Reset Filters / إعادة تعيين
+          </button>
+        </div>
+      )}
 
       {/* Navigation Tabs */}
       <div className="nav-tabs-container" style={{ margin: '0 24px' }}>

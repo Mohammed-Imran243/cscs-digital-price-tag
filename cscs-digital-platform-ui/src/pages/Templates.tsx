@@ -39,6 +39,7 @@ import {
 import ImportExportModal from '../components/ImportExportModal';
 import { importTemplate, exportTemplates } from '../services/importExportService';
 import { PageHeader, PageToolbar, ActionButtons } from '../components/common';
+import { StoreSelector } from '../components/common/StoreSelector';
 import { getEslModelSpecs, renderEinkLayout } from '../utils/eslModelUtils';
 import { getPaginationRange } from '../utils/paginationUtils';
 
@@ -55,11 +56,12 @@ const Templates: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const searchParams = new URLSearchParams(location.search);
-  const tabParam = searchParams.get('tab') || 'merchant';
-  const activeMenuTab = tabParam === 'icon' ? 'store_icon' : 
-                        tabParam === 'properties' ? 'properties' : 
+  const tabParam = searchParams.get('tab') || 'store';
+  const activeMenuTab = tabParam === 'icon' ? 'store_icon' :
+                        tabParam === 'store_icon' ? 'store_icon' :
+                        tabParam === 'properties' ? 'properties' :
                         tabParam === 'store' ? 'store' :
-                        tabParam === 'business_icon' ? 'business_icon' : 'merchant';
+                        tabParam === 'business_icon' ? 'business_icon' : 'store';
 
   // Sub-navigation State for Merchant Template Tab (Zkong Scenario tabs)
   const [merchantScenario, setMerchantScenario] = useState<number>(1); // 1: Single, 4: Multi, 3: Segment, 2: Unbind
@@ -209,7 +211,7 @@ const Templates: React.FC = () => {
 
   // Sync templates list based on filters/tabs
   useEffect(() => {
-    if (activeMenuTab === 'merchant' || activeMenuTab === 'store') {
+    if (activeMenuTab === 'store') {
       fetchTemplatesList();
     }
   }, [activeMenuTab, merchantScenario, selectedStore, filterSize, filterColor, filterCategory]);
@@ -238,7 +240,7 @@ const Templates: React.FC = () => {
 
   // Derived state to sync totalElements and reset page for templates local pagination
   useEffect(() => {
-    if (activeMenuTab === 'store' || activeMenuTab === 'merchant') {
+    if (activeMenuTab === 'store') {
       setTotalElements(filteredTemplates.length);
       const maxPage = Math.max(0, Math.ceil(filteredTemplates.length / pageSize) - 1);
       if (page > maxPage && maxPage >= 0) {
@@ -398,7 +400,7 @@ const Templates: React.FC = () => {
       // In store template tab, filter by selected storeId. In merchant tab, storeId is empty.
       if (activeMenuTab === 'store') {
         searchParams.storeId = selectedStore;
-      } else if (activeMenuTab === 'merchant') {
+      } else if (false) {
         // Merchant Tab - no storeId, scene number maps to sub-tabs
         searchParams.sceneNumber = merchantScenario;
       }
@@ -525,7 +527,7 @@ const Templates: React.FC = () => {
       size: newTemplate.size || modelObj?.size || '',
       resolution: newTemplate.resolution || modelObj?.resolution || '152*152',
       modelId: modelObj?.id ? `[${modelObj.id}]` : '[65]',
-      sceneNumber: activeMenuTab === 'merchant' ? merchantScenario : 1,
+      sceneNumber: false ? merchantScenario : 1,
       screenType: newTemplate.screenType || 'single',
       attrCategory: newTemplate.attrCategory || '',
       attrName: newTemplate.attrName || ''
@@ -630,34 +632,55 @@ const Templates: React.FC = () => {
       />
       <div style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '16px' }}>
         Templates &gt; <span style={{ color: 'var(--primary-color)', fontWeight: 600 }}>
-          {activeMenuTab === 'merchant' && 'Merchant Template / قوالب التاجر'}
+          {false && 'Merchant Template / قوالب التاجر'}
           {activeMenuTab === 'store' && 'Store Template / قوالب المتجر'}
           {activeMenuTab === 'store_icon' && 'Store Icon / أيقونة المتجر'}
           {activeMenuTab === 'properties' && 'Template Properties / خصائص القالب'}
         </span>
       </div>
+      
+      {/* Top Navigation Tabs */}
+      <div style={{ display: 'flex', gap: '4px', marginBottom: '20px', background: 'var(--glass-card)', borderRadius: '12px', padding: '4px', border: '1px solid var(--glass-border)' }}>
+        <button
+          onClick={() => navigate('/templates?tab=store')}
+          style={{
+            flex: 1, padding: '10px 16px', borderRadius: '8px', border: 'none', cursor: 'pointer', fontWeight: 600, fontSize: '13px', transition: 'all 0.2s',
+            background: activeMenuTab === 'store' ? 'var(--primary-color)' : 'transparent',
+            color: activeMenuTab === 'store' ? '#ffffff' : 'var(--text-secondary)'
+          }}
+        >
+          Store Template / قوالب المتجر
+        </button>
+        <button
+          onClick={() => navigate('/templates?tab=store_icon')}
+          style={{
+            flex: 1, padding: '10px 16px', borderRadius: '8px', border: 'none', cursor: 'pointer', fontWeight: 600, fontSize: '13px', transition: 'all 0.2s',
+            background: activeMenuTab === 'store_icon' ? 'var(--primary-color)' : 'transparent',
+            color: activeMenuTab === 'store_icon' ? '#ffffff' : 'var(--text-secondary)'
+          }}
+        >
+          Store Icon / أيقونة المتجر
+        </button>
+        <button
+          onClick={() => navigate('/templates?tab=properties')}
+          style={{
+            flex: 1, padding: '10px 16px', borderRadius: '8px', border: 'none', cursor: 'pointer', fontWeight: 600, fontSize: '13px', transition: 'all 0.2s',
+            background: activeMenuTab === 'properties' ? 'var(--primary-color)' : 'transparent',
+            color: activeMenuTab === 'properties' ? '#ffffff' : 'var(--text-secondary)'
+          }}
+        >
+          Template Properties / خصائص القالب
+        </button>
+      </div>
       <PageToolbar>
         <div style={{ display: 'flex', gap: '16px', flex: 1, alignItems: 'center' }}>
           {(activeMenuTab === 'store' || activeMenuTab === 'store_icon') && (
-            <div className="store-selector-wrapper">
-              <StoreIcon size={16} className="text-muted" />
-              {storesLoading ? (
-                <span style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>Loading...</span>
-              ) : (
-                <select 
-                  value={selectedStore} 
-                  onChange={e => setSelectedStore(e.target.value)}
-                  className="glass-select"
-                >
-                  <option value="">Select a Store... / اختر متجراً</option>
-                  {stores.map(s => (
-                    <option key={s.storeId} value={s.storeId}>
-                      {s.storeName} {s.externalStoreId ? `(${s.externalStoreId})` : ''}
-                    </option>
-                  ))}
-                </select>
-              )}
-            </div>
+            <StoreSelector
+              stores={stores}
+              selectedStore={selectedStore}
+              onSelect={setSelectedStore}
+              loading={storesLoading}
+            />
           )}
           
           <button 
@@ -693,9 +716,15 @@ const Templates: React.FC = () => {
         </div>
         
         <ActionButtons
-          onRefresh={fetchTemplatesList}
-          onImport={() => setShowTemplateImportExport(true)}
-          onExport={() => setShowTemplateImportExport(true)}
+          onRefresh={() => {
+            if (activeMenuTab === 'store') fetchTemplatesList();
+            else if (activeMenuTab === 'store_icon') fetchStoreIconsList();
+          }}
+          onImport={activeMenuTab === 'store' ? () => setShowTemplateImportExport(true) : undefined}
+          onExport={activeMenuTab === 'store' ? () => setShowTemplateImportExport(true) : undefined}
+          onAdd={activeMenuTab === 'store' ? () => setIsTemplateModalOpen(true) : undefined}
+          addLabel="Add Store Template"
+          addLabelAr="إضافة قالب متجر"
           loading={loading}
         />
       </PageToolbar>
@@ -724,7 +753,7 @@ const Templates: React.FC = () => {
           
           {/* Store Location Selection - Always Visible (only for store / store_icon tabs) */}
           {/* Collapsible Advanced Filter Panel */}
-          {(activeMenuTab === 'merchant' || activeMenuTab === 'store') && showFilters && (
+          {(activeMenuTab === 'store') && showFilters && (
             <div 
               className="templates-filters glass-card"
               style={{
@@ -836,7 +865,7 @@ const Templates: React.FC = () => {
           )}
           
           {/* ================= SECTION 1: MERCHANT TEMPLATES ================= */}
-          {activeMenuTab === 'merchant' && (
+          {false && (
             <div className="workspace-tab-content">
               {/* Zkong Scenario Sub-tabs */}
               <div className="scenario-nav glass-card">
@@ -858,19 +887,6 @@ const Templates: React.FC = () => {
 
               {/* Filters are now rendered inside the collapsible advanced panel above */}
 
-              {/* Action Buttons */}
-              <div className="actions-row">
-                <button className="btn-primary sm-btn" onClick={() => setIsTemplateModalOpen(true)}>
-                  <Plus size={16} /> New Merchant Template / قالب تاجر جديد
-                </button>
-                {/* 
-                <button className="btn-secondary sm-btn">Import Template / استيراد قالب</button>
-                <button className="btn-secondary sm-btn" onClick={fetchTemplatesList}><RefreshCw size={14} /> Refresh ESL / تحديث الشاشات</button>
-                <button className="btn-secondary sm-btn">Import Template File / استيراد ملف قالب</button>
-                <button className="btn-secondary sm-btn" disabled>Export Template File / تصدير ملف قالب</button>
-                */}
-              </div>
-
               {/* Data Table */}
               {renderTemplatesTable()}
             </div>
@@ -880,19 +896,6 @@ const Templates: React.FC = () => {
           {activeMenuTab === 'store' && (
             <div className="workspace-tab-content">
               {/* Filters are now rendered inside the collapsible advanced panel above */}
-
-              {/* Action Buttons */}
-              <div className="actions-row">
-                <button className="btn-primary sm-btn" onClick={() => setIsTemplateModalOpen(true)}>
-                  <Plus size={16} /> New Store Template / قالب متجر جديد
-                </button>
-                {/*
-                <button className="btn-secondary sm-btn">Import Merchant Template / استيراد قالب التاجر</button>
-                <button className="btn-secondary sm-btn" onClick={fetchTemplatesList}><RefreshCw size={14} /> Refresh ESL / تحديث الشاشات</button>
-                <button className="btn-secondary sm-btn">Import Template File / استيراد ملف قالب</button>
-                <button className="btn-secondary sm-btn" disabled>Export Template File / تصدير ملف قالب</button>
-                */}
-              </div>
 
               {/* Data Table */}
               {renderTemplatesTable()}

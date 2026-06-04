@@ -257,65 +257,22 @@ const AuditLogs: React.FC = () => {
         titleAr="سجلات التدقيق"
       />
       <PageToolbar>
-        <div style={{ display: 'flex', gap: '16px', flex: 1, alignItems: 'center' }}>
-          <div className="store-selector-wrapper">
-            <StoreIcon size={16} className="text-muted" />
-            {storesLoading ? (
-              <span style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>Loading...</span>
-            ) : (
-              <select 
-                value={selectedStoreId} 
-                onChange={handleStoreChange}
-                className="glass-select"
-              >
-                <option value="">All Stores / جميع الفروع</option>
-                {stores.map(store => (
-                  <option key={store.storeId} value={store.storeId}>
-                    {store.storeName} {store.externalStoreId ? `(${store.externalStoreId})` : ''}
-                  </option>
-                ))}
-              </select>
-            )}
-          </div>
-
-          <button 
-            className={`btn-action btn-action-slate ${showFilters ? 'active' : ''}`} 
-            onClick={() => setShowFilters(!showFilters)}
-            title="Filters / التصفية"
-            style={{ position: 'relative' }}
-          >
-            <Filter size={18} />
-            {(() => {
-              const isFilterActive = selectedOperation !== '' || selectedStatus !== '';
-              return isFilterActive && (
-                <span style={{
-                  position: 'absolute',
-                  top: '4px',
-                  right: '4px',
-                  width: '6px',
-                  height: '6px',
-                  borderRadius: '50%',
-                  backgroundColor: '#3b82f6',
-                  border: '1px solid var(--glass-border)'
-                }} />
-              );
-            })()}
-          </button>
-
-          <div className="global-search-bar">
-            <Search size={16} className="text-muted" />
-            <input 
-              type="text" 
-              placeholder="Search logs... / بحث في السجلات..." 
-              value={searchQuery} 
-              onChange={(e) => setSearchQuery(e.target.value)} 
-            />
-          </div>
+        <button className="btn-action btn-action-filter" style={{ padding: '0 12px' }}>
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon></svg>
+        </button>
+        <div className="global-search-bar" style={{ flex: 1, minWidth: 'var(--search-min-width)' }}>
+          <Search size={16} className="text-muted" />
+          <input
+            type="text"
+            placeholder="Search audit logs... / ابحث في السجلات..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
         </div>
-
         <ActionButtons
           onRefresh={fetchLogs}
-          loading={logsLoading}
+          onExport={() => {}}
+          
         />
       </PageToolbar>
       {/* Toast Notification */}

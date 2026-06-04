@@ -309,17 +309,9 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
             <SidebarItem 
               to="/templates" 
               icon={<LayoutTemplate size={20} />} 
-              label="Templates / القوالب" 
+              label="Store Templates / قوالب المتجر" 
               collapsed={isSidebarCollapsed && !isMobile} 
-              onHover={handleHoverParent}
               onClickParent={handleClickParent}
-              activeFloatingParent={floatingMenu?.to}
-              subItems={[
-                { label: 'Merchant Template / قوالب التاجر', to: '/templates?tab=merchant', icon: <Smartphone size={16} /> },
-                { label: 'Store Template / قوالب المتجر', to: '/templates?tab=store', icon: <Settings size={16} /> },
-                { label: 'Store Icon / أيقونة المتجر', to: '/templates?tab=icon', icon: <ImageIcon size={16} /> },
-                { label: 'Template Properties / خصائص القوالب', to: '/templates?tab=properties', icon: <Tag size={16} /> }
-              ]}
             />
           )}
           {(user?.permissions?.includes('equipment') || false) && (

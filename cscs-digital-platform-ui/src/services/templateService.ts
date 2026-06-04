@@ -81,21 +81,7 @@ export const getTemplates = async (page = 0, size = 10, searchParams?: Record<st
     contentData = unwrapped.data;
   }
 
-  // Enrich with modelId and color from getTemplateById
-  if (contentData && Array.isArray(contentData.content)) {
-    const detailedContent = await Promise.all(
-      contentData.content.map(async (t: any) => {
-        try {
-          // Fire and await all detail requests to get modelId which is omitted from list API
-          const detail = await getTemplateById(t.id);
-          return { ...t, modelId: detail.modelId };
-        } catch (e) {
-          return t;
-        }
-      })
-    );
-    contentData.content = detailedContent;
-  }
+  
   
   return contentData;
 };

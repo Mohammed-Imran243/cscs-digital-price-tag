@@ -1,3 +1,5 @@
+import { StoreSelector } from '../components/common/StoreSelector';
+import { AlertTriangle } from 'lucide-react';
 import React, { useState, useEffect } from 'react';
 import { Plus, Search, Store as StoreIcon, Edit2, Trash2, MapPin, Phone, User, Mail, RefreshCw, Loader2, X, CheckCircle, Power, Upload } from 'lucide-react';
 import { storeService } from '../services/storeService';
@@ -218,12 +220,13 @@ const Stores: React.FC = () => {
       )}
 
       <PageHeader
-        title="Store Management"
-        titleAr="إدارة المتاجر"
+        title="Store Management / إدارة المتاجر"
+        titleAr=""
       />
       <PageToolbar>
         <div style={{ display: 'flex', gap: '16px', flex: 1, alignItems: 'center' }}>
-          <div className="global-search-bar">
+          
+          <div className="global-search-bar" style={{ flex: 1, minWidth: 'var(--search-min-width)' }}>
             <Search size={16} className="text-muted" />
             <input
               type="text"
@@ -286,7 +289,7 @@ const Stores: React.FC = () => {
                 </div>
 
                 <div className="store-card-body">
-                  <h3>{store.storeName}</h3>
+                  <h3 className="line-clamp-2" style={{ minHeight: '44px', marginBottom: '8px' }}>{store.storeName}</h3>
                   <p className="store-id">
                     <span style={{ userSelect: 'none' }}>ID / المعرف: </span>
                     <strong style={{ userSelect: 'all' }}>{store.storeId}</strong>
@@ -318,25 +321,15 @@ const Stores: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="store-card-actions">
-                  <button className="btn-text edit-btn" onClick={() => openEditModal(store)}>
-                    <Edit2 size={16} />
-                    <span>Edit / تعديل</span>
+                <div className="table-actions" style={{ paddingTop: '10px', borderTop: '1px solid var(--glass-border)', marginTop: '8px', display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
+                  <button className="icon-action" onClick={() => openEditModal(store)} title="Edit Store">
+                    <Edit2 size={18} />
                   </button>
-                  {store.status === 'ACTIVE' ? (
-                    <button className="btn-text disable-btn" onClick={() => store.storeId && handleDisable(store.storeId)}>
-                      <Power size={16} />
-                      <span>Disable / تعطيل</span>
-                    </button>
-                  ) : (
-                    <button className="btn-text enable-btn" onClick={() => store.storeId && handleEnable(store.storeId)}>
-                      <CheckCircle size={16} />
-                      <span>Enable / تفعيل</span>
-                    </button>
-                  )}
-                  <button className="btn-text delete-btn" onClick={() => store.storeId && handleDelete(store.storeId)}>
-                    <Trash2 size={16} />
-                    <span>Delete / حذف</span>
+                  <button className="icon-action" onClick={() => handleDisable(store.storeId)} title="Disable Store">
+                    <AlertTriangle size={18} />
+                  </button>
+                  <button className="icon-action danger" onClick={() => setConfirmDialog({ isOpen: true, title: 'Delete Store / حذف المتجر', message: 'Are you sure you want to delete this store? / هل أنت متأكد أنك تريد حذف هذا المتجر؟', onConfirm: () => handleDelete(store.storeId) })} title="Delete Store">
+                    <Trash2 size={18} />
                   </button>
                 </div>
               </div>

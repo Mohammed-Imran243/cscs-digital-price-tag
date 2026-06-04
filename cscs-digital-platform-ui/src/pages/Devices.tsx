@@ -1,3 +1,4 @@
+import { StoreSelector } from '../components/common/StoreSelector';
 import React, { useState, useEffect } from 'react';
 import { 
   Search, 
@@ -74,6 +75,9 @@ const Devices: React.FC = () => {
   const [eslDevices, setEslDevices] = useState<EslDevice[]>([]);
   const [apDevices, setApDevices] = useState<ApDevice[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showDeviceFilters, setShowDeviceFilters] = useState(false);
+  const [filterDeviceStatus, setFilterDeviceStatus] = useState<string>('All');
+  const activeDeviceFilterCount = [filterDeviceStatus !== 'All'].filter(Boolean).length;
   const [error, setError] = useState('');
   
   // Controls
@@ -598,21 +602,12 @@ const Devices: React.FC = () => {
       <PageHeader title="Device Management" titleAr="إدارة الأجهزة" />
             <PageToolbar>
         <div style={{ display: 'flex', gap: '16px', flex: 1, alignItems: 'center' }}>
-          <div className="store-selector-wrapper">
-            <StoreIcon size={16} className="text-muted" />
-            <select 
-              value={selectedStoreId} 
-              onChange={(e) => setSelectedStoreId(e.target.value)}
-              className="glass-select"
-            >
-              <option value="">{t('Select a Store...', 'اختر متجراً...')}</option>
-              {stores.map(store => (
-                <option key={store.storeId} value={store.storeId}>
-                  {store.storeName} {store.externalStoreId ? `(${store.externalStoreId})` : ''}
-                </option>
-              ))}
-            </select>
-          </div>
+          <StoreSelector 
+              stores={stores} 
+              selectedStore={selectedStore} 
+              onSelect={setSelectedStore} 
+              loading={false} 
+            />
           
           <SearchInput
             value={searchTerm}
@@ -666,6 +661,22 @@ const Devices: React.FC = () => {
           )}
         </ActionButtons>
       </PageToolbar>
+      {/* Device Filter Panel */}
+      {showDeviceFilters && (
+        <div className="templates-filters glass-card" style={{ padding: '12px 16px', border: '1px solid var(--glass-border)', marginBottom: '16px', background: 'rgba(255,255,255,0.02)', display: 'flex', flexDirection: 'row', alignItems: 'flex-end', gap: '16px', flexWrap: 'wrap', borderRadius: '12px' }}>
+          <div className="filter-group" style={{ display: 'flex', flexDirection: 'column', gap: '4px', flex: '1 1 180px', minWidth: '140px' }}>
+            <label style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-secondary)' }}>Status / الحالة</label>
+            <select value={filterDeviceStatus} onChange={e => setFilterDeviceStatus(e.target.value)} className="glass-select" style={{ height: '36px', borderRadius: '8px', fontSize: '13px' }}>
+              <option value="All">All / الكل</option>
+              <option value="online">Online / متصل</option>
+              <option value="offline">Offline / غير متصل</option>
+            </select>
+          </div>
+          <button onClick={() => setFilterDeviceStatus('All')} style={{ background: 'none', border: 'none', color: 'var(--primary-color)', cursor: 'pointer', fontSize: '13px', fontWeight: 600, padding: '8px 12px', alignSelf: 'flex-end', whiteSpace: 'nowrap', marginLeft: 'auto' }}>
+            Reset Filters / إعادة تعيين
+          </button>
+        </div>
+      )}
 
       <ImportExportModal
         isOpen={showEslImportExport}
