@@ -599,112 +599,114 @@ const Devices: React.FC = () => {
         </div>
       )}
 
-      <PageHeader title="Device Management" titleAr="إدارة الأجهزة" />
-            <PageToolbar>
-        <div style={{ display: 'flex', gap: '16px', flex: 1, alignItems: 'center' }}>
-          <StoreSelector 
-              stores={stores} 
-              selectedStore={selectedStore} 
-              onSelect={setSelectedStore} 
-              loading={false} 
+      <div className="sticky-page-header">
+        <PageHeader title="Device Management" titleAr="إدارة الأجهزة" />
+        <PageToolbar>
+          <div style={{ display: 'flex', gap: '16px', flex: 1, alignItems: 'center' }}>
+            <StoreSelector 
+                stores={stores} 
+                selectedStore={selectedStore} 
+                onSelect={setSelectedStore} 
+                loading={false} 
+              />
+            
+            <SearchInput
+              value={searchTerm}
+              onChange={setSearchTerm}
+              placeholder="Search devices... / ابحث عن الأجهزة..."
             />
-          
-          <SearchInput
-            value={searchTerm}
-            onChange={setSearchTerm}
-            placeholder="Search devices... / ابحث عن الأجهزة..."
-          />
-        </div>
-
-        <ActionButtons
-          onRefresh={() => fetchDevices()}
-          loading={loading || storesLoading}
-          onBatchBind={activeTab === 'esl' ? () => setShowEslImportExport(true) : undefined}
-          onExport={activeTab === 'esl' ? async () => {
-            try {
-              await exportEslTags(selectedStoreId);
-            } catch (e) {
-              console.error('Export failed', e);
-            }
-          } : undefined}
-          onAdd={activeTab === 'ap' ? () => setIsAddApModalOpen(true) : undefined}
-          addLabel={activeTab === 'ap' ? 'Add AP' : 'Add'}
-          addLabelAr={activeTab === 'ap' ? 'إضافة محطة' : 'إضافة'}
-        >
-          {activeTab === 'esl' && (
-            <>
-              <button 
-                className="btn-action btn-action-bind" 
-                onClick={() => {
-                  setBindModalTab('bind');
-                  openBindModal('bind');
-                  setBindFormStoreId(selectedStoreId || stores[0]?.storeId || '');
-                  setBindModalOpen(true);
-                }}
-                disabled={!selectedStoreId || storesLoading}
-              >
-                <Link2 /> {t('Bind', 'ربط')}
-              </button>
-              <button 
-                className="btn-action btn-action-unbind" 
-                onClick={() => {
-                  setBindModalTab('unbind');
-                  openBindModal('unbind');
-                  setBindFormStoreId(selectedStoreId || stores[0]?.storeId || '');
-                  setBindModalOpen(true);
-                }}
-                disabled={!selectedStoreId || storesLoading}
-              >
-                <Link2 style={{ transform: 'rotate(90deg)' }} /> {t('Unbind', 'إلغاء ربط')}
-              </button>
-            </>
-          )}
-        </ActionButtons>
-      </PageToolbar>
-      {/* Device Filter Panel */}
-      {showDeviceFilters && (
-        <div className="templates-filters glass-card" style={{ padding: '12px 16px', border: '1px solid var(--glass-border)', marginBottom: '16px', background: 'rgba(255,255,255,0.02)', display: 'flex', flexDirection: 'row', alignItems: 'flex-end', gap: '16px', flexWrap: 'wrap', borderRadius: '12px' }}>
-          <div className="filter-group" style={{ display: 'flex', flexDirection: 'column', gap: '4px', flex: '1 1 180px', minWidth: '140px' }}>
-            <label style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-secondary)' }}>Status / الحالة</label>
-            <select value={filterDeviceStatus} onChange={e => setFilterDeviceStatus(e.target.value)} className="glass-select" style={{ height: '36px', borderRadius: '8px', fontSize: '13px' }}>
-              <option value="All">All / الكل</option>
-              <option value="online">Online / متصل</option>
-              <option value="offline">Offline / غير متصل</option>
-            </select>
           </div>
-          <button onClick={() => setFilterDeviceStatus('All')} style={{ background: 'none', border: 'none', color: 'var(--primary-color)', cursor: 'pointer', fontSize: '13px', fontWeight: 600, padding: '8px 12px', alignSelf: 'flex-end', whiteSpace: 'nowrap', marginLeft: 'auto' }}>
-            Reset Filters / إعادة تعيين
+  
+          <ActionButtons
+            onRefresh={() => fetchDevices()}
+            loading={loading || storesLoading}
+            onBatchBind={activeTab === 'esl' ? () => setShowEslImportExport(true) : undefined}
+            onExport={activeTab === 'esl' ? async () => {
+              try {
+                await exportEslTags(selectedStoreId);
+              } catch (e) {
+                console.error('Export failed', e);
+              }
+            } : undefined}
+            onAdd={activeTab === 'ap' ? () => setIsAddApModalOpen(true) : undefined}
+            addLabel={activeTab === 'ap' ? 'Add AP' : 'Add'}
+            addLabelAr={activeTab === 'ap' ? 'إضافة محطة' : 'إضافة'}
+          >
+            {activeTab === 'esl' && (
+              <>
+                <button 
+                  className="btn-action btn-action-bind" 
+                  onClick={() => {
+                    setBindModalTab('bind');
+                    openBindModal('bind');
+                    setBindFormStoreId(selectedStoreId || stores[0]?.storeId || '');
+                    setBindModalOpen(true);
+                  }}
+                  disabled={!selectedStoreId || storesLoading}
+                >
+                  <Link2 /> {t('Bind', 'ربط')}
+                </button>
+                <button 
+                  className="btn-action btn-action-unbind" 
+                  onClick={() => {
+                    setBindModalTab('unbind');
+                    openBindModal('unbind');
+                    setBindFormStoreId(selectedStoreId || stores[0]?.storeId || '');
+                    setBindModalOpen(true);
+                  }}
+                  disabled={!selectedStoreId || storesLoading}
+                >
+                  <Link2 style={{ transform: 'rotate(90deg)' }} /> {t('Unbind', 'إلغاء ربط')}
+                </button>
+              </>
+            )}
+          </ActionButtons>
+        </PageToolbar>
+        {/* Device Filter Panel */}
+        {showDeviceFilters && (
+          <div className="templates-filters glass-card" style={{ padding: '12px 16px', border: '1px solid var(--glass-border)', marginBottom: '16px', background: 'rgba(255,255,255,0.02)', display: 'flex', flexDirection: 'row', alignItems: 'flex-end', gap: '16px', flexWrap: 'wrap', borderRadius: '12px' }}>
+            <div className="filter-group" style={{ display: 'flex', flexDirection: 'column', gap: '4px', flex: '1 1 180px', minWidth: '140px' }}>
+              <label style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-secondary)' }}>Status / الحالة</label>
+              <select value={filterDeviceStatus} onChange={e => setFilterDeviceStatus(e.target.value)} className="glass-select" style={{ height: '36px', borderRadius: '8px', fontSize: '13px' }}>
+                <option value="All">All / الكل</option>
+                <option value="online">Online / متصل</option>
+                <option value="offline">Offline / غير متصل</option>
+              </select>
+            </div>
+            <button onClick={() => setFilterDeviceStatus('All')} style={{ background: 'none', border: 'none', color: 'var(--primary-color)', cursor: 'pointer', fontSize: '13px', fontWeight: 600, padding: '8px 12px', alignSelf: 'flex-end', whiteSpace: 'nowrap', marginLeft: 'auto' }}>
+              Reset Filters / إعادة تعيين
+            </button>
+          </div>
+        )}
+  
+        <ImportExportModal
+          isOpen={showEslImportExport}
+          onClose={() => setShowEslImportExport(false)}
+          title="ESL Tags Import / Export"
+          entityName="ESL Tags"
+          storeId={selectedStoreId || undefined}
+          onImport={importEslTags}
+          onExport={exportEslTags}
+          onDownloadTemplate={downloadEslTagImportTemplate}
+        />
+  
+        {/* Navigation Tabs */}
+        <div className="nav-tabs-container" style={{ marginTop: '8px', marginBottom: '8px' }}>
+          <button 
+            className={`nav-tab ${activeTab === 'esl' ? 'active' : ''}`}
+            onClick={() => setActiveTab('esl')}
+          >
+            <Smartphone size={16} />
+            <span>ESL Tags / شاشات الأسعار</span>
+          </button>
+          <button 
+            className={`nav-tab ${activeTab === 'ap' ? 'active' : ''}`}
+            onClick={() => setActiveTab('ap')}
+          >
+            <Cpu size={16} />
+            <span>AP Stations / محطات البث</span>
           </button>
         </div>
-      )}
-
-      <ImportExportModal
-        isOpen={showEslImportExport}
-        onClose={() => setShowEslImportExport(false)}
-        title="ESL Tags Import / Export"
-        entityName="ESL Tags"
-        storeId={selectedStoreId || undefined}
-        onImport={importEslTags}
-        onExport={exportEslTags}
-        onDownloadTemplate={downloadEslTagImportTemplate}
-      />
-
-      {/* Navigation Tabs */}
-      <div className="nav-tabs-container" style={{ marginTop: '8px' }}>
-        <button 
-          className={`nav-tab ${activeTab === 'esl' ? 'active' : ''}`}
-          onClick={() => setActiveTab('esl')}
-        >
-          <Smartphone size={16} />
-          <span>ESL Tags / شاشات الأسعار</span>
-        </button>
-        <button 
-          className={`nav-tab ${activeTab === 'ap' ? 'active' : ''}`}
-          onClick={() => setActiveTab('ap')}
-        >
-          <Cpu size={16} />
-          <span>AP Stations / محطات البث</span>
-        </button>
       </div>
 
       {/* Main Grid Content */}

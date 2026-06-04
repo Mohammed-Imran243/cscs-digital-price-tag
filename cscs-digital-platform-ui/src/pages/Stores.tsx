@@ -219,43 +219,45 @@ const Stores: React.FC = () => {
         </div>
       )}
 
-      <PageHeader
-        title="Store Management / إدارة المتاجر"
-        titleAr=""
-      />
-      <PageToolbar>
-        <div style={{ display: 'flex', gap: '16px', flex: 1, alignItems: 'center' }}>
-          
-          <div className="global-search-bar" style={{ flex: 1, minWidth: 'var(--search-min-width)' }}>
-            <Search size={16} className="text-muted" />
-            <input
-              type="text"
-              placeholder="Search stores... / ابحث عن المتاجر..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-          </div>
-        </div>
-        <ActionButtons
-          onRefresh={fetchStores}
-          onImport={() => setShowImportExport(true)}
-          onExport={() => setShowImportExport(true)}
-          onAdd={openCreateModal}
-          addLabel="Add Store"
-          addLabelAr="إضافة متجر"
-          loading={loading}
+      <div className="sticky-page-header">
+        <PageHeader
+          title="Store Management / إدارة المتاجر"
+          titleAr=""
         />
-      </PageToolbar>
-
-      <ImportExportModal
-        isOpen={showImportExport}
-        onClose={() => setShowImportExport(false)}
-        title="Stores Import / Export"
-        entityName="Stores"
-        onImport={importStores}
-        onExport={exportStores}
-        onDownloadTemplate={downloadStoreImportTemplate}
-      />
+        <PageToolbar>
+          <div style={{ display: 'flex', gap: '16px', flex: 1, alignItems: 'center' }}>
+            
+            <div className="global-search-bar" style={{ flex: 1, minWidth: 'var(--search-min-width)' }}>
+              <Search size={16} className="text-muted" />
+              <input
+                type="text"
+                placeholder="Search stores... / ابحث عن المتاجر..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
+          </div>
+          <ActionButtons
+            onRefresh={fetchStores}
+            onImport={() => setShowImportExport(true)}
+            onExport={() => setShowImportExport(true)}
+            onAdd={openCreateModal}
+            addLabel="Add Store"
+            addLabelAr="إضافة متجر"
+            loading={loading}
+          />
+        </PageToolbar>
+  
+        <ImportExportModal
+          isOpen={showImportExport}
+          onClose={() => setShowImportExport(false)}
+          title="Stores Import / Export"
+          entityName="Stores"
+          onImport={importStores}
+          onExport={exportStores}
+          onDownloadTemplate={downloadStoreImportTemplate}
+        />
+      </div>
 
       {loading ? (
         <div className="stores-loading-state">

@@ -252,25 +252,8 @@ const AuditLogs: React.FC = () => {
 
   return (
     <div className="audit-logs-container">
-          <div className="sticky-page-header">
-      <PageHeader
-        title="Audit Logs"
-        titleAr="سجلات التدقيق"
-      />
-      <PageToolbar>
-        <div className="global-search-bar" style={{ flex: 1, minWidth: 'var(--search-min-width)' }}>
-          <Search size={16} className="text-muted" />
-          <input
-            type="text"
-            placeholder="Search audit logs... / ابحث في السجلات..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
-        </div>
-        <ActionButtons
-          onRefresh={fetchLogs}
-          onExport={() => {}}
-          
+      <div className="sticky-page-header">
+        <PageHeader
           title="Audit Logs"
           titleAr="سجلات التدقيق"
         />
@@ -336,7 +319,7 @@ const AuditLogs: React.FC = () => {
             loading={logsLoading}
           />
         </PageToolbar>
-    </div>
+      </div>
       {/* Toast Notification */}
       {notification && (
         <div className={`toast-notification ${notification.type} glass-card`}>
