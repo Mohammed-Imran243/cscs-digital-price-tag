@@ -2,7 +2,8 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { 
   Activity,
   RefreshCw,
-  TrendingUp
+  TrendingUp,
+  Tag
 } from 'lucide-react';
 import { storeService } from '../../services/storeService';
 import type { Store as StoreType } from '../../services/storeService';
@@ -63,30 +64,35 @@ const PriceChangeMonitor: React.FC = () => {
 
   const formatTimeAgo = (dateStr: string): string => {
     if (!dateStr) return '';
-    const date = new Date(dateStr);
     
-    // Safety check for invalid dates from mock data
-    if (isNaN(date.getTime())) return 'Unknown time / وقت غير معروف';
+    // DragonESL timestamps are UTC+8, format: "2026-06-05 14:47:22"
+    // Append +08:00 so browser parses it correctly as UTC+8
+    const normalized = dateStr.includes('T')
+      ? dateStr
+      : dateStr.replace(' ', 'T') + '+08:00';
+    const utcDate = new Date(normalized);
+    if (isNaN(utcDate.getTime())) return 'Unknown time / وقت غير معروف';
 
     const now = new Date();
-    const diffMs = Math.max(0, now.getTime() - date.getTime());
+    const diffInSeconds = Math.floor(
+      (now.getTime() - utcDate.getTime()) / 1000
+    );
+
+    if (diffInSeconds < 60) return 'just now / الآن';
     
-    const seconds = Math.floor(diffMs / 1000);
-    if (seconds < 60) return 'just now / الآن';
-    
-    let interval = seconds / 31536000;
+    let interval = diffInSeconds / 31536000;
     if (interval >= 1) return Math.floor(interval) + " years ago / منذ " + Math.floor(interval) + " سنوات";
     
-    interval = seconds / 2592000;
+    interval = diffInSeconds / 2592000;
     if (interval >= 1) return Math.floor(interval) + " months ago / منذ " + Math.floor(interval) + " أشهر";
     
-    interval = seconds / 86400;
+    interval = diffInSeconds / 86400;
     if (interval >= 1) return Math.floor(interval) + " days ago / منذ " + Math.floor(interval) + " أيام";
     
-    interval = seconds / 3600;
+    interval = diffInSeconds / 3600;
     if (interval >= 1) return Math.floor(interval) + " hours ago / منذ " + Math.floor(interval) + " ساعات";
     
-    interval = seconds / 60;
+    interval = diffInSeconds / 60;
     if (interval >= 1) return Math.floor(interval) + " mins ago / منذ " + Math.floor(interval) + " دقيقة";
     
     return 'just now / الآن';
@@ -163,6 +169,18 @@ const PriceChangeMonitor: React.FC = () => {
               >
                 <div style={{ fontWeight: 'bold', fontSize: '14px', color: 'var(--text-primary)', marginBottom: '8px', lineHeight: '1.4' }}>
                   {record.itemName || 'Unnamed Item / منتج غير مسمى'}
+                </div>
+                
+                <div style={{ 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  gap: '4px',
+                  fontSize: '12px', 
+                  color: '#6B7280',
+                  marginBottom: '6px'
+                }}>
+                  <Tag size={12} style={{ color: '#EF4444' }} />
+                  <span>{record.itemBarCode}</span>
                 </div>
                 
                 <div style={{ display: 'flex', alignItems: 'center', fontSize: '14px', marginBottom: '12px' }}>
