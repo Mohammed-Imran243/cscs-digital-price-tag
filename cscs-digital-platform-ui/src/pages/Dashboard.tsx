@@ -414,17 +414,17 @@ const Dashboard: React.FC = () => {
           display: flex;
           align-items: center;
           gap: 8px;
-          background: rgba(99, 102, 241, 0.15);
-          border: 1px solid rgba(99, 102, 241, 0.35);
-          color: #a5b4fc;
-          padding: 9px 18px;
+          background: transparent;
+          border: 1px solid #3b82f6;
+          color: #3b82f6;
+          padding: 8px 16px;
           border-radius: 8px;
           cursor: pointer;
           font-size: 13px;
           font-weight: 600;
           transition: background 0.2s;
         }
-        .btn-refresh:hover { background: rgba(99, 102, 241, 0.25); }
+        .btn-refresh:hover { background: rgba(59, 130, 246, 0.1); }
         .btn-refresh:disabled { opacity: 0.5; cursor: not-allowed; }
         .spin { animation: spin 1s linear infinite; }
         @keyframes spin { to { transform: rotate(360deg); } }
