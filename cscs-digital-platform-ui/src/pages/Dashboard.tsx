@@ -147,7 +147,7 @@ const Dashboard: React.FC = () => {
           loading={loading}
           color="#6366f1"
             bgColor="rgba(99,102,241,0.15)"
-            borderColor="#10B981"
+            borderColor="#6366f1"
           error={!loading && !summary}
           onClick={() => navigate('/merchants')}
         />
@@ -157,9 +157,9 @@ const Dashboard: React.FC = () => {
           value={formatCount(summary?.storeCount)}
           trend={summary?.activeStoreCount !== undefined ? `${formatCount(summary.activeStoreCount)} active stores / متاجر نشطة` : undefined}
           loading={loading}
-          color="#0ea5e9"
-            bgColor="rgba(14,165,233,0.15)"
-            borderColor="#3B82F6"
+          color="#14b8a6"
+            bgColor="rgba(20,184,166,0.15)"
+            borderColor="#14b8a6"
           error={!loading && !summary}
           onClick={() => navigate('/stores')}
         />
@@ -171,7 +171,7 @@ const Dashboard: React.FC = () => {
           loading={loading}
           color="#8b5cf6"
             bgColor="rgba(139,92,246,0.15)"
-            borderColor="#8B5CF6"
+            borderColor="#8b5cf6"
           error={!loading && !summary}
           onClick={() => navigate('/devices?tab=ap')}
         />
@@ -181,9 +181,9 @@ const Dashboard: React.FC = () => {
           value={formatCount(summary?.templateCount)}
           trend={summary?.templateCount !== undefined ? `${formatCount(summary.templateCount)} active templates / قوالب نشطة` : undefined}
           loading={loading}
-          color="#f59e0b"
-            bgColor="rgba(245,158,11,0.15)"
-            borderColor="#F59E0B"
+          color="#eab308"
+            bgColor="rgba(234,179,8,0.15)"
+            borderColor="#eab308"
           error={!loading && !summary}
           onClick={() => navigate('/templates')}
         />
@@ -193,9 +193,9 @@ const Dashboard: React.FC = () => {
           value={formatCount(summary?.productCount)}
           trend={`Total Products / إجمالي المنتجات`}
           loading={loading}
-          color="#14b8a6"
-            bgColor="rgba(20,184,166,0.15)"
-            borderColor="#14B8A6"
+          color="#f97316"
+            bgColor="rgba(249,115,22,0.15)"
+            borderColor="#f97316"
           error={!loading && !summary}
           onClick={() => navigate('/products')}
         />
@@ -205,9 +205,9 @@ const Dashboard: React.FC = () => {
           value={formatCount(summary?.eslCount)}
           trend={summary?.eslCount !== undefined ? `Total ESL tags / إجمالي علامات ESL` : undefined}
           loading={loading}
-          color="#f97316"
-            bgColor="rgba(249,115,22,0.15)"
-            borderColor="#F97316"
+          color="#10b981"
+            bgColor="rgba(16,185,129,0.15)"
+            borderColor="#10b981"
           error={!loading && !summary}
           onClick={() => navigate('/devices?tab=esl')}
         />
