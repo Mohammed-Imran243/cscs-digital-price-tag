@@ -2,15 +2,15 @@ import React, { useState, useEffect, useLayoutEffect, useRef } from 'react';
 import { useTheme } from '../context/ThemeContext';
 import { useAuth } from '../context/AuthContext';
 
-import { Sun, Moon, LogOut, LayoutDashboard, Store, Package, User, Cpu, Menu, Building2, LayoutTemplate, History, Smartphone, Settings, Image as ImageIcon, Tag, Shield } from 'lucide-react';
+import { Home, Sun, Moon, LogOut, LayoutDashboard, Store, Package, User, Cpu, Menu, Building2, LayoutTemplate, History, Smartphone, Settings, Image as ImageIcon, Tag, Shield } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 
-const SidebarItem: React.FC<{ 
-  to: string, 
-  icon: React.ReactNode, 
-  label: string, 
-  collapsed: boolean, 
-  subItems?: {label: string, to: string, icon?: React.ReactNode}[],
+const SidebarItem: React.FC<{
+  to: string,
+  icon: React.ReactNode,
+  label: string,
+  collapsed: boolean,
+  subItems?: { label: string, to: string, icon?: React.ReactNode }[],
   onHover?: (rect: DOMRect | null, label: string, subItems: any[], to: string) => void,
   onClickParent?: (rect: DOMRect | null, label: string, subItems: any[], to: string) => void,
   activeFloatingParent?: string
@@ -18,14 +18,14 @@ const SidebarItem: React.FC<{
   const location = useLocation();
   const isActive = location.pathname === to || (subItems && subItems.some(item => location.pathname === item.to || location.pathname.startsWith(item.to) || (location.pathname === to && location.search === item.to.split('?')[1])));
   const [expanded, setExpanded] = useState(isActive);
-  
+
   // Clean up the label for the tooltip by removing the arabic part or just keep the whole thing
   const tooltipText = label.split(' /')[0];
 
   if (!subItems) {
     return (
-      <Link 
-        to={to} 
+      <Link
+        to={to}
         className={`sidebar-item ${isActive ? 'active' : ''}`}
         title={collapsed ? tooltipText : undefined}
         onClick={() => {
@@ -42,7 +42,7 @@ const SidebarItem: React.FC<{
 
   return (
     <div className={`sidebar-group ${isParentHighlighted ? 'active-group' : ''}`}>
-      <div 
+      <div
         className={`sidebar-item ${isParentHighlighted ? 'active' : ''}`}
         title={collapsed ? tooltipText : undefined}
         onClick={(e) => {
@@ -77,7 +77,7 @@ const SidebarItem: React.FC<{
           {subItems.map((sub, idx) => {
             const isSubActive = location.pathname + location.search === sub.to || (!location.search && (sub.to.includes('tab=merchant') || sub.to.includes('tab=esl') || sub.to.includes('tab=users')));
             return (
-              <Link 
+              <Link
                 key={idx}
                 to={sub.to}
                 className={`sidebar-subitem ${isSubActive ? 'active' : ''}`}
@@ -146,12 +146,12 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
       const menuRect = floatingMenuRef.current.getBoundingClientRect();
       const triggerRect = floatingMenu.rect;
       const viewportHeight = window.innerHeight;
-      
+
       let top = triggerRect.top;
       if (top + menuRect.height > viewportHeight - 16) {
         top = Math.max(16, viewportHeight - menuRect.height - 16);
       }
-      
+
       const left = triggerRect.right + 8;
       setFloatingPosition({ top, left });
     }
@@ -277,17 +277,27 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
       <aside className={`sidebar glass-card ${isMobileMenuOpen ? 'mobile-open' : ''} ${isSidebarCollapsed ? 'collapsed' : ''}`}>
         <div className="sidebar-header antigravity-wrapper">
-          <div className="logo-expanded">
-            <img src="/cscs-logo.svg" alt="CSCS Logo" className="brand-asset-expanded" />
-          </div>
-          <div className="logo-collapsed">
-            <img src="/cscs-logo.svg" alt="CSCS Logo" className="brand-asset-collapsed" />
-          </div>
+            <div 
+              className="logo-expanded" 
+              onClick={() => navigate('/')} 
+              style={{ cursor: 'pointer', alignItems: 'center' }}
+              title="Dashboard"
+            >
+              <Home size={32} strokeWidth={2} color="var(--primary-color)" />
+            </div>
+            <div 
+              className="logo-collapsed" 
+              onClick={() => navigate('/')} 
+              style={{ cursor: 'pointer', alignItems: 'center', justifyContent: 'center', width: '100%' }}
+              title="Dashboard"
+            >
+              <Home size={32} strokeWidth={2} color="var(--primary-color)" />
+            </div>
           <button className="sidebar-toggle-btn" onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}>
             <Menu size={20} strokeWidth={1.25} />
           </button>
         </div>
-        
+
         <nav className="sidebar-nav">
           <SidebarItem to="/" icon={<LayoutDashboard size={20} />} label="Dashboard / لوحة التحكم" collapsed={isSidebarCollapsed && !isMobile} onClickParent={handleClickParent} />
           {(user?.permissions?.includes('staffManager') || false) && (
@@ -297,29 +307,29 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
             <SidebarItem to="/stores" icon={<Store size={20} />} label="Stores / المتاجر" collapsed={isSidebarCollapsed && !isMobile} onClickParent={handleClickParent} />
           )}
           {(user?.permissions?.includes('product') || false) && (
-            <SidebarItem 
-              to="/products" 
-              icon={<Package size={20} />} 
-              label="Products / المنتجات" 
-              collapsed={isSidebarCollapsed && !isMobile} 
+            <SidebarItem
+              to="/products"
+              icon={<Package size={20} />}
+              label="Products / المنتجات"
+              collapsed={isSidebarCollapsed && !isMobile}
               onClickParent={handleClickParent}
             />
           )}
           {(user?.permissions?.includes('template') || false) && (
-            <SidebarItem 
-              to="/templates" 
-              icon={<LayoutTemplate size={20} />} 
-              label="Store Templates / قوالب المتجر" 
-              collapsed={isSidebarCollapsed && !isMobile} 
+            <SidebarItem
+              to="/templates"
+              icon={<LayoutTemplate size={20} />}
+              label="Store Templates / قوالب المتجر"
+              collapsed={isSidebarCollapsed && !isMobile}
               onClickParent={handleClickParent}
             />
           )}
           {(user?.permissions?.includes('equipment') || false) && (
-            <SidebarItem 
-              to="/devices" 
-              icon={<Cpu size={20} />} 
-              label="Devices / الأجهزة" 
-              collapsed={isSidebarCollapsed && !isMobile} 
+            <SidebarItem
+              to="/devices"
+              icon={<Cpu size={20} />}
+              label="Devices / الأجهزة"
+              collapsed={isSidebarCollapsed && !isMobile}
               onHover={handleHoverParent}
               onClickParent={handleClickParent}
               activeFloatingParent={floatingMenu?.to}
@@ -333,11 +343,11 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
             <SidebarItem to="/audit-logs" icon={<History size={20} />} label="Audit Logs / سجلات المراجعة" collapsed={isSidebarCollapsed && !isMobile} onClickParent={handleClickParent} />
           )}
           {(user?.permissions?.includes('staffManager') || false) && (
-            <SidebarItem 
-              to="/users" 
-              icon={<User size={20} />} 
-              label="Staff Users / الموظفين" 
-              collapsed={isSidebarCollapsed && !isMobile} 
+            <SidebarItem
+              to="/users"
+              icon={<User size={20} />}
+              label="Staff Users / الموظفين"
+              collapsed={isSidebarCollapsed && !isMobile}
               onHover={handleHoverParent}
               onClickParent={handleClickParent}
               activeFloatingParent={floatingMenu?.to}
@@ -359,20 +369,20 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
             </button>
             {isMobile ? (
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <img 
-                  src={theme === 'dark' ? '/cscs-logo-square-white.png' : '/cscs-logo-square-dark.png'} 
-                  alt="CSCS Icon" 
-                  style={{ 
-                    width: '24px', 
-                    height: '24px', 
+                <img
+                  src={theme === 'dark' ? '/cscs-logo-square-white.png' : '/cscs-logo-square-dark.png'}
+                  alt="CSCS Icon"
+                  style={{
+                    width: '24px',
+                    height: '24px',
                     flexShrink: 0
-                  }} 
+                  }}
                 />
               </div>
             ) : (
               <div className="header-titles">
                 <div className="app-title-banner">
-                  <span className="en-text">CSCS ESL CONNECT APP</span>
+                  <span className="en-text">ESL CONNECT APP</span>
                   <span className="divider">/</span>
                   <span className="ar-text" dir="rtl">منصة بطاقات الأسعار الرقمية</span>
                 </div>
@@ -382,9 +392,9 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
           <div className="header-right">
             <div className="user-profile">
               {/* Modern Theme Toggle Switch */}
-              <div 
-                className="theme-switch-container" 
-                onClick={toggleTheme} 
+              <div
+                className="theme-switch-container"
+                onClick={toggleTheme}
                 title={theme === 'light' ? 'Switch to Dark Mode / تفعيل الوضع الداكن' : 'Switch to Light Mode / تفعيل الوضع المضيء'}
                 tabIndex={0}
                 onKeyDown={(e) => {
@@ -409,7 +419,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                     if (r === 'MERCHANT_SUPER_ADMIN') return 'Merchant Super Admin / مسؤول التاجر الرئيسي';
                     if (r === 'MERCHANT') return 'Merchant / تاجر';
                     if (r === 'STAFF') return 'Staff / موظف';
-                    
+
                     const rawRole = user?.role || '';
                     const translateMap: Record<string, string> = {
                       '商家超级管理员': 'Merchant Super Administrator',
@@ -425,7 +435,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
             </div>
           </div>
         </header>
-        
+
         <div className="content-area">
           {children}
         </div>
@@ -433,7 +443,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
       {/* Dynamic Floating Submenu */}
       {floatingMenu && (
-        <div 
+        <div
           ref={floatingMenuRef}
           className="floating-submenu glass-card"
           style={{
@@ -447,9 +457,9 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
         >
           <div className="floating-submenu-header">
             {floatingMenu.to ? (
-              <Link 
-                to={floatingMenu.to} 
-                className="floating-submenu-header-link" 
+              <Link
+                to={floatingMenu.to}
+                className="floating-submenu-header-link"
                 onClick={() => setFloatingMenu(null)}
               >
                 {floatingMenu.label}
@@ -462,7 +472,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
             {floatingMenu.subItems.map((sub, idx) => {
               const isSubActive = location.pathname + location.search === sub.to || (!location.search && (sub.to.includes('tab=merchant') || sub.to.includes('tab=esl') || sub.to.includes('tab=users')));
               return (
-                <Link 
+                <Link
                   key={idx}
                   to={sub.to}
                   className={`sidebar-subitem ${isSubActive ? 'active' : ''} ${hoveredSubIndex === idx ? 'keyboard-hover' : ''}`}
