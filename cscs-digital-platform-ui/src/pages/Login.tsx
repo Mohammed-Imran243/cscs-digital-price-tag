@@ -113,7 +113,7 @@ const LoginPage: React.FC = () => {
           width: 100%;
           max-width: 480px;
           min-height: 560px;
-          padding: 48px 48px;
+          padding: 32px 48px;
           text-align: center;
           background: transparent;
           border-radius: 28px;
@@ -173,8 +173,8 @@ const LoginPage: React.FC = () => {
           display: flex;
           justify-content: center;
           align-items: center;
-          margin-bottom: 12px;
-          margin-top: -16px;
+          margin-bottom: -32px;
+          margin-top: -40px;
         }
 
         .logo-img {
@@ -191,7 +191,7 @@ const LoginPage: React.FC = () => {
           font-size: 26px;
           font-weight: 700;
           color: white;
-          margin-bottom: 40px;
+          margin-bottom: 32px;
           letter-spacing: -0.5px;
         }
 
