@@ -193,9 +193,9 @@ const Dashboard: React.FC = () => {
           value={formatCount(summary?.productCount)}
           trend={`Total Products / إجمالي المنتجات`}
           loading={loading}
-          color="#f97316"
-            bgColor="rgba(249,115,22,0.15)"
-            borderColor="#F97316"
+          color="#14b8a6"
+            bgColor="rgba(20,184,166,0.15)"
+            borderColor="#14B8A6"
           error={!loading && !summary}
           onClick={() => navigate('/products')}
         />
@@ -205,9 +205,9 @@ const Dashboard: React.FC = () => {
           value={formatCount(summary?.eslCount)}
           trend={summary?.eslCount !== undefined ? `Total ESL tags / إجمالي علامات ESL` : undefined}
           loading={loading}
-          color="#10b981"
-            bgColor="rgba(16,185,129,0.15)"
-            borderColor="#14B8A6"
+          color="#f97316"
+            bgColor="rgba(249,115,22,0.15)"
+            borderColor="#F97316"
           error={!loading && !summary}
           onClick={() => navigate('/devices?tab=esl')}
         />
