@@ -1,94 +1,12 @@
-import React, { useState } from 'react';
-import { useAuth } from '../context/AuthContext';
-import { useNavigate } from 'react-router-dom';
-import { Lock, User, Loader2 } from 'lucide-react';
+const fs = require('fs');
 
-const LoginPage: React.FC = () => {
-  const [userId, setUserId] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
-  
-  const { login } = useAuth();
-  const navigate = useNavigate();
+const loginFile = 'src/pages/Login.tsx';
+let content = fs.readFileSync(loginFile, 'utf8');
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    setError('');
-    
-    try {
-      await login({ userId, password });
-      navigate('/');
-    } catch (err: any) {
-      const rawError = err.response?.data?.message || '';
-      let friendlyMsg = 'Invalid username or password. Please verify your ESL credentials and try again. / اسم المستخدم أو كلمة المرور غير صالحة. يرجى التحقق من بيانات اعتماد ESL والمحاولة مرة أخرى.';
-      
-      if (rawError.includes('resolve') || rawError.includes('Failed to resolve') || err.message === 'Network Error' || String(err).includes('Network Error')) {
-        friendlyMsg = 'Network error: Failed to connect to the server. Please check your internet connection. / خطأ في الشبكة: فشل الاتصال بالخادم. يرجى التحقق من اتصالك بالإنترنت.';
-      }
-      
-      setError(friendlyMsg);
-      
-      // Auto-clear the error after 5 seconds
-      setTimeout(() => {
-        setError('');
-      }, 5000);
-    } finally {
-      setLoading(false);
-    }
-  };
+// Replace the logo src
+content = content.replace(/\/cscs-logo-login-cropped\.png/g, '/esl-connect-logo.png');
 
-  return (
-    <div className="login-page">
-      <div className="login-card">
-        <div className="login-header">
-          <div className="logo-container">
-            <img src="/cscs-logo-login-cropped.png" alt="CSCS Logo" className="logo-img" />
-          </div>
-          <h2 className="login-title">Login / تسجيل الدخول</h2>
-        </div>
-
-        <form onSubmit={handleSubmit} className="login-form" autoComplete="off">
-          {error && <div className="error-message">{error}</div>}
-          
-          <div className="input-group">
-            <User className="input-icon" size={20} />
-            <input
-              type="text"
-              name="cscs-username"
-              id="cscs-username"
-              placeholder="Username"
-              value={userId}
-              onChange={(e) => setUserId(e.target.value)}
-              autoComplete="off"
-              required
-            />
-          </div>
-
-          <div className="input-group">
-            <Lock className="input-icon" size={20} />
-            <input
-              type="password"
-              name="cscs-password"
-              id="cscs-password"
-              placeholder="Password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              autoComplete="new-password"
-              required
-            />
-          </div>
-
-          <button type="submit" className="login-btn btn-primary" disabled={loading}>
-            {loading ? <Loader2 className="animate-spin" size={20} /> : 'Login / تسجيل الدخول'}
-          </button>
-        </form>
-
-      </div>
-
-      <style>{`
-
+const newStyles = `
         .login-page {
           display: flex;
           align-items: center;
@@ -133,11 +51,29 @@ const LoginPage: React.FC = () => {
           box-shadow: 0 0 20px rgba(59,130,246,0.25), 0 0 40px rgba(59,130,246,0.15), 0 30px 60px -15px rgba(0, 0, 0, 0.8);
         }
 
+        .login-card::before {
+          content: '';
+          position: absolute;
+          top: -50%; left: -50%;
+          width: 200%; height: 200%;
+          background: conic-gradient(transparent, rgba(59,130,246,0.1), transparent 30%, #3b82f6 50%, transparent 50%);
+          animation: borderShine 4s linear infinite;
+          z-index: -2;
+        }
         
+        .login-card::after {
+          content: '';
+          position: absolute;
+          inset: 1.5px;
+          background: rgba(15, 23, 42, 0.85);
+          border-radius: 26px;
+          z-index: -1;
+        }
         
-        
-        
-        
+        @keyframes borderShine {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
 
         .login-header, .login-form {
           position: relative;
@@ -274,10 +210,15 @@ const LoginPage: React.FC = () => {
             max-width: 200px;
           }
         }
+`;
 
-      `}</style>
-    </div>
-  );
-};
+const startIndex = content.indexOf('<style>{`');
+const endIndex = content.lastIndexOf('`}</style>');
 
-export default LoginPage;
+if (startIndex !== -1 && endIndex !== -1) {
+  content = content.substring(0, startIndex + 9) + '\n' + newStyles + '\n      ' + content.substring(endIndex);
+  fs.writeFileSync(loginFile, content, 'utf8');
+  console.log('Successfully enhanced Login UI');
+} else {
+  console.log('Failed to find <style> block');
+}
