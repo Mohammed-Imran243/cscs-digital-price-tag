@@ -227,7 +227,7 @@ const Stores: React.FC = () => {
         <PageToolbar>
           <div style={{ display: 'flex', gap: '16px', flex: 1, alignItems: 'center' }}>
             
-            <div className="global-search-bar" style={{ flex: 1, minWidth: 'var(--search-min-width)' }}>
+            <div className="global-search-bar">
               <Search size={16} className="text-muted" />
               <input
                 type="text"
