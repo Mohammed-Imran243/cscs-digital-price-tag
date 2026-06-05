@@ -631,8 +631,8 @@ const Templates: React.FC = () => {
 
       <div className="sticky-page-header">
         <PageHeader
-          title="Store Management"
-          titleAr="إدارة المتجر"
+          title="Store Template Management"
+          titleAr="إدارة قوالب المتجر"
         />
         
         {/* Top Navigation Tabs */}
