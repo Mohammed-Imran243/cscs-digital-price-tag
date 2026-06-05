@@ -203,7 +203,7 @@ select option {
   align-items: center !important;
   justify-content: center !important;
   gap: 8px !important;
-  background-color: var(--primary-color);
+  background-color: var(--primary-color) !important;
   color: white;
   border: 1px solid var(--primary-color) !important;
   padding: 10px 20px;
@@ -374,8 +374,8 @@ select option {
 }
 
 .nav-tab.active {
-  color: var(--primary-color);
-  border-bottom-color: var(--primary-color);
+  color: var(--primary-color) !important;
+  border-bottom-color: var(--primary-color) !important;
 }
 
 /* Premium Zkong/DragonESL Pagination Design */
@@ -480,7 +480,7 @@ select option {
 
 .permission-stat-badge.highlight {
   background: rgba(59, 130, 246, 0.1);
-  color: var(--primary-color);
+  color: var(--primary-color) !important;
   border-color: rgba(59, 130, 246, 0.3);
 }
 
@@ -521,7 +521,7 @@ select option {
 }
 
 .tree-node-compact .perm-checkbox.checked {
-  color: var(--primary-color);
+  color: var(--primary-color) !important;
 }
 
 .tree-node-text {
@@ -608,7 +608,7 @@ select option {
 .pagination-arrow-btn:hover:not(:disabled) {
   background: var(--primary-color);
   color: white;
-  border-color: var(--primary-color);
+  border-color: var(--primary-color) !important;
 }
 
 .pagination-arrow-btn:disabled {
@@ -635,13 +635,13 @@ select option {
 .pagination-num-btn:hover {
   background: var(--primary-color);
   color: white;
-  border-color: var(--primary-color);
+  border-color: var(--primary-color) !important;
 }
 
 .pagination-num-btn.active {
   background: var(--primary-color);
   color: white;
-  border-color: var(--primary-color);
+  border-color: var(--primary-color) !important;
   box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
 }
 
@@ -1118,7 +1118,7 @@ table td {
 .icon-action {
   background: transparent;
   border: none;
-  color: var(--text-muted);
+  color: var(--primary-color) !important;
   padding: 6px;
   border-radius: 6px;
   cursor: pointer;
@@ -1128,12 +1128,13 @@ table td {
   justify-content: center;
 }
 .icon-action:hover {
-  background: var(--bg-accent);
-  color: var(--text-primary);
+  background: rgba(59, 130, 246, 0.1);
+}
+.icon-action.danger {
+  color: var(--danger-color) !important;
 }
 .icon-action.danger:hover {
   background: rgba(239, 68, 68, 0.1);
-  color: #ef4444;
 }
 
 /* Filter Button Fix */
@@ -1173,7 +1174,7 @@ table td {
 }
 
 .custom-store-selector .selector-button:hover {
-  border-color: var(--primary-color);
+  border-color: var(--primary-color) !important;
 }
 
 .custom-store-selector .selector-content {
@@ -1231,7 +1232,7 @@ table td {
 
 .custom-store-selector .selector-option.selected {
   background-color: rgba(59, 130, 246, 0.1);
-  color: var(--primary-color);
+  color: var(--primary-color) !important;
   font-weight: 500;
 }
 
@@ -1246,11 +1247,11 @@ table td {
 }
 
 .custom-store-selector .selector-option.selected .store-option-icon {
-  color: var(--primary-color);
+  color: var(--primary-color) !important;
 }
 
 .custom-store-selector .check-icon {
-  color: var(--primary-color);
+  color: var(--primary-color) !important;
 }
 
 /* Sticky Page Header Wrapper */

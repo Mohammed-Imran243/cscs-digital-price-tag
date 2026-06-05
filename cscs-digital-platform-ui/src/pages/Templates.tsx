@@ -29,7 +29,7 @@ import {
   Layers,
   Trash2,
   FolderOpen,
-  Edit,
+  Edit, Edit2,
   Upload,
   Copy,
   Filter,
@@ -629,47 +629,27 @@ const Templates: React.FC = () => {
 
       <div className="sticky-page-header">
         <PageHeader
-          title="Template Management"
-          titleAr="إدارة القوالب"
+          title="Store Management"
+          titleAr="إدارة المتجر"
         />
-        <div style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '16px' }}>
-          Templates &gt; <span style={{ color: 'var(--primary-color)', fontWeight: 600 }}>
-            {false && 'Merchant Template / قوالب التاجر'}
-            {activeMenuTab === 'store' && 'Store Template / قوالب المتجر'}
-            {activeMenuTab === 'store_icon' && 'Store Icon / أيقونة المتجر'}
-            {activeMenuTab === 'properties' && 'Template Properties / خصائص القالب'}
-          </span>
-        </div>
         
         {/* Top Navigation Tabs */}
-        <div style={{ display: 'flex', gap: '4px', marginBottom: '20px', background: 'var(--glass-card)', borderRadius: '12px', padding: '4px', border: '1px solid var(--glass-border)' }}>
+        <div className="template-tabs">
           <button
             onClick={() => navigate('/templates?tab=store')}
-            style={{
-              flex: 1, padding: '10px 16px', borderRadius: '8px', border: 'none', cursor: 'pointer', fontWeight: 600, fontSize: '13px', transition: 'all 0.2s',
-              background: activeMenuTab === 'store' ? 'var(--primary-color)' : 'transparent',
-              color: activeMenuTab === 'store' ? '#ffffff' : 'var(--text-secondary)'
-            }}
+            className={`template-tab ${activeMenuTab === 'store' ? 'active' : ''}`}
           >
             Store Template / قوالب المتجر
           </button>
           <button
             onClick={() => navigate('/templates?tab=store_icon')}
-            style={{
-              flex: 1, padding: '10px 16px', borderRadius: '8px', border: 'none', cursor: 'pointer', fontWeight: 600, fontSize: '13px', transition: 'all 0.2s',
-              background: activeMenuTab === 'store_icon' ? 'var(--primary-color)' : 'transparent',
-              color: activeMenuTab === 'store_icon' ? '#ffffff' : 'var(--text-secondary)'
-            }}
+            className={`template-tab ${activeMenuTab === 'store_icon' ? 'active' : ''}`}
           >
             Store Icon / أيقونة المتجر
           </button>
           <button
             onClick={() => navigate('/templates?tab=properties')}
-            style={{
-              flex: 1, padding: '10px 16px', borderRadius: '8px', border: 'none', cursor: 'pointer', fontWeight: 600, fontSize: '13px', transition: 'all 0.2s',
-              background: activeMenuTab === 'properties' ? 'var(--primary-color)' : 'transparent',
-              color: activeMenuTab === 'properties' ? '#ffffff' : 'var(--text-secondary)'
-            }}
+            className={`template-tab ${activeMenuTab === 'properties' ? 'active' : ''}`}
           >
             Template Properties / خصائص القالب
           </button>
@@ -685,36 +665,40 @@ const Templates: React.FC = () => {
               />
             )}
             
-            <button 
-              className={`btn-action btn-action-slate ${showFilters ? 'active' : ''}`} 
-              onClick={() => setShowFilters(!showFilters)}
-              title="Filters / التصفية"
-              style={{ position: 'relative' }}
-            >
-              <Filter size={18} />
-              {isFilterActive && (
-                <span style={{
-                  position: 'absolute',
-                  top: '4px',
-                  right: '4px',
-                  width: '6px',
-                  height: '6px',
-                  borderRadius: '50%',
-                  backgroundColor: '#3b82f6',
-                  border: '1px solid var(--glass-border)'
-                }} />
-              )}
-            </button>
+            {activeMenuTab === 'store' && (
+              <button 
+                className={`btn-action btn-action-slate ${showFilters ? 'active' : ''}`} 
+                onClick={() => setShowFilters(!showFilters)}
+                title="Filters / التصفية"
+                style={{ position: 'relative' }}
+              >
+                <Filter size={18} />
+                {isFilterActive && (
+                  <span style={{
+                    position: 'absolute',
+                    top: '4px',
+                    right: '4px',
+                    width: '6px',
+                    height: '6px',
+                    borderRadius: '50%',
+                    backgroundColor: '#3b82f6',
+                    border: '1px solid var(--glass-border)'
+                  }} />
+                )}
+              </button>
+            )}
   
-            <div className="global-search-bar">
-              <Search size={16} className="text-muted" />
-              <input
-                type="text"
-                placeholder="Search templates... / ابحث عن القوالب..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
-            </div>
+            {activeMenuTab !== 'properties' && (
+              <div className="global-search-bar">
+                <Search size={16} className="text-muted" />
+                <input
+                  type="text"
+                  placeholder="Search templates... / ابحث عن القوالب..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+              </div>
+            )}
           </div>
           
           <ActionButtons
@@ -962,7 +946,7 @@ const Templates: React.FC = () => {
                             </td>
                             <td>
                               <div className="op-buttons">
-                                <button className="op-btn danger-text" title="Delete / حذف">
+                                <button className="icon-action danger" title="Delete / حذف">
                                   <Trash2 size={16} />
                                 </button>
                               </div>
@@ -1040,7 +1024,7 @@ const Templates: React.FC = () => {
                 <div className="properties-attributes-panel">
                   <div className="panel-header">
                     <span className="panel-title">Template Category Name / اسم تصنيف القالب: <strong>{selectedPropertyCat}</strong></span>
-                    <button className="icon-edit-btn" title="Edit Category / تعديل التصنيف"><Edit size={14} /></button>
+                    <button className="icon-action" title="Edit Category / تعديل التصنيف"><Edit2 size={16} /></button>
                   </div>
 
                   <table className="zkong-table">
@@ -1077,7 +1061,7 @@ const Templates: React.FC = () => {
                             <td>
                               <div className="op-buttons">
                                 <button 
-                                  className="op-btn danger-text" 
+                                  className="icon-action danger" 
                                   onClick={() => handleDeleteAttribute(attr)}
                                   title="Delete / حذف"
                                 >
@@ -2742,15 +2726,15 @@ const Templates: React.FC = () => {
                     </td>
                     <td>
                       <div className="op-buttons" style={{ alignItems: 'center' }}>
-                        <button className="op-btn primary-text" title="Edit / تعديل" onClick={() => setEditTemplateModal({ id: t.id, templateName: t.templateName, attrCategory: t.attrCategory || '' })}>
-                          <Edit size={16} />
+                        <button className="icon-action" title="Edit / تعديل" onClick={() => setEditTemplateModal({ id: t.id, templateName: t.templateName, attrCategory: t.attrCategory || '' })}>
+                          <Edit2 size={16} />
                         </button>
                         {activeMenuTab === 'store' && (
-                          <button className="op-btn disabled-text" title="Copy / نسخ">
+                          <button className="icon-action" disabled style={{ opacity: 0.5, cursor: "not-allowed" }} title="Copy / نسخ">
                             <Copy size={16} />
                           </button>
                         )}
-                        <button className="op-btn danger-text" title="Delete / حذف" onClick={() => handleDeleteTemplate(t.id)}>
+                        <button className="icon-action danger" title="Delete / حذف" onClick={() => handleDeleteTemplate(t.id)}>
                           <Trash2 size={16} />
                         </button>
                       </div>

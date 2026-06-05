@@ -881,16 +881,16 @@ const [showUserFilters, setShowUserFilters] = useState(false);
                   </div>
                 </div>
 
-                <div className="role-card-actions">
+                <div className="role-card-actions" style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
                   {role._pending ? (
                     <span className="role-syncing-note">Waiting for ZKong sync... / في انتظار المزامنة</span>
                   ) : (
                     <>
-                      <button className="btn-text" onClick={() => handleOpenEditRole(role)}>
-                        <Edit2 size={15} /> Edit Role / تعديل الدور
+                      <button className="icon-action" onClick={() => handleOpenEditRole(role)} title="Edit Role / تعديل الدور">
+                        <Edit2 size={16} />
                       </button>
-                      <button className="btn-text danger" onClick={() => role.id && handleRoleDelete(role.id)}>
-                        <Trash2 size={15} /> Delete / حذف
+                      <button className="icon-action danger" onClick={() => role.id && handleRoleDelete(role.id)} title="Delete Role / حذف">
+                        <Trash2 size={16} />
                       </button>
                     </>
                   )}
