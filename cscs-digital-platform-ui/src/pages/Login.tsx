@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import eslLogo from '../assets/esl-connect-logo.png';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { Lock, User, Loader2 } from 'lucide-react';
@@ -44,7 +45,7 @@ const LoginPage: React.FC = () => {
       <div className="login-card">
         <div className="login-header">
           <div className="logo-container">
-            <img src="/esl-connect-logo.png" alt="ESL Connect App Logo" className="logo-img" />
+            <img src={eslLogo} alt="ESL Connect App Logo" className="logo-img" />
           </div>
           <h2 className="login-title">Login / تسجيل الدخول</h2>
         </div>
