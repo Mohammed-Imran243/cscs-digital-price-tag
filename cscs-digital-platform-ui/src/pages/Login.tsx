@@ -44,7 +44,7 @@ const LoginPage: React.FC = () => {
       <div className="login-card">
         <div className="login-header">
           <div className="logo-container">
-            <img src="/cscs-logo-login-cropped.png" alt="CSCS Logo" className="logo-img" />
+            <img src="/esl-connect-logo.png" alt="ESL Connect App Logo" className="logo-img" />
           </div>
           <h2 className="login-title">Login / تسجيل الدخول</h2>
         </div>
@@ -154,7 +154,9 @@ const LoginPage: React.FC = () => {
         .logo-img {
           height: auto;
           width: 100%;
-          max-width: 240px;
+          max-width: 280px;
+          mix-blend-mode: screen;
+          object-fit: contain;
           object-fit: contain;
           filter: drop-shadow(0 4px 6px rgba(0,0,0,0.3));
         }
@@ -271,8 +273,8 @@ const LoginPage: React.FC = () => {
             font-size: 24px;
           }
           .logo-img {
-            max-width: 200px;
-          }
+              max-width: 240px;
+            }
         }
 
       `}</style>
