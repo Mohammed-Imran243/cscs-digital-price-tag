@@ -15,12 +15,13 @@ const StatCard: React.FC<{
   value: string | null;
   trend?: string;
   loading?: boolean;
-  color?: string;
-  bgColor?: string;
-  error?: boolean;
-  onClick?: () => void;
-}> = ({ icon, label, value, trend, loading, color = 'var(--primary-color)', bgColor = 'rgba(99,102,241,0.15)', error, onClick }) => (
-  <div className={`stat-card glass-card ${onClick ? 'clickable' : ''}`} onClick={onClick} style={{ cursor: onClick ? 'pointer' : 'default' }}>
+    color?: string;
+    bgColor?: string;
+    borderColor?: string;
+    error?: boolean;
+    onClick?: () => void;
+  }> = ({ icon, label, value, trend, loading, color = 'var(--primary-color)', bgColor = 'rgba(99,102,241,0.15)', borderColor, error, onClick }) => (
+  <div className={`stat-card glass-card ${onClick ? 'clickable' : ''}`} onClick={onClick} style={{ cursor: onClick ? 'pointer' : 'default', '--accent-border': borderColor || color } as React.CSSProperties}>
     <div className="stat-info">
       <span className="stat-label">{label}</span>
       {loading ? (
@@ -145,7 +146,8 @@ const Dashboard: React.FC = () => {
           trend={summary?.activeMerchantCount !== undefined ? `${formatCount(summary.activeMerchantCount)} Active Merchant(s) / تاجر نشط` : undefined}
           loading={loading}
           color="#6366f1"
-          bgColor="rgba(99,102,241,0.15)"
+            bgColor="rgba(99,102,241,0.15)"
+            borderColor="#10B981"
           error={!loading && !summary}
           onClick={() => navigate('/merchants')}
         />
@@ -156,7 +158,8 @@ const Dashboard: React.FC = () => {
           trend={summary?.activeStoreCount !== undefined ? `${formatCount(summary.activeStoreCount)} active stores / متاجر نشطة` : undefined}
           loading={loading}
           color="#0ea5e9"
-          bgColor="rgba(14,165,233,0.15)"
+            bgColor="rgba(14,165,233,0.15)"
+            borderColor="#3B82F6"
           error={!loading && !summary}
           onClick={() => navigate('/stores')}
         />
@@ -167,7 +170,8 @@ const Dashboard: React.FC = () => {
           trend={summary?.apCount !== undefined ? `Total APs in network / إجمالي نقاط الوصول` : undefined}
           loading={loading}
           color="#8b5cf6"
-          bgColor="rgba(139,92,246,0.15)"
+            bgColor="rgba(139,92,246,0.15)"
+            borderColor="#8B5CF6"
           error={!loading && !summary}
           onClick={() => navigate('/devices?tab=ap')}
         />
@@ -178,7 +182,8 @@ const Dashboard: React.FC = () => {
           trend={summary?.templateCount !== undefined ? `${formatCount(summary.templateCount)} active templates / قوالب نشطة` : undefined}
           loading={loading}
           color="#f59e0b"
-          bgColor="rgba(245,158,11,0.15)"
+            bgColor="rgba(245,158,11,0.15)"
+            borderColor="#F59E0B"
           error={!loading && !summary}
           onClick={() => navigate('/templates')}
         />
@@ -189,7 +194,8 @@ const Dashboard: React.FC = () => {
           trend={`Total Products / إجمالي المنتجات`}
           loading={loading}
           color="#f97316"
-          bgColor="rgba(249,115,22,0.15)"
+            bgColor="rgba(249,115,22,0.15)"
+            borderColor="#F97316"
           error={!loading && !summary}
           onClick={() => navigate('/products')}
         />
@@ -200,7 +206,8 @@ const Dashboard: React.FC = () => {
           trend={summary?.eslCount !== undefined ? `Total ESL tags / إجمالي علامات ESL` : undefined}
           loading={loading}
           color="#10b981"
-          bgColor="rgba(16,185,129,0.15)"
+            bgColor="rgba(16,185,129,0.15)"
+            borderColor="#14B8A6"
           error={!loading && !summary}
           onClick={() => navigate('/devices?tab=esl')}
         />
@@ -438,6 +445,8 @@ const Dashboard: React.FC = () => {
 
         /* StatCard sub-styles */
         .stat-card {
+          position: relative;
+          overflow: hidden;
           padding: var(--space-lg, 24px) 28px;
           display: flex;
           align-items: center;
@@ -448,9 +457,20 @@ const Dashboard: React.FC = () => {
           cursor: default;
           height: 100%;
         }
+        .stat-card::before {
+          content: '';
+          position: absolute;
+          top: 0;
+          bottom: 0;
+          left: 0;
+          width: 5px;
+          background-color: var(--accent-border);
+          border-top-left-radius: 12px;
+          border-bottom-left-radius: 12px;
+        }
         .stat-card:hover {
           transform: translateY(-3px);
-          box-shadow: 0 12px 32px rgba(0,0,0,0.15);
+          box-shadow: 0 8px 24px rgba(0,0,0,0.08);
         }
         .stat-info {
           display: flex;
