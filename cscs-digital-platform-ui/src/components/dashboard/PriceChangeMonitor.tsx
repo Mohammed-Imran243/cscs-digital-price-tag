@@ -121,7 +121,7 @@ const PriceChangeMonitor: React.FC = () => {
           <button 
             onClick={fetchPriceChanges} 
             className="refresh-btn" 
-            style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid var(--glass-border)', cursor: 'pointer', color: 'var(--text-primary)', padding: '8px 12px', borderRadius: '20px', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', fontWeight: '500', transition: 'background-color 0.2s' }}
+            style={{ background: 'rgba(99, 102, 241, 0.15)', border: '1px solid rgba(99, 102, 241, 0.35)', cursor: 'pointer', color: '#a5b4fc', padding: '6px 14px', borderRadius: '20px', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', fontWeight: '600', transition: 'background-color 0.2s' }}
             disabled={loading}
           >
             <RefreshCw size={14} className={loading ? 'spinning' : ''} />
@@ -238,8 +238,8 @@ const PriceChangeMonitor: React.FC = () => {
         }
 
         .refresh-btn:hover {
-          background-color: rgba(255, 255, 255, 0.08) !important;
-        }
+            background-color: rgba(99, 102, 241, 0.25) !important;
+          }
       `}</style>
     </div>
   );
