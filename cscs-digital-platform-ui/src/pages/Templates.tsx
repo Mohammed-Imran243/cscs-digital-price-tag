@@ -33,13 +33,15 @@ import {
   Upload,
   Copy,
   Filter,
-  Store as StoreIcon
+  Store as StoreIcon,
+  Folder,
+  FileText
 } from 'lucide-react';
 
 import ImportExportModal from '../components/ImportExportModal';
 import { importTemplate, exportTemplates } from '../services/importExportService';
 import { PageHeader, PageToolbar, ActionButtons } from '../components/common';
-import { StoreSelector } from '../components/common/StoreSelector';
+import { CustomSelect } from '../components/common/CustomSelect';
 import { getEslModelSpecs, renderEinkLayout } from '../utils/eslModelUtils';
 import { getPaginationRange } from '../utils/paginationUtils';
 
@@ -654,41 +656,44 @@ const Templates: React.FC = () => {
             Template Properties / خصائص القالب
           </button>
         </div>
-        <PageToolbar>
-          <div style={{ display: 'flex', gap: '16px', flex: 1, alignItems: 'center' }}>
-            {(activeMenuTab === 'store' || activeMenuTab === 'store_icon') && (
-              <StoreSelector
-                stores={stores}
-                selectedStore={selectedStore}
-                onSelect={setSelectedStore}
-                loading={storesLoading}
-              />
-            )}
-            
-            {activeMenuTab === 'store' && (
-              <button 
-                className={`btn-action btn-action-slate ${showFilters ? 'active' : ''}`} 
-                onClick={() => setShowFilters(!showFilters)}
-                title="Filters / التصفية"
-                style={{ position: 'relative' }}
-              >
-                <Filter size={18} />
-                {isFilterActive && (
-                  <span style={{
-                    position: 'absolute',
-                    top: '4px',
-                    right: '4px',
-                    width: '6px',
-                    height: '6px',
-                    borderRadius: '50%',
-                    backgroundColor: '#3b82f6',
-                    border: '1px solid var(--glass-border)'
-                  }} />
-                )}
-              </button>
-            )}
+        {activeMenuTab !== 'properties' && (
+          <PageToolbar>
+            <div style={{ display: 'flex', gap: '16px', flex: 1, alignItems: 'center' }}>
+              {(activeMenuTab === 'store' || activeMenuTab === 'store_icon') && (
+                <CustomSelect
+                  value={selectedStore}
+                  onChange={(val: string | number) => setSelectedStore(String(val))}
+                  options={[
+                    { value: '', label: 'Select Store / حدد المتجر' },
+                    ...stores.map(s => ({ value: s.storeId, label: s.storeName }))
+                  ]}
+                  placeholder="Select Store / حدد المتجر"
+                />
+              )}
+              
+              {activeMenuTab === 'store' && (
+                <button 
+                  className={`btn-action btn-action-slate ${showFilters ? 'active' : ''}`} 
+                  onClick={() => setShowFilters(!showFilters)}
+                  title="Filters / التصفية"
+                  style={{ position: 'relative' }}
+                >
+                  <Filter size={18} />
+                  {isFilterActive && (
+                    <span style={{
+                      position: 'absolute',
+                      top: '4px',
+                      right: '4px',
+                      width: '6px',
+                      height: '6px',
+                      borderRadius: '50%',
+                      backgroundColor: '#3b82f6',
+                      border: '1px solid var(--glass-border)'
+                    }} />
+                  )}
+                </button>
+              )}
   
-            {activeMenuTab !== 'properties' && (
               <div className="global-search-bar">
                 <Search size={16} className="text-muted" />
                 <input
@@ -698,22 +703,22 @@ const Templates: React.FC = () => {
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
               </div>
-            )}
-          </div>
-          
-          <ActionButtons
-            onRefresh={() => {
-              if (activeMenuTab === 'store') fetchTemplatesList();
-              else if (activeMenuTab === 'store_icon') fetchStoreIconsList();
-            }}
-            onImport={activeMenuTab === 'store' ? () => setShowTemplateImportExport(true) : undefined}
-            onExport={activeMenuTab === 'store' ? () => setShowTemplateImportExport(true) : undefined}
-            onAdd={activeMenuTab === 'store' ? () => setIsTemplateModalOpen(true) : activeMenuTab === 'store_icon' ? () => setIsStoreIconModalOpen(true) : undefined}
-            addLabel={activeMenuTab === 'store_icon' ? 'Add Store Icon' : 'Add Store Template'}
-            addLabelAr={activeMenuTab === 'store_icon' ? '\u0625\u0636\u0627\u0641\u0629 \u0623\u064A\u0642\u0648\u0646\u0629 \u0627\u0644\u0645\u062A\u062C\u0631' : '\u0625\u0636\u0627\u0641\u0629 \u0642\u0627\u0644\u0628 \u0645\u062A\u062C\u0631'}
-            loading={loading}
-          />
-        </PageToolbar>
+            </div>
+            
+            <ActionButtons
+              onRefresh={() => {
+                if (activeMenuTab === 'store') fetchTemplatesList();
+                else if (activeMenuTab === 'store_icon') fetchStoreIconsList();
+              }}
+              onImport={activeMenuTab === 'store' ? () => setShowTemplateImportExport(true) : undefined}
+              onExport={activeMenuTab === 'store' ? () => setShowTemplateImportExport(true) : undefined}
+              onAdd={activeMenuTab === 'store' ? () => setIsTemplateModalOpen(true) : activeMenuTab === 'store_icon' ? () => setIsStoreIconModalOpen(true) : undefined}
+              addLabel={activeMenuTab === 'store_icon' ? 'Add Store Icon' : 'Add Store Template'}
+              addLabelAr={activeMenuTab === 'store_icon' ? '\u0625\u0636\u0627\u0641\u0629 \u0623\u064A\u0642\u0648\u0646\u0629 \u0627\u0644\u0645\u062A\u062C\u0631' : '\u0625\u0636\u0627\u0641\u0629 \u0642\u0627\u0644\u0628 \u0645\u062A\u062C\u0631'}
+              loading={loading}
+            />
+          </PageToolbar>
+        )}
       </div>
 
       <ImportExportModal
@@ -983,119 +988,159 @@ const Templates: React.FC = () => {
 
           {/* ================= SECTION 5: TEMPLATE PROPERTIES ================= */}
           {activeMenuTab === 'properties' && (
-            <div className="workspace-tab-content properties-workspace glass-card">
-              <div className="properties-layout-split">
-                {/* Category Sidebar List */}
-                <div className="category-properties-list">
-                  <div className="list-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <Layers size={16} style={{ color: 'var(--primary-color)' }} />
-                    <span>Template Classifications / تصنيفات القوالب</span>
+            <div className="saas-properties-container">
+              
+              {/* 2. Action Toolbar */}
+              <div className="saas-action-toolbar" style={{ display: 'flex', justifyContent: 'flex-start', gap: '12px' }}>
+                <div className="toolbar-search">
+                  <Search size={18} className="search-icon" />
+                  <input
+                    type="text"
+                    className="saas-search-input"
+                    placeholder="Search attributes... / ابحث عن السمات..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                  />
+                </div>
+                <ActionButtons 
+                  onRefresh={fetchLookups} 
+                  loading={loading} 
+                />
+              </div>
+
+              <div className="saas-properties-split">
+                
+                {/* 3. Left Category Navigation */}
+                <div className="saas-sidebar">
+                  <div className="saas-sidebar-header">
+                    <h3>Categories / التصنيفات</h3>
                   </div>
-                  <div className="category-scroll-list">
-                    {categories.map(cat => (
-                      <button
-                        key={cat.id}
-                        className={`properties-cat-btn ${selectedPropertyCat === cat.categoryName ? 'active' : ''}`}
-                        onClick={() => setSelectedPropertyCat(cat.categoryName)}
-                      >
-                        <span>{cat.categoryName}</span>
-                      </button>
-                    ))}
+                  <div className="sidebar-menu">
                     {/* Hardcoded system classifications to guarantee fallback data list matching Screenshot 5 */}
                     {['default', 'Thobe', 'ALL', 'K0001', 'K0002'].map(sysName => {
                       if (categories.some(c => c.categoryName === sysName)) return null;
+                      const isActive = selectedPropertyCat === sysName;
                       return (
                         <button
                           key={sysName}
-                          className={`properties-cat-btn ${selectedPropertyCat === sysName ? 'active' : ''}`}
+                          className={`sidebar-item ${isActive ? 'active' : ''}`}
                           onClick={() => setSelectedPropertyCat(sysName)}
                         >
+                          <Folder size={18} className={isActive ? 'icon-active' : 'icon-muted'} />
                           <span>{sysName}</span>
                         </button>
                       );
                     })}
+                    {categories.map(cat => {
+                      const isActive = selectedPropertyCat === cat.categoryName;
+                      return (
+                        <button
+                          key={cat.id}
+                          className={`sidebar-item ${isActive ? 'active' : ''}`}
+                          onClick={() => setSelectedPropertyCat(cat.categoryName)}
+                        >
+                          <Folder size={18} className={isActive ? 'icon-active' : 'icon-muted'} />
+                          <span>{cat.categoryName}</span>
+                        </button>
+                      );
+                    })}
                   </div>
-                  <button className="add-new-cat-btn" onClick={() => setIsCategoryModalOpen(true)}>
-                    <Plus size={14} /> Add New Template Category / إضافة تصنيف قالب جديد
-                  </button>
+                  <div className="sidebar-footer">
+                    <button className="saas-btn-outline full-width" onClick={() => setIsCategoryModalOpen(true)}>
+                      <Plus size={16} /> Add Category
+                    </button>
+                  </div>
                 </div>
 
-                {/* Right Attributes Editor Panel */}
-                <div className="properties-attributes-panel">
-                  <div className="panel-header">
-                    <span className="panel-title">Template Category Name / اسم تصنيف القالب: <strong>{selectedPropertyCat}</strong></span>
-                    <button className="icon-action" title="Edit Category / تعديل التصنيف"><Edit2 size={16} /></button>
+                {/* Right Area */}
+                <div className="saas-main-content">
+                  
+                  {/* 4. Category Information Card */}
+                  <div className="saas-card summary-card">
+                    <div className="summary-info">
+                      <div className="summary-icon-wrapper">
+                        <FolderOpen size={24} />
+                      </div>
+                      <div className="summary-details">
+                        <h4>{selectedPropertyCat}</h4>
+                        <span className="summary-meta">
+                          {categoryAttributes[selectedPropertyCat]?.length || 1} Attributes
+                        </span>
+                      </div>
+                    </div>
+                    <button className="saas-btn-icon-soft" title="Edit Category / تعديل التصنيف" onClick={() => {
+                        // Action for editing category if it exists
+                    }}>
+                      <Edit size={16} />
+                    </button>
                   </div>
 
-                  <table className="zkong-table">
-                    <thead>
-                      <tr>
-                        <th>Serial Number / الرقم التسلسلي</th>
-                        <th>Name / الاسم</th>
-                        <th>Default / افتراضي</th>
-                        <th>Operation / الإجراءات</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {(categoryAttributes[selectedPropertyCat] || ['default'])
-                        .filter(attr => {
-                          if (!debouncedSearchQuery) return true;
-                          const q = debouncedSearchQuery.toLowerCase();
-                          const isDefault = attr.toLowerCase() === 'default';
-                          const defaultStr = isDefault ? 'yes نعم' : 'no لا';
-                          return attr.toLowerCase().includes(q) || defaultStr.includes(q);
-                        })
-                        .map((attr, idx) => {
+                  {/* 5. Attributes Section */}
+                  <div className="attributes-grid">
+                    {(categoryAttributes[selectedPropertyCat] || ['default'])
+                      .filter(attr => {
+                        if (!debouncedSearchQuery) return true;
+                        const q = debouncedSearchQuery.toLowerCase();
+                        const isDefault = attr.toLowerCase() === 'default';
+                        const defaultStr = isDefault ? 'yes نعم' : 'no لا';
+                        return attr.toLowerCase().includes(q) || defaultStr.includes(q);
+                      })
+                      .map((attr, idx) => {
                         const isDefault = attr.toLowerCase() === 'default';
                         return (
-                          <tr key={idx}>
-                            <td>{idx + 1}</td>
-                            <td>
-                              <span className="attribute-name-badge">{attr}</span>
-                            </td>
-                            <td>
-                              <span className={isDefault ? 'default-badge-yes' : 'default-badge-no'}>
-                                {isDefault ? 'Yes / نعم' : 'No / لا'}
-                              </span>
-                            </td>
-                            <td>
-                              <div className="op-buttons">
-                                <button 
-                                  className="icon-action danger" 
-                                  onClick={() => handleDeleteAttribute(attr)}
-                                  title="Delete / حذف"
-                                >
-                                  <Trash2 size={16} />
-                                </button>
+                          <div className="saas-card attribute-card" key={idx}>
+                            <div className="attr-card-header">
+                              <div className="attr-title-row">
+                                <FileText size={16} className="attr-icon" />
+                                <h5>{attr}</h5>
                               </div>
-                            </td>
-                          </tr>
+                              <span className={`saas-badge ${isDefault ? 'badge-green' : 'badge-gray'}`}>
+                                {isDefault ? 'Default' : 'Custom'}
+                              </span>
+                            </div>
+                            <div className="attr-card-body">
+                              <span className="attr-meta">Serial Number: {idx + 1}</span>
+                            </div>
+                            <div className="attr-card-footer">
+                              <button 
+                                className="saas-btn-danger-text" 
+                                onClick={() => handleDeleteAttribute(attr)}
+                              >
+                                <Trash2 size={16} /> Delete
+                              </button>
+                            </div>
+                          </div>
                         );
-                      })}
-                    </tbody>
-                  </table>
+                    })}
 
-                  {/* Add Attribute Properties inline form */}
-                  {isAddAttrOpen ? (
-                    <form onSubmit={handleAddAttribute} className="add-attribute-inline-form">
-                      <input
-                        required
-                        type="text"
-                        placeholder="Please enter attribute property name... / يرجى إدخال اسم خاصية السمة..."
-                        value={newAttributeName}
-                        onChange={e => setNewAttributeName(e.target.value)}
-                        className="glass-input sm-input"
-                        autoFocus
-                      />
-                      <button type="submit" className="btn-primary sm-btn">Save / حفظ</button>
-                      <button type="button" className="btn-secondary sm-btn" onClick={() => setIsAddAttrOpen(false)}>Cancel / إلغاء</button>
-                    </form>
-                  ) : (
-                    <button className="add-attribute-table-btn" onClick={() => setIsAddAttrOpen(true)} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
-                      <Plus size={18} />
-                      <span>Add Attribute / إضافة سمة</span>
-                    </button>
-                  )}
+                    {/* 6. Add Attribute Action */}
+                    {isAddAttrOpen ? (
+                      <div className="saas-card add-attribute-card inline-form-card">
+                        <form onSubmit={handleAddAttribute} className="inline-add-form">
+                          <input
+                            required
+                            type="text"
+                            placeholder="Attribute name..."
+                            value={newAttributeName}
+                            onChange={e => setNewAttributeName(e.target.value)}
+                            className="saas-input"
+                            autoFocus
+                          />
+                          <div className="inline-form-actions">
+                            <button type="submit" className="saas-btn-primary sm">Save</button>
+                            <button type="button" className="saas-btn-secondary sm" onClick={() => setIsAddAttrOpen(false)}>Cancel</button>
+                          </div>
+                        </form>
+                      </div>
+                    ) : (
+                      <button className="saas-card add-attribute-btn-card" onClick={() => setIsAddAttrOpen(true)}>
+                        <Plus size={24} className="add-icon" />
+                        <span>Add New Attribute</span>
+                      </button>
+                    )}
+
+                  </div>
+
                 </div>
               </div>
             </div>
@@ -1107,31 +1152,31 @@ const Templates: React.FC = () => {
       {/* ================= MODAL DIALOG 1: NEW TEMPLATE ================= */}
       {isTemplateModalOpen && (
         <div className="modal-overlay">
-          <div className="modal-content glass-card scale-up">
-            <button 
-              className="close-btn" 
-              onClick={() => { 
-                setIsTemplateModalOpen(false); 
-                setNewTemplate({
-                  templateName: '',
-                  storeId: activeMenuTab === 'store' ? selectedStore : '0',
-                  model: '',
-                  size: '',
-                  resolution: '152*152',
-                  color: '',
-                  sceneNumber: 1,
-                  screenType: 'single',
-                  attrCategory: '',
-                  attrName: ''
-                }); 
-              }}
-            >
-              &times;
-            </button>
+          <div className="modal-content glass-card" style={{ maxHeight: '90vh', overflowY: 'auto' }}>
             <div className="modal-header">
               <h3>Create {activeMenuTab === 'store' ? 'Store / متجر' : 'Merchant / تاجر'} ESL Template / إنشاء قالب شاشة الأسعار</h3>
+              <button 
+                className="close-btn" 
+                onClick={() => { 
+                  setIsTemplateModalOpen(false); 
+                  setNewTemplate({
+                    templateName: '',
+                    storeId: activeMenuTab === 'store' ? selectedStore : '0',
+                    model: '',
+                    size: '',
+                    resolution: '152*152',
+                    color: '',
+                    sceneNumber: 1,
+                    screenType: 'single',
+                    attrCategory: '',
+                    attrName: ''
+                  }); 
+                }}
+              >
+                &times;
+              </button>
             </div>
-            <form onSubmit={handleCreateTemplate} className="modal-form">
+            <form onSubmit={handleCreateTemplate} className="create-form">
 
               {/* Row 1: Template Name — mandatory */}
               <div className="form-group">
@@ -1361,12 +1406,12 @@ const Templates: React.FC = () => {
       {/* ================= MODAL DIALOG 2: NEW CATEGORY ================= */}
       {isCategoryModalOpen && (
         <div className="modal-overlay">
-          <div className="modal-content glass-card scale-up">
-            <button className="close-btn" onClick={() => setIsCategoryModalOpen(false)}>&times;</button>
+          <div className="modal-content glass-card" style={{ maxHeight: '90vh', overflowY: 'auto' }}>
             <div className="modal-header">
               <h3>Create Template Classification / إنشاء تصنيف قالب</h3>
+              <button className="close-btn" onClick={() => setIsCategoryModalOpen(false)}>&times;</button>
             </div>
-            <form onSubmit={handleCreateCategory} className="modal-form">
+            <form onSubmit={handleCreateCategory} className="create-form">
               <div className="form-group">
                 <label>Classification Name / اسم التصنيف</label>
                 <input
@@ -1393,12 +1438,12 @@ const Templates: React.FC = () => {
       {/* ================= MODAL DIALOG 3: EDIT TEMPLATE ================= */}
       {editTemplateModal && (
         <div className="modal-overlay">
-          <div className="modal-content glass-card scale-up">
-            <button className="close-btn" onClick={() => setEditTemplateModal(null)}>&times;</button>
+          <div className="modal-content glass-card" style={{ maxHeight: '90vh', overflowY: 'auto' }}>
             <div className="modal-header">
               <h3>Edit Template / تعديل القالب</h3>
+              <button className="close-btn" onClick={() => setEditTemplateModal(null)}>&times;</button>
             </div>
-            <form onSubmit={handleUpdateTemplate} className="modal-form">
+            <form onSubmit={handleUpdateTemplate} className="create-form">
               <div className="form-group">
                 <label>Template Type / نوع القالب <span className="required-asterisk">*</span></label>
                 <input
@@ -1864,198 +1909,358 @@ const Templates: React.FC = () => {
           font-size: 14px;
         }
 
-        /* Properties splits */
-        .properties-workspace {
+        /* SaaS Properties Split */
+        .saas-properties-container {
+          background: var(--bg-primary, #ffffff);
+          border-radius: 16px;
           padding: 24px;
-        }
-
-        .properties-layout-split {
-          display: grid;
-          grid-template-columns: 260px 1fr;
-          gap: 28px;
-        }
-
-        .category-properties-list {
           display: flex;
           flex-direction: column;
-          gap: 12px;
-          border-right: 1px solid var(--glass-border);
-          padding-right: 24px;
-          border-top: 3px solid var(--primary-color);
-          padding-top: 16px;
+          gap: 24px;
+          border: 1px solid var(--glass-border, #E5E7EB);
+          box-shadow: 0 4px 12px rgba(0,0,0,0.05);
         }
 
-        .list-title {
-          font-size: 14px;
+        .saas-page-header h2 {
+          font-size: 32px;
           font-weight: 700;
-          text-transform: uppercase;
-          letter-spacing: 0.5px;
-          color: var(--text-muted);
-          margin-bottom: 8px;
-        }
-
-        .category-scroll-list {
-          display: flex;
-          flex-direction: column;
-          gap: 6px;
-          max-height: 400px;
-          overflow-y: auto;
-        }
-
-        .properties-cat-btn {
-          transition: all 0.2s ease;
-          border: 1px solid var(--glass-border);
-          border-left: 3px solid transparent;
-          border-radius: 8px;
-          padding: 10px 14px;
-          text-align: left;
-          background: transparent;
-          color: var(--text-muted);
-          cursor: pointer;
-          font-size: 14px;
-          font-weight: 500;
-          display: flex;
-          align-items: center;
-          justify-content: flex-start;
-          min-height: 44px;
-        }
-
-        .properties-cat-btn.active {
-          background: linear-gradient(135deg, var(--primary-color), #6366f1);
-          color: #fff;
-          border-left: 3px solid #fff;
-          font-weight: 700;
-          box-shadow: 0 4px 15px rgba(59,130,246,0.3);
-        }
-
-        .properties-cat-btn:not(.active):hover {
-          background: rgba(59,130,246,0.08);
-          border-left: 3px solid var(--primary-color);
           color: var(--text-primary);
+          margin: 0;
         }
 
-        .add-new-cat-btn {
-          margin-top: 12px;
-          font-size: 12px;
-          padding: 10px;
-          width: 100%;
-          background: transparent;
-          color: var(--primary-color);
-          border: 1px dashed var(--primary-color);
-          border-radius: 8px;
-          cursor: pointer;
-          transition: all 0.2s;
-        }
-        
-        .add-new-cat-btn:hover {
-          background: rgba(59,130,246,0.08);
-          color: var(--primary-color);
-        }
-
-        .properties-attributes-panel {
-          display: flex;
-          flex-direction: column;
-          gap: 16px;
-        }
-
-        .panel-header {
+        .saas-action-toolbar {
           display: flex;
           justify-content: space-between;
           align-items: center;
-          padding-bottom: 16px;
-          margin-bottom: 16px;
-          border-bottom: 2px solid var(--primary-color);
+          padding-bottom: 24px;
+          border-bottom: 1px solid var(--glass-border);
         }
 
-        .panel-title {
-          font-size: 18px;
-          font-weight: 700;
+        .toolbar-search {
+          position: relative;
+          width: 300px;
+        }
+
+        .toolbar-search .search-icon {
+          position: absolute;
+          left: 12px;
+          top: 50%;
+          transform: translateY(-50%);
+          color: var(--text-muted);
+        }
+
+        .saas-search-input {
+          width: 100%;
+          padding: 10px 12px 10px 40px;
+          border-radius: 8px;
+          border: 1px solid var(--glass-border);
+          background: var(--bg-secondary);
           color: var(--text-primary);
-          border-left: 4px solid var(--primary-color);
-          padding-left: 12px;
         }
 
-        .icon-edit-btn {
+        .saas-search-input:focus {
+          outline: none;
+          border-color: var(--primary-color);
+        }
+
+        .saas-properties-split {
+          display: grid;
+          grid-template-columns: 280px 1fr;
+          gap: 0;
+        }
+
+        /* Sidebar Navigation */
+        .saas-sidebar {
+          display: flex;
+          flex-direction: column;
+          gap: 16px;
+          padding: 24px;
+          border: 1px solid var(--glass-border);
+          border-radius: 12px;
+          background: transparent;
+        }
+
+        .saas-sidebar-header {
+          padding-bottom: 16px;
+          border-bottom: 1px solid #9CA3AF;
+          margin-bottom: 4px;
+        }
+
+        .saas-sidebar-header h3 {
+          font-size: 20px;
+          font-weight: 600;
+          color: var(--text-primary);
+          margin: 0;
+        }
+
+        [data-theme="dark"] .saas-sidebar-header h3 {
+          color: #ffffff;
+        }
+
+        .sidebar-menu {
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
+          max-height: 500px;
+          overflow-y: auto;
+        }
+
+        .sidebar-item {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          padding: 12px 16px;
+          border-radius: 8px;
           background: transparent;
           border: none;
+          cursor: pointer;
+          font-size: 14px;
+          font-weight: 500;
+          color: var(--text-muted);
+          transition: all 0.2s ease;
+          text-align: left;
+        }
+
+        .sidebar-item:hover {
+          background: rgba(59, 130, 246, 0.05);
+          color: var(--text-primary);
+        }
+
+        .sidebar-item.active {
+          background: #EFF6FF;
+          color: #3B82F6;
+          font-weight: 600;
+        }
+
+        [data-theme="dark"] .sidebar-item.active {
+          background: rgba(59, 130, 246, 0.15);
+        }
+
+        .icon-muted { color: var(--text-muted); }
+        .icon-active { color: #3B82F6; }
+
+        .saas-btn-outline.full-width {
+          width: 100%;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          gap: 8px;
+          padding: 10px;
+          border-radius: 8px;
+          border: 1px dashed var(--primary-color);
+          background: transparent;
+          color: var(--primary-color);
+          font-weight: 600;
+          cursor: pointer;
+          transition: all 0.2s ease;
+        }
+
+        .saas-btn-outline:hover {
+          background: rgba(59, 130, 246, 0.05);
+        }
+
+        /* Main Content */
+        .saas-main-content {
+          display: flex;
+          flex-direction: column;
+          gap: 24px;
+          padding-left: 32px;
+        }
+
+        .saas-card {
+          background: var(--bg-primary);
+          border: 1px solid var(--glass-border);
+          border-radius: 12px;
+          box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+
+        .summary-card {
+          padding: 24px;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+        }
+
+        .summary-info {
+          display: flex;
+          align-items: center;
+          gap: 16px;
+        }
+
+        .summary-icon-wrapper {
+          width: 48px;
+          height: 48px;
+          background: rgba(59, 130, 246, 0.1);
+          color: #3B82F6;
+          border-radius: 12px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+
+        .summary-details h4 {
+          margin: 0 0 4px 0;
+          font-size: 20px;
+          font-weight: 600;
+          color: var(--text-primary);
+        }
+
+        .summary-meta {
+          font-size: 14px;
+          color: var(--text-muted);
+        }
+
+        .saas-btn-icon-soft {
+          background: rgba(0,0,0,0.05);
+          border: none;
+          padding: 8px;
+          border-radius: 8px;
+          cursor: pointer;
+          transition: background 0.2s;
+          color: var(--text-primary);
+        }
+
+        .saas-btn-icon-soft:hover {
+          background: rgba(0,0,0,0.1);
+        }
+
+        [data-theme="dark"] .saas-btn-icon-soft { background: rgba(255,255,255,0.05); }
+        [data-theme="dark"] .saas-btn-icon-soft:hover { background: rgba(255,255,255,0.1); }
+
+        .attributes-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+          gap: 20px;
+        }
+
+        .attribute-card {
+          padding: 20px;
+          display: flex;
+          flex-direction: column;
+          gap: 16px;
+          transition: all 0.2s ease;
+        }
+
+        .attribute-card:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 8px 16px rgba(0,0,0,0.08);
+        }
+
+        .attr-card-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+        }
+
+        .attr-title-row {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+        }
+
+        .attr-title-row h5 {
+          margin: 0;
+          font-size: 16px;
+          font-weight: 600;
+        }
+
+        .attr-icon { color: var(--text-muted); }
+
+        .saas-badge {
+          padding: 4px 8px;
+          border-radius: 12px;
+          font-size: 12px;
+          font-weight: 600;
+        }
+
+        .badge-green { background: #ECFDF5; color: #059669; }
+        .badge-gray { background: #F3F4F6; color: #4B5563; }
+        [data-theme="dark"] .badge-gray { background: #374151; color: #D1D5DB; }
+
+        .attr-card-body {
+          flex: 1;
+        }
+
+        .attr-meta {
+          font-size: 13px;
+          color: var(--text-muted);
+        }
+
+        .attr-card-footer {
+          border-top: 1px solid var(--glass-border);
+          padding-top: 16px;
+          display: flex;
+          justify-content: flex-end;
+        }
+
+        .saas-btn-danger-text {
+          background: transparent;
+          border: none;
+          color: #DC2626;
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          font-size: 13px;
+          font-weight: 600;
+          cursor: pointer;
+          transition: opacity 0.2s;
+        }
+
+        .saas-btn-danger-text:hover { opacity: 0.8; }
+
+        /* Inline Form Card */
+        .inline-form-card {
+          padding: 20px;
+          border: 2px dashed #3B82F6;
+          background: rgba(59, 130, 246, 0.02);
+        }
+
+        .inline-add-form {
+          display: flex;
+          flex-direction: column;
+          gap: 16px;
+          height: 100%;
+        }
+
+        .inline-form-actions {
+          display: flex;
+          gap: 8px;
+          margin-top: auto;
+        }
+
+        .saas-btn-primary.sm, .saas-btn-secondary.sm {
+          padding: 8px 16px;
+          border-radius: 6px;
+          font-size: 13px;
+          font-weight: 600;
+          cursor: pointer;
+          border: none;
+        }
+
+        .saas-btn-primary.sm { background: #3B82F6; color: white; }
+        .saas-btn-secondary.sm { background: var(--bg-secondary); color: var(--text-primary); border: 1px solid var(--glass-border); }
+
+        .add-attribute-btn-card {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          gap: 12px;
+          padding: 32px 20px;
+          border: 2px dashed var(--glass-border);
+          background: transparent;
           color: var(--text-muted);
           cursor: pointer;
+          transition: all 0.2s ease;
+          min-height: 140px;
         }
 
-        .icon-edit-btn:hover { color: var(--primary-color); }
-
-        .attribute-name-badge {
-          background: rgba(59,130,246,0.12);
-          color: var(--primary-color);
-          border: 1px solid rgba(59,130,246,0.25);
-          border-radius: 20px;
-          padding: 4px 12px;
-          font-weight: 600;
-          font-size: 13px;
-          display: inline-block;
+        .add-attribute-btn-card:hover {
+          border-color: #3B82F6;
+          color: #3B82F6;
+          background: rgba(59, 130, 246, 0.02);
         }
 
-        .default-badge-yes {
-          background: rgba(34,197,94,0.12);
-          color: var(--success-color);
-          border: 1px solid rgba(34,197,94,0.25);
-          border-radius: 20px;
-          padding: 3px 10px;
-          font-size: 12px;
-          font-weight: 600;
-        }
-
-        .default-badge-no {
-          background: rgba(148,163,184,0.1);
-          color: var(--text-muted);
-          border: 1px solid var(--glass-border);
-          border-radius: 20px;
-          padding: 3px 10px;
-          font-size: 12px;
-        }
-
-        .op-btn.danger-text {
-          color: var(--danger-color);
-          background: transparent;
-          border-radius: 8px;
-          padding: 6px 10px;
-          transition: background 0.2s;
-        }
-
-        .op-btn.danger-text:hover {
-          background: rgba(239,68,68,0.12);
-        }
-
-        .add-attribute-table-btn {
-          width: 100%;
-          border: 1px dashed var(--primary-color);
-          color: var(--primary-color);
-          background: rgba(59,130,246,0.04);
-          border-radius: 8px;
-          padding: 10px;
-          font-weight: 600;
-          transition: background 0.2s;
-        }
-
-        .add-attribute-table-btn:hover {
-          background: rgba(59,130,246,0.1);
-        }
-
-        .add-attribute-inline-form {
-          display: flex;
-          gap: 12px;
-          align-items: center;
-          margin-top: 16px;
-          padding: 16px;
-          background: rgba(255,255,255,0.02);
-          border: 1px solid var(--glass-border);
-          border-radius: 8px;
-        }
-
-        .sm-input {
-          padding: 8px 12px;
-          font-size: 13px;
-        }
 
         /* E-Ink Visualizer Modal — Dragon ESL style (panel only) */
         .preview-modal {

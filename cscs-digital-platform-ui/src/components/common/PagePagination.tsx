@@ -1,6 +1,7 @@
 import React from 'react';
 import { getPaginationRange } from '../../utils/paginationUtils';
 import { useLanguage } from '../../context/LanguageContext';
+import { CustomSelect } from './CustomSelect';
 
 interface PagePaginationProps {
   currentPage: number;
@@ -27,19 +28,18 @@ export const PagePagination: React.FC<PagePaginationProps> = ({
     <div className="dragonesl-pagination-bar glass-card" style={{ marginTop: '24px' }}>
       <div className="pagination-left">
         <span className="pagination-total">{t(`Total ${totalCount} items`, `الإجمالي ${totalCount} عناصر`)}</span>
-        <select
+        <CustomSelect
           value={pageSize}
-          onChange={(e) => {
-            onPageSizeChange(Number(e.target.value));
-          }}
-          className="pagination-size-select"
-        >
-          <option value={5}>5 {t('/ page', '/ للصفحة')}</option>
-          <option value={10}>10 {t('/ page', '/ للصفحة')}</option>
-          <option value={20}>20 {t('/ page', '/ للصفحة')}</option>
-          <option value={50}>50 {t('/ page', '/ للصفحة')}</option>
-          <option value={100}>100 {t('/ page', '/ للصفحة')}</option>
-        </select>
+          onChange={(val) => onPageSizeChange(Number(val))}
+          placement="top"
+          options={[
+            { value: 5, label: `5 ${t('/ page', '/ للصفحة')}` },
+            { value: 10, label: `10 ${t('/ page', '/ للصفحة')}` },
+            { value: 20, label: `20 ${t('/ page', '/ للصفحة')}` },
+            { value: 50, label: `50 ${t('/ page', '/ للصفحة')}` },
+            { value: 100, label: `100 ${t('/ page', '/ للصفحة')}` }
+          ]}
+        />
       </div>
 
       <div className="pagination-right">

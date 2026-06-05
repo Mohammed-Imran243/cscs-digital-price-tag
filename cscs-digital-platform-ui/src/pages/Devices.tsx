@@ -29,8 +29,12 @@ import {
   PageToolbar, 
   SearchInput, 
   FilterGroup, 
-  ActionButtons
+  ActionButtons,
+  DataTable, 
+  PagePagination, 
+  StatusBadge
 } from '../components/common';
+import { CustomSelect } from '../components/common/CustomSelect';
 import { useLanguage } from '../context/LanguageContext';
 import { useLocation, useNavigate } from 'react-router-dom';
 
@@ -603,12 +607,15 @@ const Devices: React.FC = () => {
         <PageHeader title="Device Management" titleAr="إدارة الأجهزة" />
         <PageToolbar>
           <div style={{ display: 'flex', gap: '16px', flex: 1, alignItems: 'center' }}>
-            <StoreSelector 
-                stores={stores} 
-                selectedStore={selectedStore} 
-                onSelect={setSelectedStore} 
-                loading={false} 
-              />
+            <CustomSelect
+              value={selectedStore}
+              onChange={(val: string | number) => setSelectedStore(String(val))}
+              options={[
+                { value: '', label: 'Select Store / حدد المتجر' },
+                ...stores.map(s => ({ value: s.storeId, label: s.storeName }))
+              ]}
+              placeholder="Select Store / حدد المتجر"
+            />
             
             <SearchInput
               value={searchTerm}
@@ -667,11 +674,16 @@ const Devices: React.FC = () => {
           <div className="templates-filters glass-card" style={{ padding: '12px 16px', border: '1px solid var(--glass-border)', marginBottom: '16px', background: 'rgba(255,255,255,0.02)', display: 'flex', flexDirection: 'row', alignItems: 'flex-end', gap: '16px', flexWrap: 'wrap', borderRadius: '12px' }}>
             <div className="filter-group" style={{ display: 'flex', flexDirection: 'column', gap: '4px', flex: '1 1 180px', minWidth: '140px' }}>
               <label style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-secondary)' }}>Status / الحالة</label>
-              <select value={filterDeviceStatus} onChange={e => setFilterDeviceStatus(e.target.value)} className="glass-select" style={{ height: '36px', borderRadius: '8px', fontSize: '13px' }}>
-                <option value="All">All / الكل</option>
-                <option value="online">Online / متصل</option>
-                <option value="offline">Offline / غير متصل</option>
-              </select>
+              <CustomSelect
+                value={filterDeviceStatus}
+                onChange={val => setFilterDeviceStatus(String(val))}
+                options={[
+                  { value: 'All', label: 'All / الكل' },
+                  { value: 'online', label: 'Online / متصل' },
+                  { value: 'offline', label: 'Offline / غير متصل' }
+                ]}
+                className="glass-select"
+              />
             </div>
             <button onClick={() => setFilterDeviceStatus('All')} style={{ background: 'none', border: 'none', color: 'var(--primary-color)', cursor: 'pointer', fontSize: '13px', fontWeight: 600, padding: '8px 12px', alignSelf: 'flex-end', whiteSpace: 'nowrap', marginLeft: 'auto' }}>
               Reset Filters / إعادة تعيين
@@ -820,12 +832,12 @@ const Devices: React.FC = () => {
       {/* ── ADD AP MODAL ── */}
       {isAddApModalOpen && (
         <div className="modal-overlay">
-          <div className="modal-content glass-card scale-up">
-            <button className="close-btn" onClick={() => setIsAddApModalOpen(false)}>&times;</button>
+          <div className="modal-content glass-card" style={{ maxHeight: '90vh', overflowY: 'auto' }}>
             <div className="modal-header">
               <h3>Add AP / إضافة نقطة وصول</h3>
+              <button className="close-btn" onClick={() => setIsAddApModalOpen(false)}>&times;</button>
             </div>
-            <form onSubmit={handleAddAp} className="modal-form">
+            <form onSubmit={handleAddAp} className="create-form">
 
               {/* Store Select — mandatory */}
               <div className="form-group">
@@ -1072,7 +1084,6 @@ const Devices: React.FC = () => {
         /* Tables & Grids */
         .table-card {
           padding: 0;
-          overflow: hidden;
         }
 
         .table-wrapper {

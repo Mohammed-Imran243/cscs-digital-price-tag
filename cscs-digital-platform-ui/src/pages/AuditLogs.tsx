@@ -18,6 +18,7 @@ import { getAuditLogs } from '../services/auditLogService';
 import type { AuditLog } from '../services/auditLogService';
 import { getPaginationRange } from '../utils/paginationUtils';
 import { PageHeader, PageToolbar, ActionButtons } from '../components/common';
+import { CustomSelect } from '../components/common/CustomSelect';
 
 const AuditLogs: React.FC = () => {
   const [stores, setStores] = useState<Store[]>([]);
@@ -135,8 +136,8 @@ const AuditLogs: React.FC = () => {
   }, [selectedStoreId, startDate, endDate, selectedOperation, selectedStatus]);
 
   // Reset page to 1 when filters change
-  const handleStoreChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setSelectedStoreId(e.target.value);
+  const handleStoreChange = (storeId: string) => {
+    setSelectedStoreId(storeId);
     setCurrentPage(1);
   };
 
@@ -317,25 +318,19 @@ const AuditLogs: React.FC = () => {
         />
         <PageToolbar>
           <div style={{ display: 'flex', gap: '16px', flex: 1, alignItems: 'center' }}>
-            <div className="store-selector-wrapper">
-              <StoreIcon size={16} className="text-muted" />
               {storesLoading ? (
                 <span style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>Loading...</span>
               ) : (
-                <select 
-                  value={selectedStoreId} 
-                  onChange={handleStoreChange}
-                  className="glass-select"
-                >
-                  <option value="">All Stores / جميع الفروع</option>
-                  {stores.map(store => (
-                    <option key={store.storeId} value={store.storeId}>
-                      {store.storeName} {store.externalStoreId ? `(${store.externalStoreId})` : ''}
-                    </option>
-                  ))}
-                </select>
+                <CustomSelect
+                  value={selectedStoreId}
+                  onChange={(val: string | number) => handleStoreChange(String(val))}
+                  options={[
+                    { value: '', label: 'All Stores / جميع المتاجر' },
+                    ...stores.map(s => ({ value: s.storeId, label: s.storeName }))
+                  ]}
+                  placeholder="All Stores / جميع المتاجر"
+                />
               )}
-            </div>
   
             <button 
               className={`btn-action btn-action-slate ${showFilters ? 'active' : ''}`} 
@@ -373,7 +368,7 @@ const AuditLogs: React.FC = () => {
           </div>
   
           <ActionButtons
-            onRefresh={fetchLogs}
+            onRefresh={() => fetchLogs()}
             loading={logsLoading}
           />
         </PageToolbar>
@@ -565,19 +560,20 @@ const AuditLogs: React.FC = () => {
           <div className="dragonesl-pagination-bar glass-card">
             <div className="pagination-left">
               <span className="pagination-total">Total {totalCount} items / الإجمالي {totalCount} عناصر</span>
-              <select
+              <CustomSelect
                 value={pageSize}
-                onChange={(e) => {
-                  setPageSize(Number(e.target.value));
+                onChange={(val) => {
+                  setPageSize(Number(val));
                   setCurrentPage(1);
                 }}
+                options={[
+                  { value: 5, label: '5/page / ٥ للصفحة' },
+                  { value: 10, label: '10/page / ١٠ للصفحة' },
+                  { value: 20, label: '20/page / ٢٠ للصفحة' },
+                  { value: 50, label: '50/page / ٥٠ للصفحة' }
+                ]}
                 className="pagination-size-select"
-              >
-                <option value={5}>5/page / ٥ في الصفحة</option>
-                <option value={10}>10/page / ١٠ في الصفحة</option>
-                <option value={20}>20/page / ٢٠ في الصفحة</option>
-                <option value={50}>50/page / ٥٠ في الصفحة</option>
-              </select>
+              />
             </div>
 
             <div className="pagination-right">
@@ -783,6 +779,12 @@ const AuditLogs: React.FC = () => {
           vertical-align: middle;
         }
 
+        .audit-logs-table th:last-child,
+        .audit-logs-table td:last-child {
+          padding-right: 32px;
+          min-width: 160px;
+        }
+
         .audit-logs-table tbody tr:hover {
           background: rgba(255, 255, 255, 0.01);
         }
@@ -862,6 +864,7 @@ const AuditLogs: React.FC = () => {
           font-size: 12px;
           font-weight: 700;
           text-transform: capitalize;
+          white-space: nowrap;
         }
 
         .status-badge.success {

@@ -1,13 +1,14 @@
-import { StoreSelector } from '../components/common/StoreSelector';
-import { AlertTriangle } from 'lucide-react';
 import React, { useState, useEffect } from 'react';
-import { Plus, Search, Store as StoreIcon, Edit2, Trash2, MapPin, Phone, User, Mail, RefreshCw, Loader2, X, CheckCircle, Power, Upload } from 'lucide-react';
+import { Plus, Search, Store as StoreIcon, Edit2, Trash2, MapPin, Phone, User, Mail, RefreshCw, Loader2, X, CheckCircle, Power, Upload, AlertTriangle } from 'lucide-react';
 import { storeService } from '../services/storeService';
 import type { Store } from '../services/storeService';
 import { getPaginationRange } from '../utils/paginationUtils';
 import ImportExportModal from '../components/ImportExportModal';
 import { importStores, exportStores, downloadStoreImportTemplate } from '../services/importExportService';
 import { PageHeader, PageToolbar, ActionButtons } from '../components/common';
+import { StoreSelector } from '../components/common/StoreSelector';
+import { CustomSelect } from '../components/common/CustomSelect';
+
 const Stores: React.FC = () => {
   const [stores, setStores] = useState<Store[]>([]);
   const [loading, setLoading] = useState(true);
@@ -58,11 +59,11 @@ const Stores: React.FC = () => {
     comment: '',
   });
 
-  const fetchStores = async () => {
+  const fetchStores = async (forceRefresh = false) => {
     setLoading(true);
     setError('');
     try {
-      const response = await storeService.getAllStores();
+      const response = await storeService.getAllStores(forceRefresh === true);
       setStores(response || []);
     } catch (err: any) {
       setError(err.message || 'Error connecting to server. Please try again.');
@@ -238,7 +239,7 @@ const Stores: React.FC = () => {
             </div>
           </div>
           <ActionButtons
-            onRefresh={fetchStores}
+            onRefresh={() => fetchStores(true)}
             onImport={() => setShowImportExport(true)}
             onExport={() => setShowImportExport(true)}
             onAdd={openCreateModal}
@@ -267,7 +268,7 @@ const Stores: React.FC = () => {
       ) : error ? (
         <div className="stores-error-state glass-card">
           <p>{error}</p>
-          <button onClick={fetchStores} className="btn-primary">Try Again / أعد المحاولة</button>
+          <button onClick={() => fetchStores()} className="btn-primary">Try Again / حاول مرة أخرى</button>
         </div>
       ) : filteredStores.length === 0 ? (
         <div className="stores-empty-state glass-card">
@@ -347,20 +348,21 @@ const Stores: React.FC = () => {
             <div className="dragonesl-pagination-bar glass-card">
               <div className="pagination-left">
                 <span className="pagination-total">Total {totalCount} items / الإجمالي {totalCount} عناصر</span>
-                <select
+                <CustomSelect
                   value={pageSize}
-                  onChange={(e) => {
-                    setPageSize(Number(e.target.value));
+                  onChange={(val: string | number) => {
+                    setPageSize(Number(val));
                     setCurrentPage(1);
                   }}
+                  options={[
+                    { value: 5, label: '5 / page / للصفحة' },
+                    { value: 10, label: '10 / page / للصفحة' },
+                    { value: 20, label: '20 / page / للصفحة' },
+                    { value: 50, label: '50 / page / للصفحة' },
+                    { value: 100, label: '100 / page / للصفحة' }
+                  ]}
                   className="pagination-size-select"
-                >
-                  <option value={5}>5 / page / ٥ للصفحة</option>
-                  <option value={10}>10 / page / ١٠ للصفحة</option>
-                  <option value={20}>20 / page / ٢٠ للصفحة</option>
-                  <option value={50}>50 / page / ٥٠ للصفحة</option>
-                  <option value={100}>100 / page / ١٠٠ للصفحة</option>
-                </select>
+                />
               </div>
 
               <div className="pagination-right">
@@ -422,12 +424,12 @@ const Stores: React.FC = () => {
       {/* Create / Edit Modal */}
       {isModalOpen && (
         <div className="modal-overlay">
-          <div className="modal-content glass-card">
+          <div className="modal-content glass-card" style={{ maxHeight: '90vh', overflowY: 'auto' }}>
             <div className="modal-header">
               <h3>{isEditing ? 'Edit Store / تعديل المتجر' : 'Create New Store / إنشاء متجر جديد'}</h3>
-              <button className="close-btn" onClick={() => setIsModalOpen(false)}><X size={20} /></button>
+              <button className="close-btn" onClick={() => setIsModalOpen(false)}>&times;</button>
             </div>
-            <form onSubmit={handleSubmit} className="store-form">
+            <form onSubmit={handleSubmit} className="create-form">
               <div className="form-group">
                 <label>Store Name <span className="required-asterisk">*</span> / اسم المتجر <span className="required-asterisk">*</span></label>
                 <input required type="text" value={formData.storeName}

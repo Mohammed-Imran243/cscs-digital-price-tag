@@ -373,9 +373,7 @@ export const BindModal: React.FC<BindModalProps> = ({
               )}
             </div>
 
-            <div className="bind-form-note">
-              After binding, the ESL label will display the product data and can be force-refreshed to sync immediately. / بعد الربط، ستعرض شاشة السعر بيانات المنتج ويمكن تحديثها إجبارياً للمزامنة الفورية.
-            </div>
+
 
             <div className="modal-actions">
               <button
@@ -425,7 +423,6 @@ export const BindModal: React.FC<BindModalProps> = ({
                 value={unbindBarcodes}
                 onChange={e => setUnbindBarcodes(e.target.value)}
               />
-              <span className="bind-hint">You can also select from the table first — selected barcodes appear here. / يمكنك أيضاً التحديد من الجدول أولاً — الباركود المحددة ستظهر هنا.</span>
             </div>
 
             {selectedBarcodes.length > 0 && (
@@ -437,9 +434,7 @@ export const BindModal: React.FC<BindModalProps> = ({
               </button>
             )}
 
-            <div className="bind-form-note">
-              Unbinding releases the ESL label from its current product and returns it to the available pool. / يؤدي إلغاء الربط إلى تحرير شاشة السعر من منتجها الحالي وإعادتها إلى قائمة الشاشات المتاحة.
-            </div>
+
 
             <div className="modal-actions">
               <button

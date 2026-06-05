@@ -12,9 +12,18 @@ interface StoreSelectorProps {
   selectedStore: string;
   onSelect: (storeId: string) => void;
   loading?: boolean;
+  placeholder?: string;
+  showAllOption?: boolean;
 }
 
-export const StoreSelector: React.FC<StoreSelectorProps> = ({ stores, selectedStore, onSelect, loading }) => {
+export const StoreSelector: React.FC<StoreSelectorProps> = ({ 
+  stores, 
+  selectedStore, 
+  onSelect, 
+  loading,
+  placeholder = 'Select a Store... / اختر متجراً...',
+  showAllOption = false
+}) => {
   const [isOpen, setIsOpen] = useState(false);
   const wrapperRef = useRef<HTMLDivElement>(null);
 
@@ -46,7 +55,7 @@ export const StoreSelector: React.FC<StoreSelectorProps> = ({ stores, selectedSt
             textOverflow: 'ellipsis', 
             whiteSpace: 'nowrap'
           }}>
-            {loading ? 'Loading...' : selected ? `${selected.storeName} ${selected.externalStoreId ? '(' + selected.externalStoreId + ')' : ''}` : 'Select a Store... / اختر متجراً...'}
+            {loading ? 'Loading...' : selected ? `${selected.storeName} ${selected.externalStoreId ? '(' + selected.externalStoreId + ')' : ''}` : placeholder}
           </span>
         </div>
         <ChevronDown size={16} className={`chevron ${isOpen ? 'open' : ''}`} />
@@ -54,6 +63,7 @@ export const StoreSelector: React.FC<StoreSelectorProps> = ({ stores, selectedSt
 
       {isOpen && !loading && (
         <div className="selector-dropdown glass-card">
+          {(showAllOption || !selectedStore) && (
           <div 
             className={`selector-option ${!selectedStore ? 'selected' : ''}`}
             onClick={() => {
@@ -62,10 +72,11 @@ export const StoreSelector: React.FC<StoreSelectorProps> = ({ stores, selectedSt
             }}
           >
             <div className="option-content">
-              <span className="option-text">Select a Store... / اختر متجراً...</span>
+              <span className="option-text">{placeholder}</span>
             </div>
             {!selectedStore && <Check size={16} className="check-icon" />}
           </div>
+          )}
           
           {stores.map(store => (
             <div 

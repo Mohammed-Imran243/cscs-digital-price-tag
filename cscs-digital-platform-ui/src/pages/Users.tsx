@@ -14,8 +14,9 @@ import {
   ActionButtons, 
   DataTable, 
   PagePagination, 
-  StatusBadge 
+  StatusBadge
 } from '../components/common';
+import { CustomSelect } from '../components/common/CustomSelect';
 import { useLanguage } from '../context/LanguageContext';
 
 const AVAILABLE_PERMISSIONS = [
@@ -683,12 +684,15 @@ const [showUserFilters, setShowUserFilters] = useState(false);
           <div className="templates-filters glass-card" style={{ padding: '12px 16px', border: '1px solid var(--glass-border)', marginBottom: '16px', background: 'rgba(255,255,255,0.02)', display: 'flex', flexDirection: 'row', alignItems: 'flex-end', gap: '16px', flexWrap: 'wrap', borderRadius: '12px' }}>
             <div className="filter-group" style={{ display: 'flex', flexDirection: 'column', gap: '4px', flex: '1 1 200px', minWidth: '150px' }}>
               <label style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-secondary)' }}>Role / الدور</label>
-              <select value={filterRole} onChange={e => setFilterRole(e.target.value)} className="glass-select" style={{ height: '36px', borderRadius: '8px', fontSize: '13px' }}>
-                <option value="All">All Roles / جميع الأدوار</option>
-                {roles.map((r: any) => (
-                  <option key={r.id} value={String(r.id)}>{r.roleName || r.name}</option>
-                ))}
-              </select>
+              <CustomSelect
+                value={filterRole}
+                onChange={(val: string | number) => setFilterRole(String(val))}
+                options={[
+                  { value: 'All', label: 'All Roles / جميع الأدوار' },
+                  ...roles.map((r: any) => ({ value: String(r.id), label: r.roleName || r.name }))
+                ]}
+                className="glass-select"
+              />
             </div>
             <button onClick={() => { setFilterRole('All'); }} style={{ background: 'none', border: 'none', color: 'var(--primary-color)', cursor: 'pointer', fontSize: '13px', fontWeight: 600, padding: '8px 12px', alignSelf: 'flex-end', whiteSpace: 'nowrap', marginLeft: 'auto' }}>
               Reset Filters / إعادة تعيين
@@ -904,13 +908,13 @@ const [showUserFilters, setShowUserFilters] = useState(false);
       {/* User Modal */}
       {isUserModalOpen && (
         <div className="modal-overlay">
-          <div className="modal-content glass-card">
+          <div className="modal-content glass-card" style={{ maxHeight: '90vh', overflowY: 'auto' }}>
             <div className="modal-header">
               <h3>{isEditingUser ? 'Edit Staff User / تعديل الموظف' : 'Create New User / إنشاء مستخدم جديد'}</h3>
-              <button className="close-btn" onClick={() => setIsUserModalOpen(false)}><X size={20} /></button>
+              <button className="close-btn" onClick={() => setIsUserModalOpen(false)}>&times;</button>
             </div>
             
-            <form onSubmit={handleUserSubmit} className="modal-form">
+            <form onSubmit={handleUserSubmit} className="create-form">
               <div className="form-group">
                 <label>Login Account <span className="required-asterisk">*</span> / حساب الدخول <span className="required-asterisk">*</span></label>
                 <input 
@@ -944,32 +948,25 @@ const [showUserFilters, setShowUserFilters] = useState(false);
                     <>Password <span className="required-asterisk">*</span> / كلمة المرور <span className="required-asterisk">*</span></>
                   )}
                 </label>
-                <div className="password-input-wrapper">
-                  <Key size={16} className="pass-icon text-muted" />
-                  <input 
-                    required={!isEditingUser}
-                    type="password" 
-                    value={userFormData.password}
-                    onChange={e => setUserFormData({ ...userFormData, password: e.target.value })}
-                    className="glass-input" 
-                    placeholder={isEditingUser ? 'Leave blank to keep current password / اتركه فارغاً للاحتفاظ بكلمة المرور الحالية' : 'Min 8 chars, mixed letters & numbers / ٨ أحرف على الأقل، حروف وأرقام مختلطة'} 
-                  />
-                </div>
+                <input 
+                  required={!isEditingUser}
+                  type="password" 
+                  value={userFormData.password}
+                  onChange={e => setUserFormData({ ...userFormData, password: e.target.value })}
+                  className="glass-input" 
+                  placeholder={isEditingUser ? 'Leave blank to keep current password / اتركه فارغاً للاحتفاظ بكلمة المرور الحالية' : 'Min 8 chars, mixed letters & numbers / ٨ أحرف على الأقل، حروف وأرقام مختلطة'} 
+                />
               </div>
 
               <div className="form-group">
                 <label>Assigned Role <span className="required-asterisk">*</span> / الدور المعين <span className="required-asterisk">*</span></label>
-                <select 
-                  required 
+                <CustomSelect
                   value={userFormData.roleId}
-                  onChange={e => setUserFormData({ ...userFormData, roleId: e.target.value })}
+                  onChange={(val: string | number) => setUserFormData({ ...userFormData, roleId: String(val) })}
+                  options={roles.map(r => ({ value: r.id || '', label: r.roleName }))}
+                  placeholder="Select Security Role... / اختر دور الأمان..."
                   className="glass-input"
-                >
-                  <option value="">Select Security Role... / اختر دور الأمان...</option>
-                  {roles.map(r => (
-                    <option key={r.id} value={r.id}>{r.roleName}</option>
-                  ))}
-                </select>
+                />
               </div>
 
               {/* ── Data Access Section ── */}
@@ -1079,10 +1076,10 @@ const [showUserFilters, setShowUserFilters] = useState(false);
       {/* Store Selection Modal */}
       {isStoreModalOpen && (
         <div className="modal-overlay" style={{ zIndex: 1100 }}>
-          <div className="modal-content glass-card" style={{ width: '700px', maxWidth: '95vw', padding: '24px' }}>
+          <div className="modal-content glass-card" style={{ width: '700px', maxWidth: '95vw', padding: '24px', maxHeight: '90vh', overflowY: 'auto' }}>
             <div className="modal-header" style={{ marginBottom: '20px' }}>
               <h3 style={{ fontSize: '16px' }}>Store Selection / اختيار المتاجر</h3>
-              <button className="close-btn" onClick={() => setIsStoreModalOpen(false)}><X size={20} /></button>
+              <button className="close-btn" onClick={() => setIsStoreModalOpen(false)}>&times;</button>
             </div>
             
             <div style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', gap: '24px', alignItems: 'center' }}>
@@ -1177,11 +1174,11 @@ const [showUserFilters, setShowUserFilters] = useState(false);
           <div className="modal-content glass-card modal-content-wide">
             <div className="modal-header">
               <h3>{isEditingRole ? 'Edit Security Role / تعديل دور الأمان' : 'Create Custom Role / إنشاء دور مخصص'}</h3>
-              <button className="close-btn" onClick={() => setIsRoleModalOpen(false)}><X size={20} /></button>
+              <button className="close-btn" onClick={() => setIsRoleModalOpen(false)}>&times;</button>
             </div>
             
-            <form onSubmit={handleRoleSubmit} className="modal-form" style={{ display: 'flex', flexDirection: 'column', height: '100%', padding: 0 }}>
-              <div style={{ padding: '24px 24px 0 24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            <form onSubmit={handleRoleSubmit} className="modal-form" style={{ display: 'flex', flexDirection: 'column', maxHeight: 'calc(100vh - 120px)', overflowY: 'auto', padding: 0 }}>
+              <div style={{ padding: '24px 24px 0 24px', display: 'flex', flexDirection: 'column', gap: '16px', flexShrink: 0 }}>
                 <div className="form-group" style={{ marginBottom: 0 }}>
                   <label>Role Name <span className="required-asterisk">*</span> / اسم الدور <span className="required-asterisk">*</span></label>
                   <input 
@@ -1195,7 +1192,6 @@ const [showUserFilters, setShowUserFilters] = useState(false);
                 </div>
                 <div className="form-group" style={{ marginBottom: 0 }}>
                   <label>Role Description (Optional) / وصف الدور (اختياري)</label>
-                  <p className="text-xs text-muted" style={{ marginBottom: '8px' }}>Describe the purpose of this role and who should use it.</p>
                   <input 
                     type="text" 
                     value={roleFormData.remark || ''}
@@ -1206,7 +1202,7 @@ const [showUserFilters, setShowUserFilters] = useState(false);
                 </div>
               </div>
 
-              <div style={{ padding: '24px', flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+              <div style={{ padding: '24px', display: 'flex', flexDirection: 'column', flexShrink: 0 }}>
                 <div className="permissions-container">
                   {/* Sticky Toolbar */}
                   <div className="permissions-toolbar">
@@ -1235,7 +1231,7 @@ const [showUserFilters, setShowUserFilters] = useState(false);
                   </div>
 
                   {/* Tree Area */}
-                  <div style={{ overflowY: 'auto', flex: 1, paddingBottom: '24px' }}>
+                  <div style={{ paddingBottom: '24px' }}>
                     {permissionsLoading ? (
                       <div style={{ padding: '40px', textAlign: 'center', color: 'var(--text-muted)' }}>Loading permission tree...</div>
                     ) : (
@@ -1362,7 +1358,7 @@ const [showUserFilters, setShowUserFilters] = useState(false);
                 </div>
               </div>
 
-              <div className="modal-actions-sticky" style={{ padding: '16px 24px', background: 'var(--bg-secondary)' }}>
+              <div className="modal-actions" style={{ padding: '24px', paddingTop: 0, justifyContent: 'flex-end', gap: '16px' }}>
                 <button type="button" className="btn-secondary" onClick={() => setIsRoleModalOpen(false)}>Cancel / إلغاء</button>
                 <button 
                   type="submit" 

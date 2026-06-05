@@ -40,7 +40,10 @@ export interface StoreResponseData {
 }
 
 export const storeService = {
-  getAllStores: async (): Promise<Store[]> => {
+  getAllStores: async (forceRefresh = false): Promise<Store[]> => {
+    if (forceRefresh) {
+      apiCache.invalidate('stores:all');
+    }
     return apiCache.fetch(
       'stores:all',
       async () => {

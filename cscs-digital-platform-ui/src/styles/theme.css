@@ -414,11 +414,9 @@ select option {
 .permissions-container {
   border: 1px solid var(--border-color);
   border-radius: 8px;
-  overflow: hidden;
   display: flex;
   flex-direction: column;
   background: var(--bg-primary);
-  max-height: 55vh;
 }
 
 .permissions-toolbar {
@@ -1271,3 +1269,33 @@ table td {
   padding-right: 24px;
   border-bottom: 1px solid var(--glass-border);
 }
+
+/* Global Form Styles */
+.create-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.form-row {
+  display: flex;
+  gap: 16px;
+}
+
+.form-row .form-group {
+  flex: 1;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+

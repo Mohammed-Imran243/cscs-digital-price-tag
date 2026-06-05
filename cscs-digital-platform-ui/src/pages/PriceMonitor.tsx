@@ -12,6 +12,7 @@ import {
 import api from '../services/api';
 import '../styles/theme.css';
 import PageHeader from '../components/PageHeader';
+import { CustomSelect } from '../components/common/CustomSelect';
 
 interface PriceHistoryEvent {
   id: string;
@@ -155,28 +156,42 @@ const PriceMonitor: React.FC = () => {
       <div className="glass-card" style={{ padding: '16px', marginBottom: '24px', display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
         <div className="form-group" style={{ margin: 0, minWidth: '200px' }}>
           <label style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '8px' }}><Store size={14} /> Store Filter</label>
-          <select className="glass-input" value={storeFilter} onChange={e => setStoreFilter(e.target.value)}>
-            <option value="All Stores">All Stores</option>
-            {/* Ideally this would be populated from a store list endpoint */}
-            <option value="1">Main Store (1)</option>
-          </select>
+          <CustomSelect
+            value={storeFilter}
+            onChange={val => setStoreFilter(String(val))}
+            options={[
+              { value: 'All Stores', label: 'All Stores' },
+              { value: '1', label: 'Main Store (1)' }
+            ]}
+            className="glass-input"
+          />
         </div>
         <div className="form-group" style={{ margin: 0, minWidth: '200px' }}>
           <label style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '8px' }}><Filter size={14} /> Change Type</label>
-          <select className="glass-input" value={typeFilter} onChange={e => setTypeFilter(e.target.value)}>
-            <option value="All Types">All Types</option>
-            <option value="PRICE_INCREASED">Increase Only</option>
-            <option value="PRICE_DECREASED">Decrease Only</option>
-          </select>
+          <CustomSelect
+            value={typeFilter}
+            onChange={val => setTypeFilter(String(val))}
+            options={[
+              { value: 'All Types', label: 'All Types' },
+              { value: 'PRICE_INCREASED', label: 'Increase Only' },
+              { value: 'PRICE_DECREASED', label: 'Decrease Only' }
+            ]}
+            className="glass-input"
+          />
         </div>
         <div className="form-group" style={{ margin: 0, minWidth: '200px' }}>
           <label style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '8px' }}><Calendar size={14} /> Time Filter</label>
-          <select className="glass-input" value={timeFilter} onChange={e => setTimeFilter(e.target.value)}>
-            <option value="Today">Today</option>
-            <option value="Last 7 Days">Last 7 Days</option>
-            <option value="Last 30 Days">Last 30 Days</option>
-            <option value="All Time">All Time</option>
-          </select>
+          <CustomSelect
+            value={timeFilter}
+            onChange={val => setTimeFilter(String(val))}
+            options={[
+              { value: 'Today', label: 'Today' },
+              { value: 'Last 7 Days', label: 'Last 7 Days' },
+              { value: 'Last 30 Days', label: 'Last 30 Days' },
+              { value: 'All Time', label: 'All Time' }
+            ]}
+            className="glass-input"
+          />
         </div>
       </div>
 

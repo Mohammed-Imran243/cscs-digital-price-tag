@@ -8,6 +8,7 @@ import { Search, Plus, Loader2, AlertTriangle, RefreshCw, Package, Store as Stor
 import { getPaginationRange } from '../utils/paginationUtils';
 import { getTemplates, getCategories, getTemplateTypes } from '../services/templateService';
 import { PageHeader, PageToolbar, ActionButtons } from '../components/common';
+import { CustomSelect } from '../components/common/CustomSelect';
 import ImportExportModal from '../components/ImportExportModal';
 import { importProducts, exportProducts, downloadProductImportTemplate } from '../services/importExportService';
 
@@ -675,21 +676,15 @@ const Products: React.FC = () => {
       />
       <PageToolbar>
           <div style={{ display: 'flex', gap: '16px', flex: 1, alignItems: 'center' }}>
-            <div className="store-selector-wrapper">
-              <StoreIcon size={16} className="text-muted" />
-              <select 
-                value={selectedStore} 
-                onChange={(e) => setSelectedStore(e.target.value)}
-                className="glass-select"
-              >
-                <option value="">Select a Store... / اختر متجراً...</option>
-                {stores.map(store => (
-                  <option key={store.storeId} value={store.storeId}>
-                    {store.storeName} {store.externalStoreId ? `(${store.externalStoreId})` : ''}
-                  </option>
-                ))}
-              </select>
-            </div>
+            <CustomSelect
+              value={selectedStore}
+              onChange={(val: string | number) => setSelectedStore(String(val))}
+              options={[
+                { value: '', label: 'Select Store / حدد المتجر' },
+                ...stores.map(s => ({ value: s.storeId, label: s.storeName }))
+              ]}
+              placeholder="Select Store / حدد المتجر"
+            />
             <div className="global-search-bar">
               <Search size={16} className="text-muted" />
               <input
@@ -920,15 +915,19 @@ const Products: React.FC = () => {
       <div className="dragonesl-pagination-bar glass-card">
         <div className="pagination-left">
           <span className="pagination-total">Total {totalElements} items / الإجمالي {totalElements} عناصر</span>
-          <select value={pageSize} onChange={(e) => { setPageSize(Number(e.target.value)); setCurrentPage(1); }} className="pagination-size-select">
-            <option value={5}>5/page</option>
-            <option value={10}>10/page</option>
-            <option value={20}>20/page</option>
-            <option value={50}>50/page</option>
-            <option value={100}>100/page</option>
-            <option value={500}>500/page</option>
-            <option value={1000}>1000/page</option>
-          </select>
+          <CustomSelect
+            value={pageSize}
+            onChange={(val) => { setPageSize(Number(val)); setCurrentPage(1); }}
+            options={[
+              { value: 5, label: '5/page' },
+              { value: 10, label: '10/page' },
+              { value: 20, label: '20/page' },
+              { value: 50, label: '50/page' },
+              { value: 100, label: '100/page' },
+              { value: 500, label: '500/page' },
+              { value: 1000, label: '1000/page' }
+            ]}
+          />
         </div>
         <div className="pagination-right">
           <button type="button" disabled={currentPage === 1} onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))} className="pagination-arrow-btn">&lt;</button>
