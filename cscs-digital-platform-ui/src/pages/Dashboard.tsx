@@ -221,7 +221,7 @@ const Dashboard: React.FC = () => {
           <div className="card-header">
             <div>
               <h3>Product per Store / المنتجات لكل متجر</h3>
-              <span className="card-meta">Live product counts / إحصائيات المنتجات</span>
+              
             </div>
             <PaginationControls 
               currentPage={productPage} 
@@ -275,7 +275,7 @@ const Dashboard: React.FC = () => {
           <div className="card-header">
             <div>
               <h3>AP Status per Store / حالة نقاط الوصول لكل متجر</h3>
-              <span className="card-meta">Access Point coverage / تغطية نقاط الوصول</span>
+              
             </div>
             <PaginationControls 
               currentPage={apPage} 
