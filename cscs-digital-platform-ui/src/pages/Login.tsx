@@ -113,11 +113,9 @@ const LoginPage: React.FC = () => {
           width: 100%;
           max-width: 480px;
           min-height: 560px;
-          padding: 64px 48px;
+          padding: 48px 48px;
           text-align: center;
-          background: rgba(15, 23, 42, 0.65);
-          backdrop-filter: blur(32px);
-          -webkit-backdrop-filter: blur(32px);
+          background: transparent;
           border-radius: 28px;
           margin-right: 10%;
           position: relative;
@@ -131,7 +129,7 @@ const LoginPage: React.FC = () => {
         }
         
         .login-card:hover {
-          box-shadow: 0 0 20px rgba(59,130,246,0.25), 0 0 40px rgba(59,130,246,0.15), 0 30px 60px -15px rgba(0, 0, 0, 0.8);
+          box-shadow: 0 0 20px rgba(59,130,246,0.12), 0 0 40px rgba(59,130,246,0.07), 0 30px 60px -15px rgba(0, 0, 0, 0.8);
         }
 
         
@@ -139,6 +137,32 @@ const LoginPage: React.FC = () => {
         
         
         
+
+        .login-card::before {
+          content: '';
+          position: absolute;
+          inset: -4px;
+          border-radius: 30px;
+          background: conic-gradient(from 0deg, transparent 60%, rgba(59,130,246,0.5), rgba(99,102,241,0.8));
+          animation: rotate-border 6s linear infinite;
+          z-index: -2;
+        }
+
+        .login-card::after {
+          content: '';
+          position: absolute;
+          inset: 1.5px;
+          background: rgba(15, 23, 42, 0.85);
+          backdrop-filter: blur(32px);
+          -webkit-backdrop-filter: blur(32px);
+          border-radius: 27px;
+          z-index: -1;
+        }
+
+        @keyframes rotate-border {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
 
         .login-header, .login-form {
           position: relative;
@@ -149,17 +173,18 @@ const LoginPage: React.FC = () => {
           display: flex;
           justify-content: center;
           align-items: center;
-          margin-bottom: 32px;
+          margin-bottom: 12px;
+          margin-top: -16px;
         }
 
         .logo-img {
           height: auto;
           width: 100%;
-          max-width: 280px;
+          max-width: 420px;
           mix-blend-mode: screen;
           object-fit: contain;
-          object-fit: contain;
-          filter: drop-shadow(0 4px 6px rgba(0,0,0,0.3));
+          filter: drop-shadow(0 4px 8px rgba(0,0,0,0.8)) brightness(1.1);
+          transform: scale(1.15);
         }
 
         .login-title {
@@ -274,7 +299,8 @@ const LoginPage: React.FC = () => {
             font-size: 24px;
           }
           .logo-img {
-              max-width: 240px;
+              max-width: 320px;
+              transform: scale(1.1);
             }
         }
 
