@@ -212,6 +212,17 @@ const AuditLogs: React.FC = () => {
 
   const renderStatusBadge = (status: number, statusText: string) => {
     const translatedText = getStatusTranslation(statusText);
+    
+    // Explicit override if the text indicates a failure
+    if (translatedText.includes('Failed') || translatedText.includes('فشل')) {
+      return (
+        <span className="status-badge error">
+          <XCircle size={14} />
+          {translatedText}
+        </span>
+      );
+    }
+
     // Green for success
     if (status === 2 || status === 14) {
       return (
