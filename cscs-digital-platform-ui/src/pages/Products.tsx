@@ -851,9 +851,7 @@ const Products: React.FC = () => {
               <div className="store-icon-wrapper" style={{ width: '38px', height: '38px', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(135deg, var(--primary-color), #8b5cf6)', color: 'white' }}>
                 <Package size={20} />
               </div>
-              <div className="store-badge status-active" style={{ fontSize: '11px', fontWeight: '700', padding: '3px 10px', borderRadius: '20px', background: 'rgba(59, 130, 246, 0.15)', color: 'var(--primary-color)' }}>
-                {product.unit || '1PCS'}
-              </div>
+              
             </div>
 
             <div className="store-card-body" style={{ flex: '1', display: 'flex', flexDirection: 'column', gap: '4px' }}>
