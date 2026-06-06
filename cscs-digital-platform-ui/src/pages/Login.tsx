@@ -86,6 +86,10 @@ const LoginPage: React.FC = () => {
           </button>
         </form>
 
+        <div className="login-footer-text">
+          Designed and Implemented by CSCS | V1.0
+        </div>
+
       </div>
 
       <style>{`
@@ -263,6 +267,15 @@ const LoginPage: React.FC = () => {
           cursor: pointer;
           transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
           box-shadow: 0 4px 10px rgba(59,130,246,0.2);
+        }
+        
+        .login-footer-text {
+          margin-top: 24px;
+          font-size: 13px;
+          color: #94a3b8;
+          font-weight: 500;
+          letter-spacing: 0.5px;
+          opacity: 0.8;
         }
         
         .login-btn:hover:not(:disabled) {
