@@ -278,22 +278,26 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
       <aside className={`sidebar glass-card ${isMobileMenuOpen ? 'mobile-open' : ''} ${isSidebarCollapsed ? 'collapsed' : ''}`}>
         <div className="sidebar-header antigravity-wrapper">
-            <div 
-              className="logo-expanded" 
-              onClick={() => navigate('/')} 
-              style={{ cursor: 'pointer', alignItems: 'center' }}
-              title="Dashboard"
-            >
+          <div 
+            className="logo-expanded" 
+            onClick={() => navigate('/')} 
+            style={{ cursor: 'pointer', flex: 1 }}
+            title="Dashboard"
+          >
+            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', width: '100%' }}>
               <Home size={32} strokeWidth={2} color="var(--primary-color)" />
             </div>
-            <div 
-              className="logo-collapsed" 
-              onClick={() => navigate('/')} 
-              style={{ cursor: 'pointer', alignItems: 'center', justifyContent: 'center', width: '100%' }}
-              title="Dashboard"
-            >
+          </div>
+          <div 
+            className="logo-collapsed" 
+            onClick={() => navigate('/')} 
+            style={{ cursor: 'pointer', width: '100%' }}
+            title="Dashboard"
+          >
+            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', width: '100%' }}>
               <Home size={32} strokeWidth={2} color="var(--primary-color)" />
             </div>
+          </div>
           <button className="sidebar-toggle-btn" onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}>
             <Menu size={20} strokeWidth={1.25} />
           </button>

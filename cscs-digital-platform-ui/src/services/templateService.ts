@@ -91,7 +91,7 @@ export const getCategories = async (): Promise<any[]> => {
     'templates:categories',
     async () => {
       const response = await api.get('/templates/categories');
-      return unwrapResponse(response);
+      return unwrapResponse(response) as any[];
     },
     TTL.CATEGORIES
   );
@@ -110,7 +110,17 @@ export const getTemplateTypes = async (): Promise<any[]> => {
 
 export const addCategory = async (categoryName: string): Promise<void> => {
   const response = await api.post('/templates/categories', { categoryName });
+  apiCache.invalidate('templates:categories');
   unwrapResponse(response);
+};
+
+export const updateCategory = async (payload: any): Promise<void> => {
+  try {
+    const response = await api.put(`/templates/categories/${payload.id}`, payload);
+    unwrapResponse(response);
+  } finally {
+    apiCache.invalidate('templates:categories');
+  }
 };
 
 export const getModels = async (): Promise<PriceTagModel[]> => {

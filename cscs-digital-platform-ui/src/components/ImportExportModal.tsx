@@ -12,6 +12,7 @@ interface ImportExportModalProps {
   onDownloadTemplate: () => Promise<void>;
   acceptFormat?: string; // e.g. '.xlsx,.csv' or '.zip'
   showStoreSelector?: boolean;
+  hideExport?: boolean;
 }
 
 const ImportExportModal: React.FC<ImportExportModalProps> = ({
@@ -24,6 +25,8 @@ const ImportExportModal: React.FC<ImportExportModalProps> = ({
   onExport,
   onDownloadTemplate,
   acceptFormat = '.xlsx,.csv',
+  showStoreSelector = false,
+  hideExport = false,
 }) => {
   const [activeTab, setActiveTab] = useState<'import' | 'export'>('import');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -123,12 +126,16 @@ const ImportExportModal: React.FC<ImportExportModalProps> = ({
           >
             ⬆ Import
           </button>
-          <button
-            style={{ ...styles.tab, ...(activeTab === 'export' ? styles.activeTab : {}) }}
-            onClick={() => setActiveTab('export')}
-          >
-            ⬇ Export
-          </button>
+          {/* 
+          {!hideExport && (
+            <button
+              style={{ ...styles.tab, ...(activeTab === 'export' ? styles.activeTab : {}) }}
+              onClick={() => setActiveTab('export')}
+            >
+              ⬇ Export
+            </button>
+          )}
+          */}
         </div>
 
         <div style={styles.body}>

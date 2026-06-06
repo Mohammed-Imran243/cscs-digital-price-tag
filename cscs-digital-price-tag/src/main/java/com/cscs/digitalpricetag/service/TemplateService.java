@@ -26,7 +26,7 @@ public class TemplateService {
         this.iconService = iconService;
     }
 
-    public List<String> getCategories() {
+    public List<Map<String, Object>> getCategories() {
         try {
             Map<?, ?> response = dragonEslApiClient.get("/zk/attrCategory/findList", Map.class);
             if (response != null) {
@@ -35,12 +35,7 @@ public class TemplateService {
                     List<?> list = (List<?>) dataObj;
                     return list.stream()
                             .filter(item -> item instanceof Map)
-                            .map(item -> (Map<?, ?>) item)
-                            .map(item -> item.get("categoryName"))
-                            .filter(name -> name != null && !name.toString().isBlank())
-                            .map(Object::toString)
-                            .distinct()
-                            .sorted()
+                            .map(item -> (Map<String, Object>) item)
                             .collect(Collectors.toList());
                 }
             }
@@ -82,6 +77,10 @@ public class TemplateService {
 
     public Object addCategory(Map<String, Object> request) {
         return performPost("/zk/attrCategory/add", request);
+    }
+
+    public Object updateCategory(Map<String, Object> request) {
+        return performPut("/zk/attrCategory/update", request);
     }
 
     public Object getModels() {

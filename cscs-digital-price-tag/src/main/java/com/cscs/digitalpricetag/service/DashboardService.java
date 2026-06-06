@@ -65,7 +65,7 @@ public class DashboardService {
         CompletableFuture<List<StoreResponse>> storesFuture = CompletableFuture.supplyAsync(() -> storeService.getAllStores(), executor);
         CompletableFuture<Long> activeStoreCountFuture = CompletableFuture.supplyAsync(() -> storeService.getActiveStoreCount(), executor);
         CompletableFuture<DragonTemplateListResponse> templatesFuture = CompletableFuture.supplyAsync(() -> templateService.getTemplates(0, 1, new HashMap<>()), executor);
-        CompletableFuture<List<String>> categoriesFuture = CompletableFuture.supplyAsync(() -> templateService.getCategories(), executor);
+        CompletableFuture<List<Map<String, Object>>> categoriesFuture = CompletableFuture.supplyAsync(() -> templateService.getCategories(), executor);
 
         CompletableFuture.allOf(merchantFuture, storesFuture, activeStoreCountFuture, templatesFuture, categoriesFuture).join();
 
@@ -104,7 +104,7 @@ public class DashboardService {
         }
 
         try {
-            List<String> cats = categoriesFuture.get();
+            List<Map<String, Object>> cats = categoriesFuture.get();
             summary.setCategoryCount(cats != null ? cats.size() : 0);
         } catch (Exception e) {
             summary.setCategoryCount(0);

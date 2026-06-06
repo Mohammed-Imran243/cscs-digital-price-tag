@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Store, Package, FileText, RefreshCw, Wifi, WifiOff, AlertTriangle, CheckCircle, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Store, Package, LayoutTemplate, Building2, Cpu, Smartphone, RefreshCw, Wifi, WifiOff, AlertTriangle, CheckCircle, ChevronLeft, ChevronRight } from 'lucide-react';
 import { apiCache } from '../services/apiCache';
 import { dashboardService } from '../services/dashboardService';
 import type { DashboardSummary } from '../services/dashboardService';
@@ -140,7 +140,7 @@ const Dashboard: React.FC = () => {
       {/* ── Stat Cards ── */}
       <div className="dashboard-grid">
         <StatCard
-          icon={<Store size={24} />}
+          icon={<Building2 size={24} />}
           label="Merchants / التجار"
           value={formatCount(summary?.activeMerchantCount)}
           trend={summary?.activeMerchantCount !== undefined ? `${formatCount(summary.activeMerchantCount)} Active Merchant(s) / تاجر نشط` : undefined}
@@ -164,7 +164,7 @@ const Dashboard: React.FC = () => {
           onClick={() => navigate('/stores')}
         />
         <StatCard
-          icon={<Wifi size={24} />}
+          icon={<Cpu size={24} />}
           label="Access Points / نقاط الوصول"
           value={formatCount(summary?.apCount)}
           trend={summary?.apCount !== undefined ? `Total APs in network / إجمالي نقاط الوصول` : undefined}
@@ -176,7 +176,7 @@ const Dashboard: React.FC = () => {
           onClick={() => navigate('/devices?tab=ap')}
         />
         <StatCard
-          icon={<FileText size={24} />}
+          icon={<LayoutTemplate size={24} />}
           label="Templates / القوالب"
           value={formatCount(summary?.templateCount)}
           trend={summary?.templateCount !== undefined ? `${formatCount(summary.templateCount)} active templates / قوالب نشطة` : undefined}
@@ -200,7 +200,7 @@ const Dashboard: React.FC = () => {
           onClick={() => navigate('/products')}
         />
         <StatCard
-          icon={<Wifi size={24} />}
+          icon={<Smartphone size={24} />}
           label="ESL Tags / علامات ESL"
           value={formatCount(summary?.eslCount)}
           trend={summary?.eslCount !== undefined ? `Total ESL tags / إجمالي علامات ESL` : undefined}

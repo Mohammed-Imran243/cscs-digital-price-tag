@@ -5,6 +5,7 @@ import {
   getTemplates,
   getCategories,
   addCategory,
+  updateCategory,
   getModels,
   updateTemplateBase,
   deleteTemplate,
@@ -156,13 +157,15 @@ const Templates: React.FC = () => {
   const [newAttributeName, setNewAttributeName] = useState('');
   const [isAddAttrOpen, setIsAddAttrOpen] = useState(false);
 
-  // Creation Modals & Submitting States
   const [isTemplateModalOpen, setIsTemplateModalOpen] = useState(false);
   const [isStoreIconModalOpen, setIsStoreIconModalOpen] = useState(false);
   const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
+  const [isEditCategoryModalOpen, setIsEditCategoryModalOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [previewTemplate, setPreviewTemplate] = useState<Template | null>(null);
   const [sampleProducts, setSampleProducts] = useState<any[]>([]);
+  const [editCategoryName, setEditCategoryName] = useState('');
+  const [editCategoryTarget, setEditCategoryTarget] = useState<any>(null);
   const [selectedSampleProductId, setSelectedSampleProductId] = useState<string>('');
   const [activePopoverId, setActivePopoverId] = useState<string | null>(null);
   const [popoverProduct, setPopoverProduct] = useState<any>(null);
@@ -328,16 +331,16 @@ const Templates: React.FC = () => {
       // 1. Fetch Categories
       const catData = await getCategories();
       if (catData && Array.isArray(catData)) {
-        const mappedCats = catData.map((c: any, index: number) => {
-          let name = '';
+        const mappedCats = catData.map((c: any) => {
           if (c && typeof c === 'object') {
-            name = c.categoryName || '';
-          } else {
-            name = String(c);
+            return {
+              ...c,
+              categoryName: c.categoryName || ''
+            };
           }
           return {
-            id: index,
-            categoryName: name
+            id: Math.random(),
+            categoryName: String(c)
           };
         }).filter(item => item.categoryName);
         setCategories(mappedCats);
@@ -514,6 +517,49 @@ const Templates: React.FC = () => {
     } catch (err: any) {
       console.error('Failed to add category', err);
       showNotification('Failed to add category. Please try again. / فشل إضافة الفئة. يرجى المحاولة مرة أخرى.', 'error');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleUpdateCategory = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editCategoryName.trim() || !editCategoryTarget) return;
+    setSubmitting(true);
+    try {
+      const payload = { 
+        agencyId: 1694577214130,
+        merchantId: 1775639851383,
+        storeId: null,
+        edit: 1,
+        flag: 1,
+        hover: true,
+        operateUser: "DG0358",
+        ...editCategoryTarget, 
+        categoryName: editCategoryName 
+      };
+      await updateCategory(payload);
+      showNotification('Category updated successfully / تم تحديث التصنيف بنجاح', 'success');
+      
+      if (editCategoryTarget.categoryName !== editCategoryName) {
+        setCategoryAttributes(prev => {
+          const newMap = { ...prev };
+          newMap[editCategoryName] = newMap[editCategoryTarget.categoryName] || [];
+          delete newMap[editCategoryTarget.categoryName];
+          return newMap;
+        });
+        if (selectedPropertyCat === editCategoryTarget.categoryName) {
+          setSelectedPropertyCat(editCategoryName);
+        }
+      }
+
+      setEditCategoryName('');
+      setEditCategoryTarget(null);
+      setIsEditCategoryModalOpen(false);
+      fetchLookups();
+    } catch (err: any) {
+      console.error('Failed to update category', err);
+      showNotification('Failed to update category. / فشل في تحديث التصنيف.', 'error');
     } finally {
       setSubmitting(false);
     }
@@ -991,7 +1037,7 @@ const Templates: React.FC = () => {
             <div className="saas-properties-container">
               
               {/* 2. Action Toolbar */}
-              <div className="saas-action-toolbar" style={{ display: 'flex', justifyContent: 'flex-start', gap: '12px' }}>
+              <div className="saas-action-toolbar" style={{ display: 'flex', justifyContent: 'space-between', gap: '12px' }}>
                 <div className="toolbar-search">
                   <Search size={18} className="search-icon" />
                   <input
@@ -1068,9 +1114,15 @@ const Templates: React.FC = () => {
                         </span>
                       </div>
                     </div>
-                    <button className="saas-btn-icon-soft" title="Edit Category / تعديل التصنيف" onClick={() => {
-                        // Action for editing category if it exists
-                    }}>
+                    <button className="saas-btn-icon-soft" title="Edit Category / تعديل التصنيف" 
+                      onClick={() => {
+                        const targetCat = categories.find(c => (typeof c === 'object' ? c.categoryName : String(c)) === selectedPropertyCat);
+                        if (targetCat) {
+                          setEditCategoryTarget(typeof targetCat === 'object' ? targetCat : { categoryName: String(targetCat) });
+                          setEditCategoryName(selectedPropertyCat);
+                          setIsEditCategoryModalOpen(true);
+                        }
+                      }}>
                       <Edit size={16} />
                     </button>
                   </div>
@@ -1114,30 +1166,10 @@ const Templates: React.FC = () => {
                     })}
 
                     {/* 6. Add Attribute Action */}
-                    {isAddAttrOpen ? (
-                      <div className="saas-card add-attribute-card inline-form-card">
-                        <form onSubmit={handleAddAttribute} className="inline-add-form">
-                          <input
-                            required
-                            type="text"
-                            placeholder="Attribute name..."
-                            value={newAttributeName}
-                            onChange={e => setNewAttributeName(e.target.value)}
-                            className="saas-input"
-                            autoFocus
-                          />
-                          <div className="inline-form-actions">
-                            <button type="submit" className="saas-btn-primary sm">Save</button>
-                            <button type="button" className="saas-btn-secondary sm" onClick={() => setIsAddAttrOpen(false)}>Cancel</button>
-                          </div>
-                        </form>
-                      </div>
-                    ) : (
-                      <button className="saas-card add-attribute-btn-card" onClick={() => setIsAddAttrOpen(true)}>
-                        <Plus size={24} className="add-icon" />
-                        <span>Add New Attribute</span>
-                      </button>
-                    )}
+                    <button className="saas-card add-attribute-btn-card" onClick={() => setIsAddAttrOpen(true)}>
+                      <Plus size={24} className="add-icon" />
+                      <span>Add New Attribute</span>
+                    </button>
 
                   </div>
 
@@ -1408,12 +1440,12 @@ const Templates: React.FC = () => {
         <div className="modal-overlay">
           <div className="modal-content glass-card" style={{ maxHeight: '90vh', overflowY: 'auto' }}>
             <div className="modal-header">
-              <h3>Create Template Classification / إنشاء تصنيف قالب</h3>
+              <h3>Create Template Category / إنشاء تصنيف قالب</h3>
               <button className="close-btn" onClick={() => setIsCategoryModalOpen(false)}>&times;</button>
             </div>
             <form onSubmit={handleCreateCategory} className="create-form">
               <div className="form-group">
-                <label>Classification Name / اسم التصنيف</label>
+                <label>Category Name / اسم التصنيف</label>
                 <input
                   required
                   type="text"
@@ -1435,6 +1467,38 @@ const Templates: React.FC = () => {
         </div>
       )}
 
+        {/* ================= MODAL DIALOG 2.5: EDIT CATEGORY ================= */}
+        {isEditCategoryModalOpen && (
+          <div className="modal-overlay">
+            <div className="modal-content glass-card" style={{ maxHeight: '90vh', overflowY: 'auto' }}>
+              <div className="modal-header">
+                <h3>Edit Template Category / تعديل تصنيف قالب</h3>
+                <button className="close-btn" onClick={() => setIsEditCategoryModalOpen(false)}>&times;</button>
+              </div>
+              <form onSubmit={handleUpdateCategory} className="create-form">
+                <div className="form-group">
+                  <label>Category Name / اسم التصنيف</label>
+                  <input
+                    required
+                    type="text"
+                    placeholder="e.g. Pharmacy, Thobe, Grocery / مثال: صيدلية، ثوب، بقالة"
+                    value={editCategoryName}
+                    onChange={e => setEditCategoryName(e.target.value)}
+                    className="glass-input"
+                  />
+                </div>
+  
+                <div className="modal-actions">
+                  <button type="button" className="btn-secondary" onClick={() => setIsEditCategoryModalOpen(false)}>Cancel / إلغاء</button>
+                  <button type="submit" className="btn-primary" disabled={submitting}>
+                    {submitting ? <Loader2 size={18} className="spin" /> : 'Save / حفظ'}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+  
       {/* ================= MODAL DIALOG 3: EDIT TEMPLATE ================= */}
       {editTemplateModal && (
         <div className="modal-overlay">
@@ -1528,6 +1592,44 @@ const Templates: React.FC = () => {
           </div>
         );
       })()}
+
+      {/* ================= MODAL DIALOG 5: ADD ATTRIBUTE ================= */}
+      {isAddAttrOpen && (
+        <div className="modal-overlay">
+          <div className="modal-content glass-card" style={{ maxWidth: '500px' }}>
+            <div className="modal-header" style={{ borderBottom: '1px solid var(--glass-border)', paddingBottom: '16px', marginBottom: '24px' }}>
+              <h3 style={{ fontSize: '20px', fontWeight: 600 }}>Add Attribute / إضافة سمة</h3>
+              <button className="close-btn" onClick={() => setIsAddAttrOpen(false)}>&times;</button>
+            </div>
+            <form onSubmit={handleAddAttribute} className="create-form">
+              <div className="form-group" style={{ marginBottom: '32px' }}>
+                <label style={{ fontSize: '14px', fontWeight: 600, marginBottom: '8px', display: 'block', color: 'var(--text-primary)' }}>
+                  Attribute Name / اسم السمة <span className="text-danger">*</span>
+                </label>
+                <input
+                  required
+                  type="text"
+                  placeholder="Enter attribute name..."
+                  value={newAttributeName}
+                  onChange={e => setNewAttributeName(e.target.value)}
+                  className="glass-input"
+                  autoFocus
+                  style={{ width: '100%', height: '44px' }}
+                />
+              </div>
+
+              <div className="modal-actions" style={{ justifyContent: 'flex-end', gap: '16px' }}>
+                <button type="button" className="btn-secondary" onClick={() => setIsAddAttrOpen(false)} style={{ padding: '0 32px', height: '40px', fontWeight: 600 }}>
+                  Cancel / إلغاء
+                </button>
+                <button type="submit" className="btn-primary" style={{ padding: '0 32px', height: '40px', fontWeight: 600 }}>
+                  Save / حفظ
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       {/* Global CSS Layout styles matching dragonesl.com portal layout */}
       <style>{`

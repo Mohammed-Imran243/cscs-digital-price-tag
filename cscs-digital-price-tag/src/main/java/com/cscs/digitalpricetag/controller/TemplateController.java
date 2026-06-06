@@ -40,6 +40,11 @@ public class TemplateController {
         return ResponseEntity.ok(ApiResponse.success("Category added successfully", templateService.addCategory(request)));
     }
 
+    @PutMapping("/categories/{id}")
+    public ResponseEntity<ApiResponse<Object>> updateCategory(@PathVariable String id, @RequestBody Map<String, Object> request) {
+        return ResponseEntity.ok(ApiResponse.success("Category updated successfully", templateService.updateCategory(request)));
+    }
+
     @GetMapping("/models")
     public ResponseEntity<ApiResponse<Object>> getModels() {
         return ResponseEntity.ok(ApiResponse.success("Models fetched successfully", templateService.getModels()));
