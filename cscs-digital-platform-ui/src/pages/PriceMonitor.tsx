@@ -3,7 +3,7 @@ import {
   TrendingUp, 
   TrendingDown, 
   Filter, 
-  RefreshCcw, 
+  RefreshCw, 
   Calendar,
   Store,
   Tag,
@@ -12,6 +12,7 @@ import {
 import api from '../services/api';
 import '../styles/theme.css';
 import PageHeader from '../components/PageHeader';
+import { CustomSelect } from '../components/common/CustomSelect';
 import SyncControlButton from '../components/dashboard/SyncControlButton';
 
 interface PriceHistoryEvent {
@@ -123,82 +124,64 @@ const PriceMonitor: React.FC = () => {
 
             {/* ── Refresh Button ────────────────────────────────────────── */}
             <button
-              className="primary-btn"
+              className="btn-action btn-action-refresh"
               onClick={fetchHistory}
-              style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
+              disabled={loading}
             >
-              <RefreshCcw size={16} /> Refresh
+              <RefreshCw className={loading ? 'spin' : ''} />
+              <div className="btn-label">
+                <span>Refresh</span>
+                <span>تحديث</span>
+              </div>
             </button>
 
           </div>
         }
       />
 
-      {/* Summary Cards */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px', marginBottom: '24px' }}>
-        <div className="glass-card" style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-          <div style={{ color: 'var(--text-secondary)', fontSize: '14px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <Activity size={16} /> Total Changes
-          </div>
-          <div style={{ fontSize: '28px', fontWeight: 'bold' }}>{totalChanges}</div>
-        </div>
-        <div className="glass-card" style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-          <div style={{ color: 'var(--text-secondary)', fontSize: '14px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <TrendingUp size={16} className="text-success" /> Price Increases
-          </div>
-          <div style={{ fontSize: '28px', fontWeight: 'bold', color: 'var(--success-color)' }}>{increasesCount}</div>
-        </div>
-        <div className="glass-card" style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-          <div style={{ color: 'var(--text-secondary)', fontSize: '14px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <TrendingDown size={16} className="text-danger" /> Price Decreases
-          </div>
-          <div style={{ fontSize: '28px', fontWeight: 'bold', color: 'var(--danger-color)' }}>{decreasesCount}</div>
-        </div>
-        <div className="glass-card" style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-          <div style={{ color: 'var(--text-secondary)', fontSize: '14px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <TrendingUp size={16} className="text-success" /> Largest Increase
-          </div>
-          <div style={{ fontSize: '28px', fontWeight: 'bold', color: 'var(--success-color)' }}>{maxIncrease}</div>
-        </div>
-        <div className="glass-card" style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-          <div style={{ color: 'var(--text-secondary)', fontSize: '14px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <TrendingDown size={16} className="text-danger" /> Largest Decrease
-          </div>
-          <div style={{ fontSize: '28px', fontWeight: 'bold', color: 'var(--danger-color)' }}>{maxDecrease}</div>
-        </div>
-      </div>
-
       {/* Filters */}
-      <div className="glass-card" style={{ padding: '16px', marginBottom: '24px', display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
+      <div className="glass-card" style={{ padding: '16px', marginBottom: '24px', display: 'flex', gap: '16px', flexWrap: 'wrap', position: 'relative', zIndex: 100 }}>
         <div className="form-group" style={{ margin: 0, minWidth: '200px' }}>
           <label style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '8px' }}>
             <Store size={14} /> Store Filter
           </label>
-          <select className="glass-input" value={storeFilter} onChange={e => setStoreFilter(e.target.value)}>
-            <option value="All Stores">All Stores</option>
-            <option value="1">Main Store (1)</option>
-          </select>
+          <CustomSelect
+            value={storeFilter}
+            onChange={val => setStoreFilter(String(val))}
+            options={[
+              { value: 'All Stores', label: 'All Stores' },
+              { value: '1', label: 'Main Store (1)' }
+            ]}
+          />
         </div>
         <div className="form-group" style={{ margin: 0, minWidth: '200px' }}>
           <label style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '8px' }}>
             <Filter size={14} /> Change Type
           </label>
-          <select className="glass-input" value={typeFilter} onChange={e => setTypeFilter(e.target.value)}>
-            <option value="All Types">All Types</option>
-            <option value="PRICE_INCREASED">Increase Only</option>
-            <option value="PRICE_DECREASED">Decrease Only</option>
-          </select>
+          <CustomSelect
+            value={typeFilter}
+            onChange={val => setTypeFilter(String(val))}
+            options={[
+              { value: 'All Types', label: 'All Types' },
+              { value: 'PRICE_INCREASED', label: 'Increase Only' },
+              { value: 'PRICE_DECREASED', label: 'Decrease Only' }
+            ]}
+          />
         </div>
         <div className="form-group" style={{ margin: 0, minWidth: '200px' }}>
           <label style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '8px' }}>
             <Calendar size={14} /> Time Filter
           </label>
-          <select className="glass-input" value={timeFilter} onChange={e => setTimeFilter(e.target.value)}>
-            <option value="Today">Today</option>
-            <option value="Last 7 Days">Last 7 Days</option>
-            <option value="Last 30 Days">Last 30 Days</option>
-            <option value="All Time">All Time</option>
-          </select>
+          <CustomSelect
+            value={timeFilter}
+            onChange={val => setTimeFilter(String(val))}
+            options={[
+              { value: 'Today', label: 'Today' },
+              { value: 'Last 7 Days', label: 'Last 7 Days' },
+              { value: 'Last 30 Days', label: 'Last 30 Days' },
+              { value: 'All Time', label: 'All Time' }
+            ]}
+          />
         </div>
       </div>
 
