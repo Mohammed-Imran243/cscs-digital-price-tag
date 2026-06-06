@@ -12,7 +12,7 @@ import {
 import api from '../services/api';
 import '../styles/theme.css';
 import PageHeader from '../components/PageHeader';
-import { CustomSelect } from '../components/common/CustomSelect';
+import SyncControlButton from '../components/dashboard/SyncControlButton';
 
 interface PriceHistoryEvent {
   id: string;
@@ -53,7 +53,6 @@ const PriceMonitor: React.FC = () => {
       const res = await api.get(`/api/v1/price-history${queryParams}`);
       if (res.data && res.data.success) {
         const data: PriceHistoryEvent[] = res.data.data;
-        // Sort newest first
         const sorted = data.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
         setEvents(sorted);
         calculateStats(sorted);
@@ -111,11 +110,28 @@ const PriceMonitor: React.FC = () => {
       <PageHeader
         title="Price Change Monitor"
         titleAr="مراقب تغيير الأسعار"
-        actions={<>
-          <button className="primary-btn" onClick={fetchHistory} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <RefreshCcw size={16} /> Refresh
-          </button>
-        </>}
+        actions={
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+
+            {/* ── Sync Control Button ───────────────────────────────────────
+                Shows current sync status (Running / Stopped) with a live dot.
+                Allows admin to start or stop TL's price sync scheduler.
+                Calls: GET /api/sync/status on mount
+                       POST /api/sync/start or /api/sync/stop on button click
+            ──────────────────────────────────────────────────────────────── */}
+            <SyncControlButton />
+
+            {/* ── Refresh Button ────────────────────────────────────────── */}
+            <button
+              className="primary-btn"
+              onClick={fetchHistory}
+              style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
+            >
+              <RefreshCcw size={16} /> Refresh
+            </button>
+
+          </div>
+        }
       />
 
       {/* Summary Cards */}
@@ -155,85 +171,91 @@ const PriceMonitor: React.FC = () => {
       {/* Filters */}
       <div className="glass-card" style={{ padding: '16px', marginBottom: '24px', display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
         <div className="form-group" style={{ margin: 0, minWidth: '200px' }}>
-          <label style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '8px' }}><Store size={14} /> Store Filter</label>
-          <CustomSelect
-            value={storeFilter}
-            onChange={val => setStoreFilter(String(val))}
-            options={[
-              { value: 'All Stores', label: 'All Stores' },
-              { value: '1', label: 'Main Store (1)' }
-            ]}
-            className="glass-input"
-          />
+          <label style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '8px' }}>
+            <Store size={14} /> Store Filter
+          </label>
+          <select className="glass-input" value={storeFilter} onChange={e => setStoreFilter(e.target.value)}>
+            <option value="All Stores">All Stores</option>
+            <option value="1">Main Store (1)</option>
+          </select>
         </div>
         <div className="form-group" style={{ margin: 0, minWidth: '200px' }}>
-          <label style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '8px' }}><Filter size={14} /> Change Type</label>
-          <CustomSelect
-            value={typeFilter}
-            onChange={val => setTypeFilter(String(val))}
-            options={[
-              { value: 'All Types', label: 'All Types' },
-              { value: 'PRICE_INCREASED', label: 'Increase Only' },
-              { value: 'PRICE_DECREASED', label: 'Decrease Only' }
-            ]}
-            className="glass-input"
-          />
+          <label style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '8px' }}>
+            <Filter size={14} /> Change Type
+          </label>
+          <select className="glass-input" value={typeFilter} onChange={e => setTypeFilter(e.target.value)}>
+            <option value="All Types">All Types</option>
+            <option value="PRICE_INCREASED">Increase Only</option>
+            <option value="PRICE_DECREASED">Decrease Only</option>
+          </select>
         </div>
         <div className="form-group" style={{ margin: 0, minWidth: '200px' }}>
-          <label style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '8px' }}><Calendar size={14} /> Time Filter</label>
-          <CustomSelect
-            value={timeFilter}
-            onChange={val => setTimeFilter(String(val))}
-            options={[
-              { value: 'Today', label: 'Today' },
-              { value: 'Last 7 Days', label: 'Last 7 Days' },
-              { value: 'Last 30 Days', label: 'Last 30 Days' },
-              { value: 'All Time', label: 'All Time' }
-            ]}
-            className="glass-input"
-          />
+          <label style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '8px' }}>
+            <Calendar size={14} /> Time Filter
+          </label>
+          <select className="glass-input" value={timeFilter} onChange={e => setTimeFilter(e.target.value)}>
+            <option value="Today">Today</option>
+            <option value="Last 7 Days">Last 7 Days</option>
+            <option value="Last 30 Days">Last 30 Days</option>
+            <option value="All Time">All Time</option>
+          </select>
         </div>
       </div>
 
       {/* Feed */}
       <div className="glass-card" style={{ padding: '20px' }}>
         <h2 style={{ fontSize: '18px', marginTop: 0, marginBottom: '20px' }}>Price Change Feed</h2>
-        
+
         {loading ? (
-          <div style={{ textAlign: 'center', padding: '40px', color: 'var(--text-secondary)' }}>Loading history...</div>
+          <div style={{ textAlign: 'center', padding: '40px', color: 'var(--text-secondary)' }}>
+            Loading history...
+          </div>
         ) : events.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: '40px', color: 'var(--text-secondary)' }}>No price changes found matching the criteria.</div>
+          <div style={{ textAlign: 'center', padding: '40px', color: 'var(--text-secondary)' }}>
+            No price changes found matching the criteria.
+          </div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
             {events.map(ev => {
               const isInc = ev.eventType === 'PRICE_INCREASED';
               return (
-                <div key={ev.id} style={{ 
-                  display: 'flex', 
-                  justifyContent: 'space-between', 
-                  alignItems: 'center',
-                  padding: '16px', 
-                  borderRadius: '12px', 
-                  background: 'var(--glass-bg)', 
-                  border: '1px solid var(--glass-border)' 
-                }}>
+                <div
+                  key={ev.id}
+                  style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    padding: '16px',
+                    borderRadius: '12px',
+                    background: 'var(--glass-bg)',
+                    border: '1px solid var(--glass-border)'
+                  }}
+                >
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                     <div style={{ fontSize: '16px', fontWeight: 'bold' }}>{ev.productName}</div>
                     <div style={{ display: 'flex', gap: '16px', color: 'var(--text-secondary)', fontSize: '14px' }}>
-                      <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><Tag size={14} /> {ev.barcode}</span>
-                      <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><Store size={14} /> Store ID: {ev.storeId}</span>
-                      <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><Calendar size={14} /> {getTimeAgo(ev.timestamp)}</span>
+                      <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                        <Tag size={14} /> {ev.barcode}
+                      </span>
+                      <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                        <Store size={14} /> Store ID: {ev.storeId}
+                      </span>
+                      <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                        <Calendar size={14} /> {getTimeAgo(ev.timestamp)}
+                      </span>
                     </div>
                   </div>
-                  
+
                   <div style={{ display: 'flex', alignItems: 'center', gap: '24px' }}>
                     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '4px' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '12px', fontSize: '18px', fontWeight: 'bold' }}>
-                        <span style={{ color: 'var(--text-secondary)', textDecoration: 'line-through' }}>AED {ev.oldPrice}</span>
+                        <span style={{ color: 'var(--text-secondary)', textDecoration: 'line-through' }}>
+                          AED {ev.oldPrice}
+                        </span>
                         <span>→</span>
                         <span>AED {ev.newPrice}</span>
                       </div>
-                      <div style={{ 
+                      <div style={{
                         color: isInc ? 'var(--success-color)' : 'var(--danger-color)',
                         display: 'flex',
                         alignItems: 'center',
@@ -257,4 +279,3 @@ const PriceMonitor: React.FC = () => {
 };
 
 export default PriceMonitor;
-

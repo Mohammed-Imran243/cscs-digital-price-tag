@@ -102,6 +102,7 @@ export const getPageTitle = (pathname: string) => {
   if (pathname.startsWith('/merchants')) return 'Merchants / التجار';
   if (pathname.startsWith('/stores')) return 'Stores / المتاجر';
   if (pathname.startsWith('/products')) return 'Products / المنتجات';
+  if (pathname.startsWith('/price-monitor')) return 'Price Monitor / مراقب الأسعار';
   if (pathname.startsWith('/templates')) return 'Templates / القوالب';
   if (pathname.startsWith('/devices')) return 'Devices / الأجهزة';
   if (pathname.startsWith('/audit-logs')) return 'Audit Logs / سجلات المراجعة';
@@ -312,7 +313,13 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
               icon={<Package size={20} />}
               label="Products / المنتجات"
               collapsed={isSidebarCollapsed && !isMobile}
+              onHover={handleHoverParent}
               onClickParent={handleClickParent}
+              activeFloatingParent={floatingMenu?.to}
+              subItems={[
+                { label: 'Products List / قائمة المنتجات', to: '/products', icon: <Package size={16} /> },
+                { label: 'Price Monitor / مراقب الأسعار', to: '/price-monitor', icon: <Tag size={16} /> }
+              ]}
             />
           )}
           {(user?.permissions?.includes('template') || false) && (

@@ -9,6 +9,7 @@ import { storeService } from '../../services/storeService';
 import type { Store as StoreType } from '../../services/storeService';
 import { getAuditLogs } from '../../services/auditLogService';
 import type { AuditLog } from '../../services/auditLogService';
+import SyncControlButton from './SyncControlButton';
 
 const formatPrice = (priceStr?: string) => {
   if (!priceStr) return 'N/A';
@@ -118,11 +119,8 @@ const PriceChangeMonitor: React.FC = () => {
           Price Change Monitor | مراقب تغيير الأسعار
         </h2>
         <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-          {/* Static informational Live Updates status */}
-          <div className="live-update-badge" style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'rgba(16, 185, 129, 0.08)', padding: '6px 12px', borderRadius: '20px', border: '1px solid rgba(16, 185, 129, 0.15)', color: '#34d399', fontSize: '13px', fontWeight: '600' }}>
-            <span className="pulse-dot" />
-            <span>Live Updates / تحديثات مباشرة</span>
-          </div>
+          {/* Interactive Sync Control Button */}
+          <SyncControlButton />
           
           <button 
             onClick={fetchPriceChanges} 
