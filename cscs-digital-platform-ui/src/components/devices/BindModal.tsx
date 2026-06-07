@@ -237,7 +237,7 @@ export const BindModal: React.FC<BindModalProps> = ({
 
             {/* Item / Product Searchable Dropdown */}
             <div className="bind-field-group" ref={dropdownRef}>
-              <label className="bind-field-label">Item / Product / المنتج <span className="required-asterisk">*</span></label>
+              <label className="bind-field-label">Item / Product <span className="required-asterisk">*</span> / المنتج</label>
               <div className="searchable-dropdown-wrapper">
                 <input
                   className="bind-input dropdown-input"
@@ -286,7 +286,7 @@ export const BindModal: React.FC<BindModalProps> = ({
 
             {/* ESL Barcode Searchable Dropdown */}
             <div className="bind-field-group" ref={eslDropdownRef}>
-              <label className="bind-field-label">ESL Barcode / باركود الشاشة <span className="required-asterisk">*</span></label>
+              <label className="bind-field-label">ESL Barcode <span className="required-asterisk">*</span> / باركود الشاشة</label>
               <div className="searchable-dropdown-wrapper">
                 <input
                   className="bind-input dropdown-input"
@@ -415,7 +415,7 @@ export const BindModal: React.FC<BindModalProps> = ({
 
             {/* ESL Barcode(s) */}
             <div className="bind-field-group">
-              <label className="bind-field-label">ESL Barcode(s) / باركود الشاشة (الشاشات) <span className="required-asterisk">*</span></label>
+              <label className="bind-field-label">ESL Barcode(s) <span className="required-asterisk">*</span> / باركود الشاشة (الشاشات)</label>
               <textarea
                 className="bind-textarea"
                 rows={4}

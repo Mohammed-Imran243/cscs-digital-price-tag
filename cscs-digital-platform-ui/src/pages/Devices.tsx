@@ -841,7 +841,7 @@ const Devices: React.FC = () => {
 
               {/* Store Select — mandatory */}
               <div className="form-group">
-                <label>Store Select / اختيار المتجر <span className="required-asterisk">*</span></label>
+                <label>Store Select <span className="required-asterisk">*</span> / اختيار المتجر</label>
                 <select
                   required
                   className="glass-input"

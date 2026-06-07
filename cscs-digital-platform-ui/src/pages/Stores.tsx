@@ -431,13 +431,13 @@ const Stores: React.FC = () => {
             </div>
             <form onSubmit={handleSubmit} className="create-form">
               <div className="form-group">
-                <label>Store Name <span className="required-asterisk">*</span> / اسم المتجر <span className="required-asterisk">*</span></label>
+                <label>Store Name <span className="required-asterisk">*</span> / اسم المتجر</label>
                 <input required type="text" value={formData.storeName}
                   onChange={e => setFormData({ ...formData, storeName: e.target.value })}
                   className="glass-input" placeholder="e.g. Al Naseem Store / مثل متجر النسيم" />
               </div>
               <div className="form-group">
-                <label>External Store ID / معرف المتجر الخارجي <span className="required-asterisk">*</span></label>
+                <label>External Store ID <span className="required-asterisk">*</span> / معرف المتجر الخارجي</label>
                 <input type="text" value={formData.externalStoreId}
                   onChange={e => setFormData({ ...formData, externalStoreId: e.target.value })}
                   className="glass-input" placeholder="ERP Store Code / رمز المتجر في نظام ERP" />

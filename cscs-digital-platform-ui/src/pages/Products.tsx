@@ -965,7 +965,7 @@ const Products: React.FC = () => {
                 />
               </div>
               <div className="form-group">
-                <label>Commodity Barcode <span className="required-asterisk">*</span> / باركود السلعة <span className="required-asterisk">*</span></label>
+                <label>Commodity Barcode <span className="required-asterisk">*</span> / باركود السلعة</label>
                 <input
                   required
                   type="text"
@@ -976,7 +976,7 @@ const Products: React.FC = () => {
               </div>
             </div>
             <div className="form-group">
-              <label>Commodity Name <span className="required-asterisk">*</span> / اسم السلعة <span className="required-asterisk">*</span></label>
+              <label>Commodity Name <span className="required-asterisk">*</span> / اسم السلعة</label>
               <input
                 required
                 type="text"
@@ -987,7 +987,7 @@ const Products: React.FC = () => {
             </div>
             <div className="form-row">
               <div className="form-group">
-                <label>Selling Price (SAR) <span className="required-asterisk">*</span> / سعر البيع (ر.س) <span className="required-asterisk">*</span></label>
+                <label>Selling Price (SAR) <span className="required-asterisk">*</span> / سعر البيع (ر.س)</label>
                 <input
                   required
                   type="number"
@@ -1036,7 +1036,7 @@ const Products: React.FC = () => {
               <div className="form-group">
                 <SearchableDropdown
                   required={true}
-                  label={<span>Template Category / تصنيف القالب <span className="required-asterisk">*</span></span>}
+                  label={<span>Template Category <span className="required-asterisk">*</span> / تصنيف القالب</span>}
                   value={newProduct.attrCategory || ''}
                   options={apiCategories}
                   loading={categoriesLoading}
@@ -1048,7 +1048,7 @@ const Products: React.FC = () => {
               <div className="form-group">
                 <SearchableDropdown
                   required={true}
-                  label={<span>Template Type / نوع القالب <span className="required-asterisk">*</span></span>}
+                  label={<span>Template Type <span className="required-asterisk">*</span> / نوع القالب</span>}
                   value={newProduct.attrName || ''}
                   options={apiTemplateTypes}
                   loading={typesLoading}
@@ -1121,7 +1121,7 @@ const Products: React.FC = () => {
                 />
               </div>
               <div className="form-group">
-                <label>Commodity Barcode <span className="required-asterisk">*</span> / باركود السلعة <span className="required-asterisk">*</span></label>
+                <label>Commodity Barcode <span className="required-asterisk">*</span> / باركود السلعة</label>
                 <input 
                   required 
                   readOnly 
@@ -1133,7 +1133,7 @@ const Products: React.FC = () => {
               </div>
             </div>
             <div className="form-group">
-              <label>Commodity Name <span className="required-asterisk">*</span> / اسم السلعة <span className="required-asterisk">*</span></label>
+              <label>Commodity Name <span className="required-asterisk">*</span> / اسم السلعة</label>
               <input 
                 required 
                 type="text" 
@@ -1144,7 +1144,7 @@ const Products: React.FC = () => {
             </div>
             <div className="form-row">
               <div className="form-group">
-                <label>Selling Price (SAR) <span className="required-asterisk">*</span> / سعر البيع (ر.س) <span className="required-asterisk">*</span></label>
+                <label>Selling Price (SAR) <span className="required-asterisk">*</span> / سعر البيع (ر.س)</label>
                 <input 
                   required 
                   type="number" 
@@ -1193,7 +1193,7 @@ const Products: React.FC = () => {
               <div className="form-group">
                 <SearchableDropdown
                   required={true}
-                  label={<span>Template Category / تصنيف القالب <span className="required-asterisk">*</span></span>}
+                  label={<span>Template Category <span className="required-asterisk">*</span> / تصنيف القالب</span>}
                   value={editingProduct.attrCategory || ''}
                   options={apiCategories}
                   loading={categoriesLoading}
@@ -1205,7 +1205,7 @@ const Products: React.FC = () => {
               <div className="form-group">
                 <SearchableDropdown
                   required={true}
-                  label={<span>Template Type / نوع القالب <span className="required-asterisk">*</span></span>}
+                  label={<span>Template Type <span className="required-asterisk">*</span> / نوع القالب</span>}
                   value={editingProduct.attrName || ''}
                   options={apiTemplateTypes}
                   loading={typesLoading}

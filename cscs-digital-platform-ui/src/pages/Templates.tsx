@@ -1212,7 +1212,7 @@ const Templates: React.FC = () => {
 
               {/* Row 1: Template Name — mandatory */}
               <div className="form-group">
-                <label>Template Name / اسم القالب <span className="required-asterisk">*</span></label>
+                <label>Template Name <span className="required-asterisk">*</span> / اسم القالب</label>
                 <input
                   required
                   type="text"
@@ -1225,7 +1225,7 @@ const Templates: React.FC = () => {
 
               {/* Row 2: Screen Type — radio buttons */}
               <div className="form-group">
-                <label>Screen Type / نوع الشاشة <span className="required-asterisk">*</span></label>
+                <label>Screen Type <span className="required-asterisk">*</span> / نوع الشاشة</label>
                 <div className="radio-group">
                   <label className="radio-option">
                     <input
@@ -1243,7 +1243,7 @@ const Templates: React.FC = () => {
 
               {/* Row 3: Size — dropdown from models */}
               <div className="form-group">
-                <label>Size / الحجم <span className="required-asterisk">*</span></label>
+                <label>Size <span className="required-asterisk">*</span> / الحجم</label>
                 {modelsLoading ? (
                   <div style={{ color: 'var(--text-muted)', fontSize: '14px', padding: '8px 0', display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <Loader2 className="animate-spin" size={16} /> Loading sizes... / جاري التحميل...
@@ -1280,7 +1280,7 @@ const Templates: React.FC = () => {
 
               {/* Row 4: DPI — dynamic radio buttons */}
               <div className="form-group">
-                <label>Dpi / الدقة <span className="required-asterisk">*</span></label>
+                <label>Dpi <span className="required-asterisk">*</span> / الدقة</label>
                 <div className="radio-group">
                   {availableResolutions.length > 0 ? availableResolutions.map(res => (
                     <label key={res} className="radio-option">
@@ -1310,7 +1310,7 @@ const Templates: React.FC = () => {
 
               {/* Row 5: Color — dynamic radio buttons */}
               <div className="form-group">
-                <label>Color / اللون <span className="required-asterisk">*</span></label>
+                <label>Color <span className="required-asterisk">*</span> / اللون</label>
                 <div className="radio-group">
                   {availableModalColors.length > 0 ? availableModalColors.map((col: any) => {
                      const config = COLOR_MAPPINGS[col] || { label: String(col) };
@@ -1351,7 +1351,7 @@ const Templates: React.FC = () => {
 
               {/* Row 7: Template Category — mandatory dropdown */}
               <div className="form-group">
-                <label>Template Category / تصنيف القالب <span className="required-asterisk">*</span></label>
+                <label>Template Category <span className="required-asterisk">*</span> / تصنيف القالب</label>
                 <select
                   required
                   className="glass-input"
@@ -1367,7 +1367,7 @@ const Templates: React.FC = () => {
 
               {/* Row 8: Template Type — mandatory dropdown */}
               <div className="form-group">
-                <label>Template Type / نوع القالب <span className="required-asterisk">*</span></label>
+                <label>Template Type <span className="required-asterisk">*</span> / نوع القالب</label>
                 <select
                   required
                   className="glass-input"
@@ -1384,7 +1384,7 @@ const Templates: React.FC = () => {
               {/* Row 9: Bound Store — only for store tab */}
               {activeMenuTab === 'store' && (
                 <div className="form-group">
-                  <label>Bound Store / المتجر المرتبط <span className="required-asterisk">*</span></label>
+                  <label>Bound Store <span className="required-asterisk">*</span> / المتجر المرتبط</label>
                   {storesLoading ? (
                     <div style={{ color: 'var(--text-muted)', fontSize: '14px', padding: '8px 0', display: 'flex', alignItems: 'center', gap: '8px' }}>
                       <Loader2 className="animate-spin" size={16} /> Loading stores... / جاري تحميل المتاجر...
@@ -1509,7 +1509,7 @@ const Templates: React.FC = () => {
             </div>
             <form onSubmit={handleUpdateTemplate} className="create-form">
               <div className="form-group">
-                <label>Template Type / نوع القالب <span className="required-asterisk">*</span></label>
+                <label>Template Type <span className="required-asterisk">*</span> / نوع القالب</label>
                 <input
                   required
                   type="text"
@@ -1519,7 +1519,7 @@ const Templates: React.FC = () => {
                 />
               </div>
               <div className="form-group">
-                <label>Template Category / تصنيف القالب <span className="required-asterisk">*</span></label>
+                <label>Template Category <span className="required-asterisk">*</span> / تصنيف القالب</label>
                 <select
                   className="glass-input"
                   value={editTemplateModal.attrCategory}
