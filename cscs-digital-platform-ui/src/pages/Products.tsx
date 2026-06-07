@@ -956,7 +956,7 @@ const Products: React.FC = () => {
           <form onSubmit={handleCreateProduct} className="create-form">
             <div className="form-row">
               <div className="form-group">
-                <label>Commodity Code / كود السلعة</label>
+                <label>Product Code / كود السلعة</label>
                 <input
                   type="text"
                   className="glass-input"
@@ -965,7 +965,7 @@ const Products: React.FC = () => {
                 />
               </div>
               <div className="form-group">
-                <label>Commodity Barcode <span className="required-asterisk">*</span> / باركود السلعة</label>
+                <label>Product Barcode <span className="required-asterisk">*</span> / باركود السلعة</label>
                 <input
                   required
                   type="text"
@@ -976,7 +976,7 @@ const Products: React.FC = () => {
               </div>
             </div>
             <div className="form-group">
-              <label>Commodity Name <span className="required-asterisk">*</span> / اسم السلعة</label>
+              <label>Product Name <span className="required-asterisk">*</span> / اسم السلعة</label>
               <input
                 required
                 type="text"
@@ -1112,7 +1112,7 @@ const Products: React.FC = () => {
           <form onSubmit={handleUpdateProduct} className="create-form">
             <div className="form-row">
               <div className="form-group">
-                <label>Commodity Code / كود السلعة</label>
+                <label>Product Code / كود السلعة</label>
                 <input 
                   type="text" 
                   className="glass-input" 
@@ -1121,7 +1121,7 @@ const Products: React.FC = () => {
                 />
               </div>
               <div className="form-group">
-                <label>Commodity Barcode <span className="required-asterisk">*</span> / باركود السلعة</label>
+                <label>Product Barcode <span className="required-asterisk">*</span> / باركود السلعة</label>
                 <input 
                   required 
                   readOnly 
@@ -1133,7 +1133,7 @@ const Products: React.FC = () => {
               </div>
             </div>
             <div className="form-group">
-              <label>Commodity Name <span className="required-asterisk">*</span> / اسم السلعة</label>
+              <label>Product Name <span className="required-asterisk">*</span> / اسم السلعة</label>
               <input 
                 required 
                 type="text" 

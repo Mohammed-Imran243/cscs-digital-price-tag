@@ -142,7 +142,7 @@ const TemplateEditor: React.FC = () => {
     const fieldTranslations: Record<string, string> = {
       'itemTitle': 'Product name',
       'shortTitle': 'Product abbreviation',
-      'productCode': 'Commodity code',
+      'productCode': 'Product code',
       'barCode': 'Product barcode',
       'productSku': 'Self-code',
       'unit': 'Unit',
@@ -368,7 +368,7 @@ const TemplateEditor: React.FC = () => {
     } catch (err: any) {
       console.error("Failed to preview template:", err);
       const msg = err.response?.data?.message || err.message || "Failed to generate preview.";
-      setPreviewError(`Preview Failed: ${msg}. If searching by barcode, ensure the commodity exists in this store.`);
+      setPreviewError(`Preview Failed: ${msg}. If searching by barcode, ensure the product exists in this store.`);
       setShowPreviewModal(true);
     } finally {
       setIsPreviewing(false);
