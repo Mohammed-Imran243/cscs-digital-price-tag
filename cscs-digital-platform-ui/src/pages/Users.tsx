@@ -916,7 +916,7 @@ const [showUserFilters, setShowUserFilters] = useState(false);
             
             <form onSubmit={handleUserSubmit} className="create-form">
               <div className="form-group">
-                <label>Login Account <span className="required-asterisk">*</span> / حساب الدخول</label>
+                <label>Login Account / حساب الدخول <span className="required-asterisk">*</span></label>
                 <input 
                   required 
                   type="text" 
@@ -929,7 +929,7 @@ const [showUserFilters, setShowUserFilters] = useState(false);
               </div>
 
               <div className="form-group">
-                <label>Staff Name <span className="required-asterisk">*</span> / اسم الموظف</label>
+                <label>Staff Name / اسم الموظف <span className="required-asterisk">*</span></label>
                 <input 
                   required 
                   type="text" 
@@ -959,7 +959,7 @@ const [showUserFilters, setShowUserFilters] = useState(false);
               </div>
 
               <div className="form-group">
-                <label>Assigned Role <span className="required-asterisk">*</span> / الدور المعين</label>
+                <label>Assigned Role / الدور المعين <span className="required-asterisk">*</span></label>
                 <CustomSelect
                   value={userFormData.roleId}
                   onChange={(val: string | number) => setUserFormData({ ...userFormData, roleId: String(val) })}
@@ -1180,7 +1180,7 @@ const [showUserFilters, setShowUserFilters] = useState(false);
             <form onSubmit={handleRoleSubmit} className="modal-form" style={{ display: 'flex', flexDirection: 'column', maxHeight: 'calc(100vh - 120px)', overflowY: 'auto', padding: 0 }}>
               <div style={{ padding: '24px 24px 0 24px', display: 'flex', flexDirection: 'column', gap: '16px', flexShrink: 0 }}>
                 <div className="form-group" style={{ marginBottom: 0 }}>
-                  <label>Role Name <span className="required-asterisk">*</span> / اسم الدور</label>
+                  <label>Role Name / اسم الدور <span className="required-asterisk">*</span></label>
                   <input 
                     required 
                     type="text" 

@@ -601,11 +601,18 @@ const Templates: React.FC = () => {
 
   // Delete attribute property
   const handleDeleteAttribute = (attr: string) => {
-    setCategoryAttributes(prev => ({
-      ...prev,
-      [selectedPropertyCat]: prev[selectedPropertyCat].filter(a => a !== attr)
-    }));
-    showNotification('Property attribute deleted / تم حذف خاصية السمة', 'success');
+    setConfirmDialog({
+      isOpen: true,
+      title: 'Delete Attribute / حذف السمة',
+      message: `Are you sure you want to delete the attribute "${attr}"? / هل أنت متأكد أنك تريد حذف السمة "${attr}"؟`,
+      onConfirm: () => {
+        setCategoryAttributes(prev => ({
+          ...prev,
+          [selectedPropertyCat]: prev[selectedPropertyCat].filter(a => a !== attr)
+        }));
+        showNotification('Property attribute deleted / تم حذف السمة', 'success');
+      }
+    });
   };
 
   // Update template base info (rename / category change)
