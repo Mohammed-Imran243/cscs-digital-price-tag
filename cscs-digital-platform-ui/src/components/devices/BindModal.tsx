@@ -9,7 +9,7 @@ import type { Product } from '../../services/productService';
 interface BindModalProps {
   bindModalOpen: boolean;
   setBindModalOpen: (open: boolean) => void;
-  defaultTab?: 'bind' | 'unbind';
+  mode: 'bind' | 'unbind';
   stores: Store[];
   bindLoading: boolean;
   bindFormStoreId: string;
@@ -24,8 +24,6 @@ interface BindModalProps {
   setAvailableEsls: (esls: any[]) => void;
   availableAps: any[];
   setAvailableAps: (aps: any[]) => void;
-  bindTab: 'bind' | 'unbind';
-  setBindTab: (tab: 'bind' | 'unbind') => void;
   unbindBarcodes: string;
   setUnbindBarcodes: (barcodes: string) => void;
   selectedBarcodes: string[];
@@ -36,7 +34,7 @@ interface BindModalProps {
 export const BindModal: React.FC<BindModalProps> = ({
   bindModalOpen,
   setBindModalOpen,
-  defaultTab,
+  mode,
   stores,
   bindLoading,
   bindFormStoreId,
@@ -51,8 +49,6 @@ export const BindModal: React.FC<BindModalProps> = ({
   setAvailableEsls,
   availableAps,
   setAvailableAps,
-  bindTab,
-  setBindTab,
   unbindBarcodes,
   setUnbindBarcodes,
   selectedBarcodes,
@@ -71,11 +67,7 @@ export const BindModal: React.FC<BindModalProps> = ({
   const eslDropdownRef = useRef<HTMLDivElement>(null);
   const [hasTypedEsl, setHasTypedEsl] = useState(false);
 
-  useEffect(() => {
-    if (bindModalOpen && defaultTab) {
-      setBindTab(defaultTab);
-    }
-  }, [bindModalOpen, defaultTab, setBindTab]);
+
 
   useEffect(() => {
     if (bindModalOpen && bindFormStoreId) {
@@ -176,6 +168,39 @@ export const BindModal: React.FC<BindModalProps> = ({
           appearance: auto !important;
           padding-right: 12px !important;
         }
+        .modal-actions .btn-danger {
+          display: inline-flex !important;
+          align-items: center !important;
+          justify-content: center !important;
+          gap: 8px !important;
+          background-color: #ef4444 !important;
+          color: white !important;
+          border: 1px solid #ef4444 !important;
+          padding: 10px 20px !important;
+          border-radius: 8px !important;
+          cursor: pointer !important;
+          font-weight: 600 !important;
+          font-size: 14px !important;
+          transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
+          box-shadow: var(--shadow-sm) !important;
+        }
+        .modal-actions .btn-danger:hover:not(:disabled) {
+          background-color: #dc2626 !important;
+          border-color: #dc2626 !important;
+          box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3) !important;
+          transform: translateY(-1px) !important;
+        }
+        .modal-actions .btn-danger:active:not(:disabled) {
+          transform: translateY(1px) !important;
+        }
+        .modal-actions .btn-danger:disabled {
+          background-color: rgba(239, 68, 68, 0.45) !important;
+          border-color: rgba(239, 68, 68, 0.45) !important;
+          color: rgba(255, 255, 255, 0.6) !important;
+          cursor: not-allowed !important;
+          box-shadow: none !important;
+          transform: none !important;
+        }
       `}</style>
 
       <div className="modal-content glass-card bind-workflow-modal scale-up" onClick={e => e.stopPropagation()}>
@@ -183,29 +208,13 @@ export const BindModal: React.FC<BindModalProps> = ({
         {/* Header */}
         <div className="modal-header">
           <h3>
-            {bindTab === 'bind' ? 'Bind / ربط' : 'Unbind / إلغاء الرابط'}
+            {mode === 'bind' ? 'Bind / ربط' : 'Unbind / إلغاء الربط'}
           </h3>
           <button className="close-btn" onClick={() => setBindModalOpen(false)}>&times;</button>
         </div>
 
-        {/* Bind / Unbind tab switcher */}
-        <div className="bind-tab-row">
-          <button
-            className={`bind-tab-btn ${bindTab === 'bind' ? 'active' : ''}`}
-            onClick={() => setBindTab('bind')}
-          >
-            Bind / ربط
-          </button>
-          <button
-            className={`bind-tab-btn ${bindTab === 'unbind' ? 'active' : ''}`}
-            onClick={() => setBindTab('unbind')}
-          >
-            Unbind / إلغاء الربط
-          </button>
-        </div>
-
         {/* ── BIND FORM ── */}
-        {bindTab === 'bind' && (
+        {mode === 'bind' && (
           <div className="bind-form-body">
 
             {/* Store Select */}
@@ -396,7 +405,7 @@ export const BindModal: React.FC<BindModalProps> = ({
         )}
 
         {/* ── UNBIND FORM ── */}
-        {bindTab === 'unbind' && (
+        {mode === 'unbind' && (
           <div className="bind-form-body">
 
             {/* Store Select */}

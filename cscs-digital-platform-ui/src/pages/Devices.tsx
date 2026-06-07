@@ -113,7 +113,7 @@ const Devices: React.FC = () => {
 
   // ── ESL Bind Workflow State ─────────────────────────────────────────────
   const [bindModalOpen, setBindModalOpen] = useState(false);
-  const [bindModalTab, setBindModalTab] = useState<'bind' | 'unbind'>('bind');
+  const [bindModalMode, setBindModalMode] = useState<'bind' | 'unbind'>('bind');
   const [bindLoading, setBindLoading] = useState(false);
   const [bindFormStoreId, setBindFormStoreId] = useState('');
   const [bindFormItemBarCode, setBindFormItemBarCode] = useState('');
@@ -121,7 +121,6 @@ const Devices: React.FC = () => {
   const [bindFormApMac, setBindFormApMac] = useState('');
   const [availableEsls, setAvailableEsls] = useState<any[]>([]);
   const [availableAps, setAvailableAps] = useState<any[]>([]);
-  const [bindTab, setBindTab] = useState<'bind' | 'unbind'>('bind');
   const [unbindBarcodes, setUnbindBarcodes] = useState<string>(''); // comma-separated input
   const [showEslImportExport, setShowEslImportExport] = useState(false);
 
@@ -523,11 +522,10 @@ const Devices: React.FC = () => {
   // ── ESL Bind / Unbind Handlers ────────────────────────────────────────────
 
   /** Open the Bind modal and pre-load AP list and available ESLs for the selected store */
-  const openBindModal = async (targetTab: 'bind' | 'unbind' = 'bind') => {
+  const openBindModal = async (mode: 'bind' | 'unbind' = 'bind') => {
     setBindModalOpen(true);
-    setBindTab(targetTab);
-    setBindModalTab(targetTab);
-    setBindFormStoreId(selectedStoreId);
+    setBindModalMode(mode);
+    setBindFormStoreId(selectedStoreId || stores[0]?.storeId || '');
     setBindFormItemBarCode('');
     setBindFormEslBarcode('');
     setBindFormApMac('');
@@ -643,24 +641,14 @@ const Devices: React.FC = () => {
               <>
                 <button 
                   className="btn-action btn-action-bind" 
-                  onClick={() => {
-                    setBindModalTab('bind');
-                    openBindModal('bind');
-                    setBindFormStoreId(selectedStoreId || stores[0]?.storeId || '');
-                    setBindModalOpen(true);
-                  }}
+                  onClick={() => openBindModal('bind')}
                   disabled={!selectedStoreId || storesLoading}
                 >
                   <Link2 /> {t('Bind', 'ربط')}
                 </button>
                 <button 
                   className="btn-action btn-action-unbind" 
-                  onClick={() => {
-                    setBindModalTab('unbind');
-                    openBindModal('unbind');
-                    setBindFormStoreId(selectedStoreId || stores[0]?.storeId || '');
-                    setBindModalOpen(true);
-                  }}
+                  onClick={() => openBindModal('unbind')}
                   disabled={!selectedStoreId || storesLoading}
                 >
                   <Link2 style={{ transform: 'rotate(90deg)' }} /> {t('Unbind', 'إلغاء ربط')}
@@ -793,7 +781,7 @@ const Devices: React.FC = () => {
       <BindModal
         bindModalOpen={bindModalOpen}
         setBindModalOpen={setBindModalOpen}
-        defaultTab={bindModalTab}
+        mode={bindModalMode}
         stores={stores}
         bindLoading={bindLoading}
         bindFormStoreId={bindFormStoreId}
@@ -808,8 +796,6 @@ const Devices: React.FC = () => {
         setAvailableEsls={setAvailableEsls}
         availableAps={availableAps}
         setAvailableAps={setAvailableAps}
-        bindTab={bindTab}
-        setBindTab={setBindTab}
         unbindBarcodes={unbindBarcodes}
         setUnbindBarcodes={setUnbindBarcodes}
         selectedBarcodes={selectedBarcodes}
