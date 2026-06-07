@@ -201,6 +201,39 @@ export const BindModal: React.FC<BindModalProps> = ({
           box-shadow: none !important;
           transform: none !important;
         }
+        .bind-workflow-modal {
+          display: flex !important;
+          flex-direction: column !important;
+          max-height: 90vh !important;
+          overflow: hidden !important;
+          padding: 0 !important;
+        }
+        .bind-workflow-modal .modal-header {
+          flex-shrink: 0 !important;
+        }
+        .bind-workflow-modal .bind-form-body {
+          display: flex !important;
+          flex-direction: column !important;
+          flex: 1 !important;
+          overflow: hidden !important;
+          padding: 0 !important;
+          gap: 0 !important;
+        }
+        .bind-fields-wrapper {
+          display: flex !important;
+          flex-direction: column !important;
+          gap: 16px !important;
+          flex: 1 !important;
+          overflow-y: auto !important;
+          padding: 20px 24px 24px 24px !important;
+        }
+        .bind-workflow-modal .modal-actions {
+          flex-shrink: 0 !important;
+          margin-top: 0 !important;
+          padding: 16px 24px 20px 24px !important;
+          border-top: 1px solid var(--glass-border) !important;
+          background: transparent !important;
+        }
       `}</style>
 
       <div className="modal-content glass-card bind-workflow-modal scale-up" onClick={e => e.stopPropagation()}>
@@ -216,6 +249,7 @@ export const BindModal: React.FC<BindModalProps> = ({
         {/* ── BIND FORM ── */}
         {mode === 'bind' && (
           <div className="bind-form-body">
+            <div className="bind-fields-wrapper">
 
             {/* Store Select */}
             <div className="bind-field-group">
@@ -381,10 +415,10 @@ export const BindModal: React.FC<BindModalProps> = ({
                 </div>
               )}
             </div>
-
-
+            </div>
 
             <div className="modal-actions">
+              <button className="btn-secondary" onClick={() => setBindModalOpen(false)}>Cancel / إلغاء</button>
               <button
                 className="btn-primary"
                 onClick={handleBind}
@@ -399,7 +433,6 @@ export const BindModal: React.FC<BindModalProps> = ({
                   <span>Bind / ربط</span>
                 )}
               </button>
-              <button className="btn-secondary" onClick={() => setBindModalOpen(false)}>Cancel / إلغاء</button>
             </div>
           </div>
         )}
@@ -407,6 +440,7 @@ export const BindModal: React.FC<BindModalProps> = ({
         {/* ── UNBIND FORM ── */}
         {mode === 'unbind' && (
           <div className="bind-form-body">
+            <div className="bind-fields-wrapper">
 
             {/* Store Select */}
             <div className="bind-field-group">
@@ -442,10 +476,10 @@ export const BindModal: React.FC<BindModalProps> = ({
                 Use {selectedBarcodes.length} selected barcode(s) from table / استخدام {selectedBarcodes.length} باركود محدد من الجدول
               </button>
             )}
-
-
+            </div>
 
             <div className="modal-actions">
+              <button className="btn-secondary" onClick={() => setBindModalOpen(false)}>Cancel / إلغاء</button>
               <button
                 className="btn-danger"
                 onClick={handleUnbind}
@@ -460,7 +494,6 @@ export const BindModal: React.FC<BindModalProps> = ({
                   <span>Unbind / إلغاء الربط</span>
                 )}
               </button>
-              <button className="btn-secondary" onClick={() => setBindModalOpen(false)}>Cancel / إلغاء</button>
             </div>
           </div>
         )}
