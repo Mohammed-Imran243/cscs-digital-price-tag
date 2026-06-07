@@ -694,11 +694,20 @@ select option {
 }
 
 /* Header */
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1rem;
+  width: 100%;
+}
+
 .modal-content h3, 
 .modal-content h4, 
 .modal-content .modal-header h3 {
   color: var(--text-primary) !important;
   font-weight: 700 !important;
+  margin: 0;
 }
 
 /* Close Button */
@@ -708,11 +717,23 @@ select option {
   font-size: 24px !important;
   color: var(--text-muted) !important;
   cursor: pointer !important;
+  padding: 0 4px;
+  line-height: 1;
   transition: color 0.2s;
 }
 
 .modal-content .close-btn:hover {
   color: var(--text-primary) !important;
+}
+
+/* Modal Actions */
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  align-items: center;
+  margin-top: 2rem;
+  width: 100%;
 }
 
 /* Form labels */
