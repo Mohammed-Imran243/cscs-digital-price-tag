@@ -121,7 +121,7 @@ const Dashboard: React.FC = () => {
         </div>
         <div className="header-actions" style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
           <button
-            className="btn-secondary"
+            className="btn-action btn-action-refresh"
             onClick={() => {
               apiCache.clear();
               setProductPage(1);
@@ -130,9 +130,13 @@ const Dashboard: React.FC = () => {
             }}
             disabled={loading}
             title="Refresh all stats / تحديث جميع الإحصائيات"
+            style={{ width: '130px', maxWidth: '130px', height: '44px' }}
           >
-            <RefreshCw size={18} className={loading ? 'animate-spin' : ''} />
-            Refresh / تحديث
+            <RefreshCw className={loading ? 'spinning' : ''} />
+            <div className="btn-label">
+              <span>Refresh</span>
+              <span>تحديث</span>
+            </div>
           </button>
         </div>
       </div>

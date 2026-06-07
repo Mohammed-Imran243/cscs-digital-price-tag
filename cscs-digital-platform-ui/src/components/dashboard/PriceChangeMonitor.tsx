@@ -124,12 +124,15 @@ const PriceChangeMonitor: React.FC = () => {
           
           <button 
             onClick={fetchPriceChanges} 
-            className="refresh-btn" 
-            style={{ background: 'transparent', border: '1px solid #3b82f6', cursor: 'pointer', color: '#3b82f6', padding: '6px 14px', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', fontWeight: '600', transition: 'all 0.2s' }}
+            className="btn-action btn-action-refresh" 
             disabled={loading}
+            style={{ width: '130px', maxWidth: '130px', height: '44px' }}
           >
-            <RefreshCw size={14} className={loading ? 'spinning' : ''} />
-            <span>Refresh / تحديث</span>
+            <RefreshCw className={loading ? 'spinning' : ''} />
+            <div className="btn-label">
+              <span>Refresh</span>
+              <span>تحديث</span>
+            </div>
           </button>
         </div>
       </div>

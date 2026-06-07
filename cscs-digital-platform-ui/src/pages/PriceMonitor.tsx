@@ -128,7 +128,7 @@ const PriceMonitor: React.FC = () => {
               onClick={fetchHistory}
               disabled={loading}
             >
-              <RefreshCw className={loading ? 'spin' : ''} />
+              <RefreshCw className={loading ? 'spinning' : ''} />
               <div className="btn-label">
                 <span>Refresh</span>
                 <span>تحديث</span>
