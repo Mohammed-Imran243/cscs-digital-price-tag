@@ -1184,9 +1184,9 @@ const Templates: React.FC = () => {
       {/* ================= MODAL DIALOG 1: NEW TEMPLATE ================= */}
       {isTemplateModalOpen && (
         <div className="modal-overlay">
-          <div className="modal-content glass-card" style={{ maxHeight: '90vh', overflowY: 'auto' }}>
+          <div className="modal-content glass-card create-template-modal-content" style={{ maxHeight: '95vh', overflowY: 'auto' }}>
             <div className="modal-header">
-              <h3>Create {activeMenuTab === 'store' ? 'Store / متجر' : 'Merchant / تاجر'} ESL Template / إنشاء قالب شاشة الأسعار</h3>
+              <h3>{activeMenuTab === 'store' ? 'Create Store Template / إنشاء قالب متجر' : 'Create Merchant Template / إنشاء قالب تاجر'}</h3>
               <button 
                 className="close-btn" 
                 onClick={() => { 
@@ -2836,6 +2836,46 @@ const Templates: React.FC = () => {
           background: rgba(239,68,68,0.15);
           color: var(--danger-color);
           border-color: var(--danger-color);
+        }
+
+        /* Scoped overrides for the Create Template modal to ensure breathable UI spacing */
+        .create-template-modal-content {
+          max-width: 600px !important;
+          padding: 24px 32px !important;
+        }
+        .create-template-modal-content .create-form {
+          display: flex !important;
+          flex-direction: column !important;
+          gap: 20px !important;
+          padding: 8px 4px 16px 4px !important;
+        }
+        .create-template-modal-content .form-group {
+          display: flex !important;
+          flex-direction: column !important;
+          gap: 6px !important;
+          margin-bottom: 0 !important;
+        }
+        .create-template-modal-content .form-group label {
+          margin-bottom: 0 !important;
+          font-weight: 600 !important;
+        }
+        .create-template-modal-content .radio-group {
+          display: flex !important;
+          flex-direction: row !important;
+          gap: 20px !important;
+          flex-wrap: wrap !important;
+          padding: 4px 0 !important;
+        }
+        .create-template-modal-content .radio-option {
+          display: inline-flex !important;
+          align-items: center !important;
+          gap: 8px !important;
+          cursor: pointer !important;
+          margin-right: 8px !important;
+        }
+        .create-template-modal-content .radio-option input[type="radio"] {
+          margin: 0 !important;
+          cursor: pointer !important;
         }
       `}</style>
     </div>
