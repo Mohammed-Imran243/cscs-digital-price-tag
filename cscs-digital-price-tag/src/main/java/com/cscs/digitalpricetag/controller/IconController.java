@@ -4,6 +4,7 @@ import com.cscs.digitalpricetag.dto.ApiResponse;
 import com.cscs.digitalpricetag.service.IconService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.security.access.prepost.PreAuthorize;
 
 import java.util.Map;
 
@@ -62,5 +63,27 @@ public class IconController {
             @RequestBody Map<String, Object> updateData) {
         Object result = iconService.updateIconInTemplate(templateId, iconId, updateData);
         return ResponseEntity.ok(ApiResponse.success("Icon updated successfully", result));
+    }
+
+    /**
+     * Create a new store icon
+     * POST /zk/icon/addCut
+     */
+    @PostMapping("/addCut")
+    @PreAuthorize("hasAuthority('template')")
+    public ResponseEntity<ApiResponse<Object>> addCut(@RequestBody Map<String, Object> payload) {
+        Object result = iconService.addCut(payload);
+        return ResponseEntity.ok(ApiResponse.success("Store icon created successfully", result));
+    }
+
+    /**
+     * Delete a store icon
+     * DELETE /zk/icon/delete/{iconId}
+     */
+    @DeleteMapping("/delete/{iconId}")
+    @PreAuthorize("hasAuthority('template')")
+    public ResponseEntity<ApiResponse<Object>> deleteIcon(@PathVariable String iconId) {
+        Object result = iconService.deleteIcon(iconId);
+        return ResponseEntity.ok(ApiResponse.success("Store icon deleted successfully", result));
     }
 }

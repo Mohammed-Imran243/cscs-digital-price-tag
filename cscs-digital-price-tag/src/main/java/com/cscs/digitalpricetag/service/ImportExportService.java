@@ -361,7 +361,7 @@ public class ImportExportService {
 
     public Map<?, ?> importTemplateZip(MultipartFile file, String sceneNumber) {
         log.info("Starting Template Import ZIP. File: {}, Scene: {}", file.getOriginalFilename(), sceneNumber);
-        return dragonEslApiClient.postMultipart("/zk/template/importTemplateRefactorFile/" + sceneNumber, "multipartFile", file, Map.class);
+        return dragonEslApiClient.postMultipart("/zk/template/importTemplateRefactorFile/" + sceneNumber, "multipartFile", file, null, Map.class);
     }
 
     public byte[] exportTemplateZip(String sceneNumber, List<Long> templateBaseIds) {
