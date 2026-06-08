@@ -1,6 +1,6 @@
 import { StoreSelector } from '../components/common/StoreSelector';
 import React, { useState, useEffect } from 'react';
-import { 
+import { X, 
   Search, 
   Smartphone, 
   Cpu, 

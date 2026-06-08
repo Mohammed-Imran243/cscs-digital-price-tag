@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 
-import { Loader2 } from 'lucide-react';
+import { X, Loader2 } from 'lucide-react';
 import type { Store } from '../../services/storeService';
 import { deviceService } from '../../services/deviceService';
 import { getProducts } from '../../services/productService';

@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import {
-  RefreshCw,
+import { X, RefreshCw,
   ClipboardList,
   AlertTriangle,
   Store as StoreIcon,
@@ -10,8 +9,7 @@ import {
   User,
   Loader2,
   Search,
-  Filter
-} from 'lucide-react';
+  Filter } from 'lucide-react';
 import { storeService } from '../services/storeService';
 import type { Store } from '../services/storeService';
 import { getAuditLogs } from '../services/auditLogService';
@@ -369,12 +367,16 @@ const AuditLogs: React.FC = () => {
   
             <div className="global-search-bar">
               <Search size={16} className="text-muted" />
+              <div style={{ position: 'relative', display: 'flex', alignItems: 'center', flex: 1 }}>
               <input 
                 type="text" 
                 placeholder="Search logs... / بحث في السجلات..." 
                 value={searchQuery} 
                 onChange={(e) => setSearchQuery(e.target.value)} 
+                style={{ width: '100%', border: 'none', background: 'transparent', outline: 'none' }}
               />
+                {searchQuery && (<button type="button" className="search-clear-btn" onClick={() => setSearchQuery('')} style={{ position: 'absolute', right: '8px' }}><X size={14} /></button>)}
+              </div>
             </div>
           </div>
   

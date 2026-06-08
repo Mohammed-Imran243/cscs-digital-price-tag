@@ -22,7 +22,7 @@ import type {
 import { storeService } from '../services/storeService';
 import type { Store } from '../services/storeService';
 import { getProducts } from '../services/productService';
-import {
+import { X,
   Plus,
   Loader2,
   RefreshCw,
@@ -749,12 +749,16 @@ const Templates: React.FC = () => {
   
               <div className="global-search-bar">
                 <Search size={16} className="text-muted" />
-                <input
-                  type="text"
-                  placeholder="Search templates... / ابحث عن القوالب..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                />
+                <div style={{ position: 'relative', display: 'flex', alignItems: 'center', flex: 1 }}>
+                  <input
+                    type="text"
+                    placeholder="Search templates... / بحث في القوالب..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    style={{ width: '100%', border: 'none', background: 'transparent', outline: 'none' }}
+                  />
+                  {searchQuery && (<button type="button" className="search-clear-btn" onClick={() => setSearchQuery('')} style={{ position: 'absolute', right: '8px' }}><X size={14} /></button>)}
+                </div>
               </div>
             </div>
             
@@ -1047,13 +1051,17 @@ const Templates: React.FC = () => {
               <div className="saas-action-toolbar" style={{ display: 'flex', justifyContent: 'space-between', gap: '12px' }}>
                 <div className="toolbar-search">
                   <Search size={18} className="search-icon" />
+                  <div style={{ position: 'relative', display: 'flex', alignItems: 'center', width: '100%' }}>
                   <input
                     type="text"
                     className="saas-search-input"
                     placeholder="Search attributes... / ابحث عن السمات..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
+                    style={{ paddingRight: '36px' }}
                   />
+                    {searchQuery && (<button type="button" className="search-clear-btn" onClick={() => setSearchQuery('')} style={{ position: 'absolute', right: '8px', top: '50%', transform: 'translateY(-50%)' }}><X size={14} /></button>)}
+                  </div>
                 </div>
                 <ActionButtons 
                   onRefresh={fetchLookups} 
@@ -1611,7 +1619,7 @@ const Templates: React.FC = () => {
             <form onSubmit={handleAddAttribute} className="create-form">
               <div className="form-group" style={{ marginBottom: '32px' }}>
                 <label style={{ fontSize: '14px', fontWeight: 600, marginBottom: '8px', display: 'block', color: 'var(--text-primary)' }}>
-                  Attribute Name / اسم السمة <span className="text-danger">*</span>
+                  Attribute Name <span className="required-asterisk">*</span> / اسم السمة
                 </label>
                 <input
                   required
