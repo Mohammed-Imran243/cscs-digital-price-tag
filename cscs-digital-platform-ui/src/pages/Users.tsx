@@ -1235,7 +1235,7 @@ const [showUserFilters, setShowUserFilters] = useState(false);
                   </div>
 
                   {/* Tree Area */}
-                  <div style={{ paddingBottom: '24px' }}>
+                  <div style={{ paddingBottom: '24px', overflowY: 'auto', flex: 1 }}>
                     {permissionsLoading ? (
                       <div style={{ padding: '40px', textAlign: 'center', color: 'var(--text-muted)' }}>Loading permission tree...</div>
                     ) : (
