@@ -227,3 +227,20 @@ export const getFieldNames = async (type: string = '1'): Promise<any[]> => {
     return unwrapResponse<any[]>(response) || [];
   }, TTL.TEMPLATE_TYPES);
 };
+
+export const getPreViewPics = async (formData: FormData): Promise<Blob> => {
+  const response = await api.post('/sys/getPreViewPics', formData, {
+    responseType: 'blob'
+  });
+  return response.data;
+};
+
+export const addCutStoreIcon = async (payload: { storeId: number | string, describeName: string, parseAlgorithm: number, picStr: string }): Promise<any> => {
+  const response = await api.post('/zk/icon/addCut', payload);
+  return unwrapResponse<any>(response);
+};
+
+export const deleteStoreIcon = async (id: number | string): Promise<any> => {
+  const response = await api.delete(`/zk/icon/delete/${id}`);
+  return unwrapResponse<any>(response);
+};

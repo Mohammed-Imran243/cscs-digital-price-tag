@@ -1177,7 +1177,7 @@ const [showUserFilters, setShowUserFilters] = useState(false);
         <div className="modal-overlay">
           <div className="modal-content glass-card modal-content-wide">
             <div className="modal-header">
-              <h3>{isEditingRole ? 'Edit Security Role / تعديل دور الأمان' : 'Create Custom Role / إنشاء دور مخصص'}</h3>
+              <h3>{isEditingRole ? 'Edit Security Role / تعديل دور الأمان' : 'Create Security Role / إنشاء دور أمني'}</h3>
               <button className="close-btn" onClick={() => setIsRoleModalOpen(false)}>&times;</button>
             </div>
             
@@ -1226,12 +1226,9 @@ const [showUserFilters, setShowUserFilters] = useState(false);
                       </div>
                     </div>
                     <div className="permissions-toolbar-bottom">
-                      <button type="button" className="btn-link" onClick={handleSelectAll}>Select All</button>
-                      <button type="button" className="btn-link" onClick={handleClearAll} style={{ color: 'var(--text-muted)' }}>Clear All</button>
-                      <div style={{ width: '1px', background: 'var(--border-color)', margin: '0 8px' }} />
-                      <button type="button" className="btn-link" onClick={handleExpandAll} style={{ color: 'var(--text-muted)' }}>Expand All</button>
-                      <button type="button" className="btn-link" onClick={handleCollapseAll} style={{ color: 'var(--text-muted)' }}>Collapse All</button>
-                    </div>
+                        <button type="button" className="btn-link" onClick={handleSelectAll}>Select All / تحديد الكل</button>
+                        <button type="button" className="btn-link" onClick={handleClearAll} style={{ color: 'var(--text-muted)' }}>Clear All / مسح الكل</button>
+                      </div>
                   </div>
 
                   {/* Tree Area */}
@@ -1370,7 +1367,7 @@ const [showUserFilters, setShowUserFilters] = useState(false);
                   disabled={formLoading || !roleFormData.roleName.trim() || roleFormData.menuIdList.length === 0}
                   title={roleFormData.menuIdList.length === 0 ? "Select at least one permission to create a role" : ""}
                 >
-                  {formLoading ? <Loader2 className="animate-spin" size={18} /> : isEditingRole ? 'Save Changes' : 'Create Role'}
+                  {formLoading ? <Loader2 className="animate-spin" size={18} /> : isEditingRole ? 'Save Changes / حفظ التغييرات' : 'Create Role / إنشاء دور'}
                 </button>
               </div>
             </form>

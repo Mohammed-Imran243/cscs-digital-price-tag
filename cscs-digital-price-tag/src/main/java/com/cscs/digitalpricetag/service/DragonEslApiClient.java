@@ -18,6 +18,7 @@ import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
+import java.util.Map;
 
 /**
  * Low-level Dragon ESL API client.
@@ -151,7 +152,7 @@ public class DragonEslApiClient {
         }
     }
 
-    public <T> T postMultipart(String uri, String fileParamName, MultipartFile file, Class<T> responseType) {
+    public <T> T postMultipart(String uri, String fileParamName, MultipartFile file, Map<String, String> extraParts, Class<T> responseType) {
         String requestId = generateRequestId();
         try {
             log.info("[{}] POST (Multipart) {} — File: {}", requestId, uri, file.getOriginalFilename());
@@ -163,6 +164,9 @@ public class DragonEslApiClient {
                     return file.getOriginalFilename();
                 }
             });
+            if (extraParts != null) {
+                extraParts.forEach((key, value) -> builder.part(key, value));
+            }
 
             T response = webClient.post()
                     .uri(uri)

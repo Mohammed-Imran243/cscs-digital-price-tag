@@ -222,4 +222,24 @@ public class IconService {
         } catch (Exception ignored) {}
         return e.getMessage();
     }
+
+    public Object addCut(Map<String, Object> payload) {
+        String url = "/zk/icon/addCut";
+        log.info("Proxying addCut to Dragon ESL: {}", url);
+        Map<?, ?> response = dragonEslApiClient.post(url, payload, Map.class);
+        if (response == null) {
+            throw new DragonEslException("No response from Dragon ESL for addCut", HttpStatus.BAD_GATEWAY);
+        }
+        return response;
+    }
+
+    public Object deleteIcon(String iconId) {
+        String url = "/zk/icon/delete/" + iconId.trim();
+        log.info("Proxying deleteIcon to Dragon ESL: {}", url);
+        Map<?, ?> response = dragonEslApiClient.delete(url, Map.class);
+        if (response == null) {
+            throw new DragonEslException("No response from Dragon ESL for deleteIcon", HttpStatus.BAD_GATEWAY);
+        }
+        return response;
+    }
 }

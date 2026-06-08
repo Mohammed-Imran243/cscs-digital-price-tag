@@ -27,7 +27,7 @@ export const PageHeader: React.FC<PageHeaderProps> = ({ title, titleAr, breadcru
         </div>
       )}
       <div className="page-header-title">
-        <h2 style={{ fontSize: '24px', fontWeight: 'bold', margin: 0 }}>{title} / {titleAr}</h2>
+        <h2 style={{ fontSize: '24px', fontWeight: 'bold', margin: 0 }}>{title}{titleAr ? ` / ${titleAr}` : ''}</h2>
       </div>
     </div>
   );
