@@ -9,6 +9,9 @@ import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.web.client.RestTemplate;
+import org.springframework.web.client.HttpClientErrorException;
 
 import java.util.Base64;
 import java.util.regex.Pattern;
@@ -21,12 +24,14 @@ public class DragonImageService {
     // Matches paths like group1/M00/.../image.png, rejects full URLs, schemes, and path traversal
     private static final Pattern VALID_PATH_PATTERN = Pattern.compile("^/?[a-zA-Z0-9/_-]+\\.(?i)(png|jpg|jpeg|gif|bmp)$");
 
-    private final DragonEslApiClient dragonEslApiClient;
+    private final RestTemplate restTemplate;
     private final CacheManager cacheManager;
+    private final String baseUrl;
 
-    public DragonImageService(DragonEslApiClient dragonEslApiClient, CacheManager cacheManager) {
-        this.dragonEslApiClient = dragonEslApiClient;
+    public DragonImageService(CacheManager cacheManager, @Value("${dragon.esl.base-url}") String baseUrl) {
         this.cacheManager = cacheManager;
+        this.baseUrl = baseUrl;
+        this.restTemplate = new RestTemplate();
     }
 
     public String getBase64Image(String path) {
@@ -60,7 +65,9 @@ public class DragonImageService {
         try {
             // Ensure path starts with a slash
             String normalizedPath = path.startsWith("/") ? path : "/" + path;
-            byte[] imageBytes = dragonEslApiClient.download(normalizedPath);
+            String fullUrl = baseUrl + normalizedPath;
+            org.springframework.http.ResponseEntity<byte[]> response = restTemplate.getForEntity(fullUrl, byte[].class);
+            byte[] imageBytes = response.getBody();
             
             if (imageBytes != null && imageBytes.length > 0) {
                 String mimeType = "image/png";
@@ -74,22 +81,21 @@ public class DragonImageService {
                 }
                 
                 String base64 = Base64.getEncoder().encodeToString(imageBytes);
-                String result = "data:" + mimeType + ";base64," + base64;
+                String base64String = Base64.getEncoder().encodeToString(imageBytes);
                 
                 if (cache != null) {
-                    cache.put(path, result);
+                    cache.put(path, "data:" + mimeType + ";base64," + base64String);
                 }
                 
-                return result;
+                return "data:" + mimeType + ";base64," + base64String;
             } else {
-                log.warn("DragonESL API returned empty image for path: {}", path);
-                throw new DragonImageNotFoundException("Image not found on DragonESL server for path: " + path);
+                throw new DragonImageFetchException("Received empty image from DragonESL.");
             }
-        } catch (DragonImageNotFoundException e) {
-            throw e;
+        } catch (HttpClientErrorException.NotFound e) {
+            throw new DragonImageNotFoundException("Image not found on DragonESL.");
         } catch (Exception e) {
-            log.error("Failed to fetch image from DragonESL API for path: {}", path, e);
-            throw new DragonImageFetchException("Failed to fetch image from DragonESL API.", e);
+            log.error("Failed to fetch image from DragonESL", e);
+            throw new DragonImageFetchException("Error communicating with DragonESL: " + e.getMessage(), e);
         }
     }
 }
