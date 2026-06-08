@@ -437,45 +437,46 @@ export const BindModal: React.FC<BindModalProps> = ({
           </div>
         )}
 
-        {/* ── UNBIND FORM ── */}
+        {/* ── UNBIND FORM (CONFIRMATION POPUP) ── */}
         {mode === 'unbind' && (
           <div className="bind-form-body">
-            <div className="bind-fields-wrapper">
-
-            {/* Store Select */}
-            <div className="bind-field-group">
-              <label className="bind-field-label">Store Select / اختيار المتجر</label>
-              <select
-                className="bind-select"
-                value={bindFormStoreId}
-                onChange={e => setBindFormStoreId(e.target.value)}
+            <div className="bind-fields-wrapper" style={{ gap: '16px' }}>
+              <div 
+                className="unbind-confirm-message" 
+                style={{ 
+                  fontSize: '15px', 
+                  fontWeight: 500, 
+                  color: 'var(--text-primary)', 
+                  lineHeight: '1.5',
+                  marginBottom: '8px'
+                }}
               >
-                {stores.map(s => (
-                  <option key={s.storeId} value={s.storeId}>{s.storeName}</option>
-                ))}
-              </select>
-            </div>
-
-            {/* ESL Barcode(s) */}
-            <div className="bind-field-group">
-              <label className="bind-field-label">ESL Barcode(s) <span className="required-asterisk">*</span> / باركود الشاشة (الشاشات)</label>
-              <textarea
-                className="bind-textarea"
-                rows={4}
-                placeholder="Enter one or more ESL barcodes, separated by commas or new lines / أدخل باركود شاشة واحد أو أكثر، مفصولة بفواصل أو سطور جديدة"
-                value={unbindBarcodes}
-                onChange={e => setUnbindBarcodes(e.target.value)}
-              />
-            </div>
-
-            {selectedBarcodes.length > 0 && (
-              <button
-                className="bind-prefill-btn"
-                onClick={() => setUnbindBarcodes(selectedBarcodes.join('\n'))}
-              >
-                Use {selectedBarcodes.length} selected barcode(s) from table / استخدام {selectedBarcodes.length} باركود محدد من الجدول
-              </button>
-            )}
+                Are you sure you want to unbind {selectedBarcodes.length} selected ESL(s)? / هل أنت متأكد من إلغاء ربط {selectedBarcodes.length} شاشة مختارة؟
+              </div>
+              
+              <div className="bind-field-group">
+                <label className="bind-field-label" style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>
+                  Selected ESL Barcodes / باركود الشاشات المحددة:
+                </label>
+                <div 
+                  className="selected-barcodes-list" 
+                  style={{ 
+                    maxHeight: '150px', 
+                    overflowY: 'auto', 
+                    background: 'rgba(0,0,0,0.1)', 
+                    padding: '10px 14px', 
+                    borderRadius: '8px', 
+                    fontSize: '13px', 
+                    fontFamily: 'monospace',
+                    color: 'var(--text-muted)',
+                    border: '1px solid var(--glass-border)',
+                    whiteSpace: 'pre-wrap',
+                    wordBreak: 'break-all'
+                  }}
+                >
+                  {selectedBarcodes.join(', ')}
+                </div>
+              </div>
             </div>
 
             <div className="modal-actions">
@@ -483,7 +484,7 @@ export const BindModal: React.FC<BindModalProps> = ({
               <button
                 className="btn-danger"
                 onClick={handleUnbind}
-                disabled={bindLoading || !unbindBarcodes.trim()}
+                disabled={bindLoading}
               >
                 {bindLoading ? (
                   <>

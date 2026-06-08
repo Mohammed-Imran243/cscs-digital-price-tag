@@ -569,16 +569,16 @@ const Devices: React.FC = () => {
 
   /** Submit Unbind: release one or more ESL barcodes from their products */
   const handleUnbind = async () => {
-    const barcodes = unbindBarcodes.split(/[,\n]+/).map(b => b.trim()).filter(Boolean);
-    if (!bindFormStoreId || barcodes.length === 0) {
+    if (!selectedStoreId || selectedBarcodes.length === 0) {
       showNotification('error', 'Store and at least one ESL Barcode are required. / اسم المتجر وباركود شاشة واحد على الأقل مطلوبة.');
       return;
     }
     setBindLoading(true);
     try {
-      await deviceService.unbindEsl(bindFormStoreId, barcodes);
+      await deviceService.unbindEsl(selectedStoreId, selectedBarcodes);
       showNotification('success', 'Device unbound successfully / تم إلغاء ربط الشاشة بنجاح');
       setBindModalOpen(false);
+      setSelectedBarcodes([]); // Clear the checked rows on success
       fetchDevices(true);
     } catch (e: any) {
       showNotification('error', 'Failed to unbind device. Please try again. / فشل إلغاء ربط الشاشة. يرجى المحاولة مرة أخرى.');
@@ -649,7 +649,7 @@ const Devices: React.FC = () => {
                 <button 
                   className="btn-action btn-action-unbind" 
                   onClick={() => openBindModal('unbind')}
-                  disabled={!selectedStoreId || storesLoading}
+                  disabled={!selectedStoreId || storesLoading || selectedBarcodes.length === 0}
                 >
                   <Link2 style={{ transform: 'rotate(90deg)' }} /> {t('Unbind', 'إلغاء ربط')}
                 </button>
