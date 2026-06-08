@@ -123,8 +123,21 @@ const ImportExportModal: React.FC<ImportExportModalProps> = ({
   };
 
   const displayEntity = entityName === 'ESL Tags' ? 'Devices' : entityName;
-  const displayTitle = activeTab === 'import' ? `${displayEntity} Import` : `${displayEntity} Export`;
-  const displaySubtitle = activeTab === 'import' ? `Bulk import ${entityName}` : `Bulk export ${entityName}`;
+  const arabicEntityMap: Record<string, string> = {
+    'Stores': 'المتاجر',
+    'Products': 'المنتجات',
+    'Devices': 'الأجهزة',
+    'ESL Tags': 'الأجهزة',
+    'Templates': 'القوالب'
+  };
+  const arabicEntity = arabicEntityMap[entityName] || displayEntity;
+
+  const displayTitle = activeTab === 'import' 
+    ? `${displayEntity} Import / استيراد ${arabicEntity}` 
+    : `${displayEntity} Export / تصدير ${arabicEntity}`;
+  const displaySubtitle = activeTab === 'import' 
+    ? `Bulk import ${entityName} / استيراد ${arabicEntity} بالجملة` 
+    : `Bulk export ${entityName} / تصدير ${arabicEntity} بالجملة`;
 
   return (
     <div style={styles.overlay} onClick={handleClose}>
@@ -147,14 +160,14 @@ const ImportExportModal: React.FC<ImportExportModalProps> = ({
               {/* Template Download */}
               <div style={styles.templateBanner}>
                 <span style={{ fontSize: '13px', color: 'var(--text-muted)' }}>
-                  New to importing? Start with our template file.
+                  New to importing? Start with our template file. / هل أنت جديد؟ ابدأ بملف القالب
                 </span>
                 <button
                   style={styles.templateBtn}
                   onClick={handleDownloadTemplate}
                   disabled={downloadingTemplate}
                 >
-                  {downloadingTemplate ? '⏳ Downloading...' : '📄 Download Template'}
+                  {downloadingTemplate ? '⏳ Downloading... / جاري التحميل...' : '📄 Download Template / تحميل القالب'}
                 </button>
               </div>
 
@@ -186,7 +199,7 @@ const ImportExportModal: React.FC<ImportExportModalProps> = ({
                     <div>
                       <div style={styles.fileName}>{selectedFile.name}</div>
                       <div style={styles.fileSize}>
-                        {(selectedFile.size / 1024).toFixed(1)} KB · Click to change
+                        {(selectedFile.size / 1024).toFixed(1)} KB · Click to change / انقر للتغيير
                       </div>
                     </div>
                   </div>
@@ -194,9 +207,9 @@ const ImportExportModal: React.FC<ImportExportModalProps> = ({
                   <div style={styles.dropHint}>
                     <span style={styles.dropIcon}>☁️</span>
                     <div style={styles.dropText}>
-                      Drag & drop your file here, or <span style={styles.browseLink}>browse</span>
+                      Drag & drop your file here, or <span style={styles.browseLink}>browse</span> / اسحب وأفلت ملفك هنا، أو <span style={styles.browseLink}>تصفح</span>
                     </div>
-                    <div style={styles.dropSubtext}>Supported: {acceptFormat}</div>
+                    <div style={styles.dropSubtext}>Supported: {acceptFormat} / المدعوم: {acceptFormat}</div>
                   </div>
                 )}
               </div>
@@ -210,7 +223,7 @@ const ImportExportModal: React.FC<ImportExportModalProps> = ({
                 onClick={handleImport}
                 disabled={!selectedFile || importing}
               >
-                {importing ? '⏳ Importing...' : '⬆ Start Import'}
+                {importing ? '⏳ Importing... / جاري الاستيراد...' : '⬆ Start Import / بدء الاستيراد'}
               </button>
 
               {/* Error */}
@@ -266,17 +279,17 @@ const ImportExportModal: React.FC<ImportExportModalProps> = ({
           {activeTab === 'export' && (
             <div style={styles.exportSection}>
               <div style={styles.exportIcon}>⬇</div>
-              <h3 style={styles.exportTitle}>Export {entityName}</h3>
+              <h3 style={styles.exportTitle}>Export {entityName} / تصدير {arabicEntity}</h3>
               <p style={styles.exportDesc}>
-                Download all {entityName.toLowerCase()} data as an Excel file.
-                {storeId ? ` Filtered to the currently selected store.` : ' All stores will be included.'}
+                Download all {entityName.toLowerCase()} data as an Excel file. / قم بتنزيل جميع بيانات {arabicEntity} كملف إكسل.
+                {storeId ? ` Filtered to the currently selected store. / تمت تصفيتها للمتجر المحدد حاليًا.` : ' All stores will be included. / سيتم تضمين جميع الفروع.'}
               </p>
               <button
                 style={{ ...styles.primaryBtn, ...(exporting ? styles.primaryBtnDisabled : {}) }}
                 onClick={handleExport}
                 disabled={exporting}
               >
-                {exporting ? '⏳ Exporting...' : `⬇ Export ${entityName} to Excel`}
+                {exporting ? '⏳ Exporting... / جاري التصدير...' : '⬇ Start Export / بدء التصدير'}
               </button>
               {error && (
                 <div style={styles.errorBanner}>
