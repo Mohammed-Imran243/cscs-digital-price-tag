@@ -123,12 +123,6 @@ public class ProductService {
                         }
                     } catch (Exception e) {
                         log.error("Error fetching chunked page " + p, e);
-                        try {
-                            java.io.File file = new java.io.File("C:\\Users\\NICK\\Downloads\\debug_pagination.txt");
-                            try (java.io.FileWriter fw = new java.io.FileWriter(file, true)) {
-                                fw.write("EXCEPTION on Zkong Page " + p + ": " + e.getMessage() + "\n");
-                            }
-                        } catch (Exception ex) {}
                     }
                 }
                 
@@ -137,12 +131,6 @@ public class ProductService {
 
             if (responses.isEmpty()) {
                 log.warn("No items returned from Zkong API for this query.");
-                try {
-                    java.io.File file = new java.io.File("C:\\Users\\NICK\\Downloads\\debug_pagination.txt");
-                    try (java.io.FileWriter fw = new java.io.FileWriter(file, true)) {
-                        fw.write("RESPONSES EMPTY for Page " + page + " Size " + size + "\n\n");
-                    }
-                } catch (Exception ex) {}
                 return new PagedResponse<>(Collections.emptyList(), page, size, 0);
             }
 
@@ -259,21 +247,6 @@ public class ProductService {
         int end = Math.min(start + size, filteredProducts.size());
         log.info("Slicing local list: start={}, end={}, totalElements={}", start, end, totalElements);
         List<ProductResponse> pagedList = filteredProducts.subList(start, end);
-
-        try {
-            java.io.File file = new java.io.File("C:\\Users\\NICK\\Downloads\\debug_pagination.txt");
-            try (java.io.FileWriter fw = new java.io.FileWriter(file, true)) {
-                fw.write("=== DEBUG CALL ===\n");
-                fw.write("Requested Page: " + page + " | Size: " + size + " | LocalStart: " + localStart + "\n");
-                fw.write("FilteredProducts Size: " + filteredProducts.size() + "\n");
-                fw.write("Calculated Start: " + start + " | Calculated End: " + end + "\n");
-                fw.write("TotalElements extracted: " + totalElements + "\n");
-                fw.write("PagedList Size: " + pagedList.size() + "\n");
-                fw.write("Zkong Responses Count: " + responses.size() + "\n");
-                fw.write("==================\n\n");
-            }
-        } catch (Exception e) {
-        }
 
         return new PagedResponse<>(pagedList, page, size, totalElements);
     }

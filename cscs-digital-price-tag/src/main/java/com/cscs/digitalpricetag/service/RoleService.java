@@ -163,10 +163,7 @@ public class RoleService {
         // 2. Least-privilege ancestor enrichment
         enrichMenuIdList(request);
 
-        // 3. Log comparison details
-        logComparisonDetails(request);
-
-        // 4. Construct browser-matched payload for ZKong
+        // 3. Construct browser-matched payload for ZKong
         Map<String, Object> payload = new LinkedHashMap<>();
         payload.put("roleName", request.getRoleName());
         payload.put("menuListIds", request.getMenuIdList());
@@ -200,10 +197,7 @@ public class RoleService {
         // 2. Least-privilege ancestor enrichment
         enrichMenuIdList(request);
 
-        // 3. Log comparison details
-        logComparisonDetails(request);
-
-        // 4. Construct browser-matched payload for ZKong
+        // 3. Construct browser-matched payload for ZKong
         Map<String, Object> payload = new LinkedHashMap<>();
         payload.put("roleId", Long.parseLong(id));
         payload.put("roleName", request.getRoleName());
@@ -410,151 +404,4 @@ public class RoleService {
         }
     }
 
-    public Map<String, Object> getDebugTree(String roleId) {
-        RolePermissionTreeDto masterTree = getPermissions("3");
-        RolePermissionTreeDto targetRole = getPermissions(roleId);
-
-        Set<Integer> activeIds = new HashSet<>();
-        if (targetRole.getList() != null) {
-            for (RoleMenuItemDto item : targetRole.getList()) {
-                if (item.getId() != null) {
-                    activeIds.add(item.getId());
-                }
-            }
-        }
-
-        // Build list of all debug tree nodes
-        Map<Integer, DebugTreeNode> nodeMap = new LinkedHashMap<>();
-        for (RoleMenuItemDto item : masterTree.getList()) {
-            if (item.getId() != null) {
-                DebugTreeNode node = new DebugTreeNode(
-                    item.getId(),
-                    item.getParentId() != null ? item.getParentId() : 0,
-                    item.getMenuName(),
-                    item.getLevel(),
-                    item.getZkUrl(),
-                    activeIds.contains(item.getId())
-                );
-                nodeMap.put(item.getId(), node);
-            }
-        }
-
-        // Wire children relationships
-        List<DebugTreeNode> rootNodes = new ArrayList<>();
-        for (DebugTreeNode node : nodeMap.values()) {
-            if (node.getParentId() == 0 || !nodeMap.containsKey(node.getParentId())) {
-                rootNodes.add(node);
-            } else {
-                DebugTreeNode parent = nodeMap.get(node.getParentId());
-                parent.getChildren().add(node);
-            }
-        }
-
-        Map<String, Object> result = new LinkedHashMap<>();
-        result.put("roleName", targetRole.getRoleName());
-        result.put("roleId", roleId);
-        result.put("flattenedMenuIdList", new ArrayList<>(activeIds));
-        result.put("hierarchicalTree", rootNodes);
-        return result;
-    }
-
-    private void logComparisonDetails(CreateRoleRequestDto request) {
-        try {
-            log.info("--- ROLE CREATION ANALYSIS FOR: {} ---", request.getRoleName());
-            log.info("Generated Menu IDs: {}", request.getMenuIdList());
-            
-            // Get working role 147 details to compare
-            RolePermissionTreeDto role147 = getPermissions("147");
-            Set<Integer> workingIds = new HashSet<>();
-            if (role147.getList() != null) {
-                for (RoleMenuItemDto item : role147.getList()) {
-                    if (item.getId() != null) workingIds.add(item.getId());
-                }
-            }
-
-            Set<Integer> generatedIds = new HashSet<>(request.getMenuIdList());
-
-            List<Integer> matches = new ArrayList<>();
-            List<Integer> extraInGenerated = new ArrayList<>();
-            List<Integer> missingFromWorking = new ArrayList<>();
-
-            for (Integer id : generatedIds) {
-                if (workingIds.contains(id)) {
-                    matches.add(id);
-                } else {
-                    extraInGenerated.add(id);
-                }
-            }
-
-            for (Integer id : workingIds) {
-                if (!generatedIds.contains(id)) {
-                    missingFromWorking.add(id);
-                }
-            }
-
-            log.info("Comparison against working Role 147 (Test Store Manager):");
-            log.info("  Matching permissions: {}", matches);
-            log.info("  Extra permissions in generated: {}", extraInGenerated);
-            log.info("  Missing permissions present in Role 147: {}", missingFromWorking);
-            
-            // Analyze tree hierarchy structure
-            RolePermissionTreeDto masterTree = getPermissions("3");
-            Map<Integer, RoleMenuItemDto> masterMap = new HashMap<>();
-            for (RoleMenuItemDto item : masterTree.getList()) {
-                if (item.getId() != null) masterMap.put(item.getId(), item);
-            }
-
-            log.info("Hierarchy analysis of generated role:");
-            for (Integer id : generatedIds) {
-                RoleMenuItemDto item = masterMap.get(id);
-                if (item != null) {
-                    log.info("  Node ID: {}, Name: {}, Level: {}, Parent ID: {}, URL: {}",
-                            item.getId(), item.getMenuName(), item.getLevel(), item.getParentId(), item.getZkUrl());
-                }
-            }
-            log.info("-------------------------------------------------");
-        } catch (Exception e) {
-            log.warn("Failed to log role comparison details: {}", e.getMessage());
-        }
-    }
-
-    public static class DebugTreeNode {
-        private Integer id;
-        private Integer parentId;
-        private String menuName;
-        private Integer level;
-        private String zkUrl;
-        private boolean active;
-        private List<DebugTreeNode> children = new ArrayList<>();
-
-        public DebugTreeNode(Integer id, Integer parentId, String menuName, Integer level, String zkUrl, boolean active) {
-            this.id = id;
-            this.parentId = parentId;
-            this.menuName = menuName;
-            this.level = level;
-            this.zkUrl = zkUrl;
-            this.active = active;
-        }
-
-        public Integer getId() { return id; }
-        public void setId(Integer id) { this.id = id; }
-
-        public Integer getParentId() { return parentId; }
-        public void setParentId(Integer parentId) { this.parentId = parentId; }
-
-        public String getMenuName() { return menuName; }
-        public void setMenuName(String menuName) { this.menuName = menuName; }
-
-        public Integer getLevel() { return level; }
-        public void setLevel(Integer level) { this.level = level; }
-
-        public String getZkUrl() { return zkUrl; }
-        public void setZkUrl(String zkUrl) { this.zkUrl = zkUrl; }
-
-        public boolean isActive() { return active; }
-        public void setActive(boolean active) { this.active = active; }
-
-        public List<DebugTreeNode> getChildren() { return children; }
-        public void setChildren(List<DebugTreeNode> children) { this.children = children; }
-    }
 }

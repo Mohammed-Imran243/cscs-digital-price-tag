@@ -38,6 +38,7 @@ public class PriceHistoryService {
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     public PriceHistoryService() {
+        log.info("PriceHistoryService initializing. Data directory: {} (set PRICE_HISTORY_DIR env var to override)", DATA_DIR);
         ensureFileExists();
     }
 
