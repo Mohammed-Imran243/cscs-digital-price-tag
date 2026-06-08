@@ -39,3 +39,5 @@ translations_debug_utf8.json
 zkong_debug.txt
 zkong_debug_direct.txt
 zkong_debug_hypothesis.txt
+inject.js
+inject.cs
