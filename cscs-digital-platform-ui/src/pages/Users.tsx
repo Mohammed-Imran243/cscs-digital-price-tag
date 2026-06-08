@@ -227,7 +227,11 @@ const [showUserFilters, setShowUserFilters] = useState(false);
 
     return list.map((item: any) => ({
       id: Number(item.id),
-      menuName: String(item.menuName || item.name || item.title || `Permission ${item.id}`),
+      menuName: (() => {
+          let name = String(item.menuName || item.name || item.title || `Permission ${item.id}`);
+          if (name.trim().toLowerCase() === 'equipment') return 'EQUIPMENT / المعدات';
+          return name;
+        })(),
       level: Number(item.level ?? item.levelNo ?? 0),
       parentId: item.pid != null ? Number(item.pid) : (item.parentId != null ? Number(item.parentId) : undefined),
       zkUrl: item.zkUrl || item.url || item.path || undefined,
@@ -1366,8 +1370,8 @@ const [showUserFilters, setShowUserFilters] = useState(false);
                         />
                       </div>
                       <div className="permission-stats">
-                        <span className="permission-stat-badge highlight">Permissions Selected: {roleFormData.menuIdList.length}</span>
-                        <span className="permission-stat-badge">Available Permissions: {availablePermissions.length}</span>
+                        <span className="permission-stat-badge highlight">Permissions Selected / الصلاحيات المحددة: {roleFormData.menuIdList.length}</span>
+                        <span className="permission-stat-badge">Available Permissions / الصلاحيات المتاحة: {availablePermissions.length}</span>
                       </div>
                     </div>
                     <div className="permissions-toolbar-bottom">
