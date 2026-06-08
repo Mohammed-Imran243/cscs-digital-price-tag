@@ -189,18 +189,29 @@ public class ImportExportService {
             req.setMailbox(row.getOrDefault("mailbox", null));
             req.setAddress(row.getOrDefault("address", null));
             req.setComment("Imported via bulk upload");
+            
+            String rowNumStr = row.get("__rowNumber__");
+            if (rowNumStr != null) {
+                try {
+                    req.setRowNumber(Integer.parseInt(rowNumStr));
+                } catch (NumberFormatException e) {
+                    // Ignore
+                }
+            }
             return req;
         }, validItems);
         
         if (!validItems.isEmpty()) {
             for (int i = 0; i < validItems.size(); i++) {
+                StoreCreateRequest req = validItems.get(i);
                 try {
-                    storeService.addStore(validItems.get(i));
+                    storeService.addStore(req);
                     // The validItems array is synced with the success count from parser.
                     // If addStore fails, we should technically catch it and update failed count.
                 } catch (Exception e) {
                     log.error("Failed to add store via import", e);
-                    response.addError(new ImportError(i + 2, "API", "Dragon ESL rejected store: " + e.getMessage()));
+                    int rowNum = req.getRowNumber() != null ? req.getRowNumber() : (i + 2);
+                    response.addError(new ImportError(rowNum, "API", "Dragon ESL rejected store: " + e.getMessage()));
                     response.setSuccessCount(response.getSuccessCount() - 1);
                 }
             }

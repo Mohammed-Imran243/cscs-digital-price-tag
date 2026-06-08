@@ -61,6 +61,17 @@ export const BindModal: React.FC<BindModalProps> = ({
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const [hasTypedProduct, setHasTypedProduct] = useState(false);
+  const [bindErrors, setBindErrors] = useState<{
+    bindFormStoreId?: string;
+    bindFormItemBarCode?: string;
+    bindFormEslBarcode?: string;
+  }>({});
+
+  useEffect(() => {
+    if (!bindModalOpen) {
+      setBindErrors({});
+    }
+  }, [bindModalOpen]);
 
   const [eslSearchQuery, setEslSearchQuery] = useState('');
   const [isEslDropdownOpen, setIsEslDropdownOpen] = useState(false);
@@ -152,10 +163,39 @@ export const BindModal: React.FC<BindModalProps> = ({
     return tagCode.includes(term) || model.includes(term);
   });
 
+  const validateBindForm = (): boolean => {
+    const errors: typeof bindErrors = {};
+
+    // bindFormStoreId — required dropdown
+    if (!bindFormStoreId || bindFormStoreId === '' || bindFormStoreId === '0') {
+      errors.bindFormStoreId = 'Please select a store / يرجى اختيار المتجر';
+    }
+
+    // bindFormItemBarCode — required, non-empty (typed or scanned)
+    if (!bindFormItemBarCode || bindFormItemBarCode.trim() === '') {
+      errors.bindFormItemBarCode = 'Product barcode is required / باركود المنتج مطلوب';
+    }
+
+    // bindFormEslBarcode — required, non-empty
+    if (!bindFormEslBarcode || bindFormEslBarcode.trim() === '') {
+      errors.bindFormEslBarcode = 'ESL barcode is required / باركود الشاشة مطلوب';
+    } else if (!/^[a-zA-Z0-9_\-]+$/.test(bindFormEslBarcode.trim())) {
+      errors.bindFormEslBarcode = 'ESL barcode: letters and numbers only';
+    }
+
+    setBindErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
+  const handleBindSubmit = () => {
+    if (!validateBindForm()) return;
+    handleBind();
+  };
+
   if (!bindModalOpen) return null;
 
   return (
-    <div className="modal-overlay" onClick={() => setBindModalOpen(false)}>
+    <div className="modal-overlay" onClick={() => { setBindModalOpen(false); setBindErrors({}); }}>
       {/* Scoped style to forcefully remove SVG arrow from bind-select dropdowns */}
       <style>{`
         select.bind-select,
@@ -243,7 +283,7 @@ export const BindModal: React.FC<BindModalProps> = ({
           <h3>
             {mode === 'bind' ? 'Bind / ربط' : 'Unbind / إلغاء الربط'}
           </h3>
-          <button className="close-btn" onClick={() => setBindModalOpen(false)}>&times;</button>
+          <button className="close-btn" onClick={() => { setBindModalOpen(false); setBindErrors({}); }}>&times;</button>
         </div>
 
         {/* ── BIND FORM ── */}
@@ -264,6 +304,7 @@ export const BindModal: React.FC<BindModalProps> = ({
                   setAvailableAps([]);
                   setBindFormEslBarcode('');
                   setBindFormApMac('');
+                  if (bindErrors.bindFormStoreId) setBindErrors(prev => ({ ...prev, bindFormStoreId: undefined }));
                   deviceService.getAvailableEslDevices(newStoreId)
                     .then(r => setAvailableEsls(r || []))
                     .catch(() => {});
@@ -276,6 +317,11 @@ export const BindModal: React.FC<BindModalProps> = ({
                   <option key={s.storeId} value={s.storeId}>{s.storeName}</option>
                 ))}
               </select>
+              {bindErrors.bindFormStoreId && (
+                <span style={{ color: '#dc2626', fontSize: '12px', marginTop: '4px', display: 'block' }}>
+                  {bindErrors.bindFormStoreId}
+                </span>
+              )}
             </div>
 
             {/* Item / Product Searchable Dropdown */}
@@ -287,44 +333,51 @@ export const BindModal: React.FC<BindModalProps> = ({
                   type="text"
                   placeholder="Search item by name or barcode... / ابحث عن الصنف بالاسم أو الباركود..."
                   value={searchQuery}
-                  onChange={e => {
-                    const val = e.target.value;
-                    setSearchQuery(val);
-                    setBindFormItemBarCode(val);
-                    setIsDropdownOpen(true);
-                    setHasTypedProduct(true);
-                  }}
-                  onFocus={() => {
-                    setIsDropdownOpen(true);
-                    setHasTypedProduct(false);
-                  }}
-                />
-                {isDropdownOpen && (
-                  <div className="dropdown-options-list">
-                    {loadingProducts ? (
-                      <div className="dropdown-loading">Loading items... / جاري تحميل العناصر...</div>
-                    ) : filteredProducts.length === 0 ? (
-                      <div className="dropdown-no-options">No items found / لم يتم العثور على عناصر</div>
-                    ) : (
-                      filteredProducts.map(p => (
-                        <div
-                          key={p.id}
-                          className="dropdown-option-item"
-                          onClick={() => {
-                            setBindFormItemBarCode(p.barcode);
-                            setSearchQuery(`${p.itemName} (${p.barcode})`);
-                            setIsDropdownOpen(false);
-                            setHasTypedProduct(false);
-                          }}
-                        >
-                          <div className="option-item-name">{p.itemName}</div>
-                          <div className="option-item-barcode">Barcode / الباركود: {p.barcode}</div>
-                        </div>
-                      ))
-                    )}
-                  </div>
+                    onChange={e => {
+                      const val = e.target.value;
+                      setSearchQuery(val);
+                      setBindFormItemBarCode(val);
+                      setIsDropdownOpen(true);
+                      setHasTypedProduct(true);
+                      if (bindErrors.bindFormItemBarCode) setBindErrors(prev => ({ ...prev, bindFormItemBarCode: undefined }));
+                    }}
+                    onFocus={() => {
+                      setIsDropdownOpen(true);
+                      setHasTypedProduct(false);
+                    }}
+                  />
+                  {isDropdownOpen && (
+                    <div className="dropdown-options-list">
+                      {loadingProducts ? (
+                        <div className="dropdown-loading">Loading items... / جاري تحميل العناصر...</div>
+                      ) : filteredProducts.length === 0 ? (
+                        <div className="dropdown-no-options">No items found / لم يتم العثور على عناصر</div>
+                      ) : (
+                        filteredProducts.map(p => (
+                          <div
+                            key={p.id}
+                            className="dropdown-option-item"
+                            onClick={() => {
+                              setBindFormItemBarCode(p.barcode);
+                              setSearchQuery(`${p.itemName} (${p.barcode})`);
+                              setIsDropdownOpen(false);
+                              setHasTypedProduct(false);
+                              if (bindErrors.bindFormItemBarCode) setBindErrors(prev => ({ ...prev, bindFormItemBarCode: undefined }));
+                            }}
+                          >
+                            <div className="option-item-name">{p.itemName}</div>
+                            <div className="option-item-barcode">Barcode / الباركود: {p.barcode}</div>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  )}
+                </div>
+                {bindErrors.bindFormItemBarCode && (
+                  <span style={{ color: '#dc2626', fontSize: '12px', marginTop: '4px', display: 'block' }}>
+                    {bindErrors.bindFormItemBarCode}
+                  </span>
                 )}
-              </div>
             </div>
 
             {/* ESL Barcode Searchable Dropdown */}
@@ -336,44 +389,51 @@ export const BindModal: React.FC<BindModalProps> = ({
                   type="text"
                   placeholder="Search ESL barcode or model... / ابحث عن باركود أو طراز الشاشة..."
                   value={eslSearchQuery}
-                  onChange={e => {
-                    const val = e.target.value;
-                    setEslSearchQuery(val);
-                    setBindFormEslBarcode(val);
-                    setIsEslDropdownOpen(true);
-                    setHasTypedEsl(true);
-                  }}
-                  onFocus={() => {
-                    setIsEslDropdownOpen(true);
-                    setHasTypedEsl(false);
-                  }}
-                />
-                {isEslDropdownOpen && (
-                  <div className="dropdown-options-list">
-                    {availableEsls.length === 0 ? (
-                      <div className="dropdown-no-options">No available ESLs found / لم يتم العثور على شاشات متاحة</div>
-                    ) : filteredEsls.length === 0 ? (
-                      <div className="dropdown-no-options">No matching ESLs found / لم يتم العثور على شاشات مطابقة</div>
-                    ) : (
-                      filteredEsls.map(e => (
-                        <div
-                          key={e.priceTagCode}
-                          className="dropdown-option-item"
-                          onClick={() => {
-                            setBindFormEslBarcode(e.priceTagCode);
-                            setEslSearchQuery(`${e.priceTagCode} (${e.oemModel || 'N/A'})`);
-                            setIsEslDropdownOpen(false);
-                            setHasTypedEsl(false);
-                          }}
-                        >
-                          <div className="option-item-name">{e.priceTagCode}</div>
-                          <div className="option-item-barcode">Model / الطراز: {e.oemModel || 'N/A'} — {e.state === 'ONLINE' ? 'Online / متصل' : 'Offline / غير متصل'}</div>
-                        </div>
-                      ))
-                    )}
-                  </div>
+                    onChange={e => {
+                      const val = e.target.value;
+                      setEslSearchQuery(val);
+                      setBindFormEslBarcode(val);
+                      setIsEslDropdownOpen(true);
+                      setHasTypedEsl(true);
+                      if (bindErrors.bindFormEslBarcode) setBindErrors(prev => ({ ...prev, bindFormEslBarcode: undefined }));
+                    }}
+                    onFocus={() => {
+                      setIsEslDropdownOpen(true);
+                      setHasTypedEsl(false);
+                    }}
+                  />
+                  {isEslDropdownOpen && (
+                    <div className="dropdown-options-list">
+                      {availableEsls.length === 0 ? (
+                        <div className="dropdown-no-options">No available ESLs found / لم يتم العثور على شاشات متاحة</div>
+                      ) : filteredEsls.length === 0 ? (
+                        <div className="dropdown-no-options">No matching ESLs found / لم يتم العثور على شاشات مطابقة</div>
+                      ) : (
+                        filteredEsls.map(e => (
+                          <div
+                            key={e.priceTagCode}
+                            className="dropdown-option-item"
+                            onClick={() => {
+                              setBindFormEslBarcode(e.priceTagCode);
+                              setEslSearchQuery(`${e.priceTagCode} (${e.oemModel || 'N/A'})`);
+                              setIsEslDropdownOpen(false);
+                              setHasTypedEsl(false);
+                              if (bindErrors.bindFormEslBarcode) setBindErrors(prev => ({ ...prev, bindFormEslBarcode: undefined }));
+                            }}
+                          >
+                            <div className="option-item-name">{e.priceTagCode}</div>
+                            <div className="option-item-barcode">Model / الطراز: {e.oemModel || 'N/A'} — {e.state === 'ONLINE' ? 'Online / متصل' : 'Offline / غير متصل'}</div>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  )}
+                </div>
+                {bindErrors.bindFormEslBarcode && (
+                  <span style={{ color: '#dc2626', fontSize: '12px', marginTop: '4px', display: 'block' }}>
+                    {bindErrors.bindFormEslBarcode}
+                  </span>
                 )}
-              </div>
               {availableEsls.length > 0 && (
                 <span className="bind-hint">{availableEsls.length} unbound ESL(s) available / {availableEsls.length} شاشة (شاشات) غير مرتبطة متاحة</span>
               )}
@@ -418,11 +478,11 @@ export const BindModal: React.FC<BindModalProps> = ({
             </div>
 
             <div className="modal-actions">
-              <button className="btn-secondary" onClick={() => setBindModalOpen(false)}>Cancel / إلغاء</button>
+              <button className="btn-secondary" onClick={() => { setBindModalOpen(false); setBindErrors({}); }}>Cancel / إلغاء</button>
               <button
                 className="btn-primary"
-                onClick={handleBind}
-                disabled={bindLoading || !bindFormItemBarCode.trim() || !bindFormEslBarcode.trim()}
+                onClick={handleBindSubmit}
+                disabled={bindLoading}
               >
                 {bindLoading ? (
                   <>
@@ -480,7 +540,7 @@ export const BindModal: React.FC<BindModalProps> = ({
             </div>
 
             <div className="modal-actions">
-              <button className="btn-secondary" onClick={() => setBindModalOpen(false)}>Cancel / إلغاء</button>
+              <button className="btn-secondary" onClick={() => { setBindModalOpen(false); setBindErrors({}); }}>Cancel / إلغاء</button>
               <button
                 className="btn-danger"
                 onClick={handleUnbind}

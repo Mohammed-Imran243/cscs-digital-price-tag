@@ -59,6 +59,14 @@ const Stores: React.FC = () => {
     comment: '',
   });
 
+  const [formErrors, setFormErrors] = useState<{
+    storeName?: string;
+    externalStoreId?: string;
+    contacts?: string;
+    phone?: string;
+    mailbox?: string;
+  }>({});
+
   const fetchStores = async (forceRefresh = false) => {
     setLoading(true);
     setError('');
@@ -101,6 +109,7 @@ const Stores: React.FC = () => {
     setIsEditing(false);
     setEditingId(null);
     setFormData({ storeName: '', address: '', contacts: '', phone: '', mailbox: '', externalStoreId: '', comment: '' });
+    setFormErrors({});
     setIsModalOpen(true);
   };
 
@@ -116,11 +125,59 @@ const Stores: React.FC = () => {
       externalStoreId: store.externalStoreId || '',
       comment: store.comment || '',
     });
+    setFormErrors({});
     setIsModalOpen(true);
+  };
+
+  const validateStoreForm = (): boolean => {
+    const errors: typeof formErrors = {};
+
+    // storeName — required, letters/numbers/Arabic/spaces/hyphens, max 100
+    if (!formData.storeName || formData.storeName.trim() === '') {
+      errors.storeName = 'Store name is required / اسم المتجر مطلوب';
+    } else if (formData.storeName.trim().length > 100) {
+      errors.storeName = 'Store name must not exceed 100 characters';
+    } else if (!/^[\u0600-\u06FFa-zA-Z0-9\s\-_(). ]+$/.test(formData.storeName.trim())) {
+      errors.storeName = 'Store name contains invalid characters';
+    }
+
+    // externalStoreId — required, alphanumeric + underscore/hyphen only, no spaces, max 40
+    if (!formData.externalStoreId || formData.externalStoreId.trim() === '') {
+      errors.externalStoreId = 'External Store ID is required / معرّف المتجر الخارجي مطلوب';
+    } else if (formData.externalStoreId.trim().length > 40) {
+      errors.externalStoreId = 'External Store ID must not exceed 40 characters';
+    } else if (!/^[a-zA-Z0-9_\-]+$/.test(formData.externalStoreId.trim())) {
+      errors.externalStoreId = 'Only letters, numbers, underscores and hyphens allowed — no spaces';
+    }
+
+    // contacts — optional, letters + Arabic + spaces only
+    if (formData.contacts && formData.contacts.trim() !== '') {
+      if (!/^[\u0600-\u06FFa-zA-Z\s]+$/.test(formData.contacts.trim())) {
+        errors.contacts = 'Contact name must contain letters only / الاسم يجب أن يحتوي على حروف فقط';
+      }
+    }
+
+    // phone — optional, optional + prefix, digits only, 7–20 chars
+    if (formData.phone && formData.phone.trim() !== '') {
+      if (!/^\+?[0-9]{7,20}$/.test(formData.phone.trim())) {
+        errors.phone = 'Enter a valid phone number (digits only, optional + prefix) / رقم هاتف غير صالح';
+      }
+    }
+
+    // mailbox — optional, standard email format
+    if (formData.mailbox && formData.mailbox.trim() !== '') {
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.mailbox.trim())) {
+        errors.mailbox = 'Enter a valid email address / بريد إلكتروني غير صالح';
+      }
+    }
+
+    setFormErrors(errors);
+    return Object.keys(errors).length === 0;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!validateStoreForm()) return;
     setFormLoading(true);
     try {
       if (isEditing && editingId) {
@@ -131,6 +188,7 @@ const Stores: React.FC = () => {
         showNotification('Store added successfully / تمت إضافة المتجر بنجاح', 'success');
       }
       setIsModalOpen(false);
+      setFormErrors({});
       fetchStores();
     } catch (err: any) {
       showNotification(`Failed to ${isEditing ? 'update' : 'add'} store. Please try again. / فشل ${isEditing ? 'تحديث' : 'إضافة'} المتجر. يرجى المحاولة مرة أخرى.`, 'error');
@@ -430,40 +488,80 @@ const Stores: React.FC = () => {
           <div className="modal-content glass-card" style={{ maxHeight: '90vh', overflowY: 'auto' }}>
             <div className="modal-header">
               <h3>{isEditing ? 'Edit Store / تعديل المتجر' : 'Create New Store / إنشاء متجر جديد'}</h3>
-              <button className="close-btn" onClick={() => setIsModalOpen(false)}>&times;</button>
+              <button className="close-btn" onClick={() => { setIsModalOpen(false); setFormErrors({}); }}>&times;</button>
             </div>
             <form onSubmit={handleSubmit} className="create-form">
               <div className="form-group">
                 <label>Store Name <span className="required-asterisk">*</span> / اسم المتجر</label>
                 <input required type="text" value={formData.storeName}
-                  onChange={e => setFormData({ ...formData, storeName: e.target.value })}
+                  onChange={e => {
+                    setFormData({ ...formData, storeName: e.target.value });
+                    if (formErrors.storeName) setFormErrors(prev => ({ ...prev, storeName: undefined }));
+                  }}
                   className="glass-input" placeholder="e.g. Al Naseem Store / مثل متجر النسيم" />
+                {formErrors.storeName && (
+                  <span style={{ color: '#dc2626', fontSize: '12px', marginTop: '4px', display: 'block' }}>
+                    {formErrors.storeName}
+                  </span>
+                )}
               </div>
               <div className="form-group">
                 <label>External Store ID <span className="required-asterisk">*</span> / معرف المتجر الخارجي</label>
                 <input type="text" value={formData.externalStoreId}
-                  onChange={e => setFormData({ ...formData, externalStoreId: e.target.value })}
+                  onChange={e => {
+                    setFormData({ ...formData, externalStoreId: e.target.value });
+                    if (formErrors.externalStoreId) setFormErrors(prev => ({ ...prev, externalStoreId: undefined }));
+                  }}
                   className="glass-input" placeholder="ERP Store Code / رمز المتجر في نظام ERP" />
+                {formErrors.externalStoreId && (
+                  <span style={{ color: '#dc2626', fontSize: '12px', marginTop: '4px', display: 'block' }}>
+                    {formErrors.externalStoreId}
+                  </span>
+                )}
               </div>
               <div className="form-row">
                 <div className="form-group">
                   <label>Contact Person / الشخص المسؤول</label>
                   <input type="text" value={formData.contacts}
-                    onChange={e => setFormData({ ...formData, contacts: e.target.value })}
+                    onChange={e => {
+                      setFormData({ ...formData, contacts: e.target.value });
+                      if (formErrors.contacts) setFormErrors(prev => ({ ...prev, contacts: undefined }));
+                    }}
                     className="glass-input" placeholder="Manager name / اسم المدير" />
+                  {formErrors.contacts && (
+                    <span style={{ color: '#dc2626', fontSize: '12px', marginTop: '4px', display: 'block' }}>
+                      {formErrors.contacts}
+                    </span>
+                  )}
                 </div>
                 <div className="form-group">
                   <label>Phone / رقم الهاتف</label>
                   <input type="text" value={formData.phone}
-                    onChange={e => setFormData({ ...formData, phone: e.target.value })}
+                    onChange={e => {
+                      setFormData({ ...formData, phone: e.target.value });
+                      if (formErrors.phone) setFormErrors(prev => ({ ...prev, phone: undefined }));
+                    }}
                     className="glass-input" placeholder="+966... / ٠٠٩٦٦..." />
+                  {formErrors.phone && (
+                    <span style={{ color: '#dc2626', fontSize: '12px', marginTop: '4px', display: 'block' }}>
+                      {formErrors.phone}
+                    </span>
+                  )}
                 </div>
               </div>
               <div className="form-group">
                 <label>Email / البريد الإلكتروني</label>
                 <input type="email" value={formData.mailbox}
-                  onChange={e => setFormData({ ...formData, mailbox: e.target.value })}
+                  onChange={e => {
+                    setFormData({ ...formData, mailbox: e.target.value });
+                    if (formErrors.mailbox) setFormErrors(prev => ({ ...prev, mailbox: undefined }));
+                  }}
                   className="glass-input" placeholder="store@example.com" />
+                {formErrors.mailbox && (
+                  <span style={{ color: '#dc2626', fontSize: '12px', marginTop: '4px', display: 'block' }}>
+                    {formErrors.mailbox}
+                  </span>
+                )}
               </div>
               <div className="form-group">
                 <label>Address / العنوان</label>
@@ -478,7 +576,7 @@ const Stores: React.FC = () => {
                   className="glass-input" rows={2} placeholder="Additional notes / ملاحظات إضافية" />
               </div>
               <div className="modal-actions">
-                <button type="button" className="btn-secondary" onClick={() => setIsModalOpen(false)}>Cancel / إلغاء</button>
+                <button type="button" className="btn-secondary" onClick={() => { setIsModalOpen(false); setFormErrors({}); }}>Cancel / إلغاء</button>
                 <button type="submit" className="btn-primary" disabled={formLoading}>
                   {formLoading ? <Loader2 className="animate-spin" size={18} /> : isEditing ? 'Save Changes / حفظ التغييرات' : 'Add Store / إنشاء متجر'}
                 </button>

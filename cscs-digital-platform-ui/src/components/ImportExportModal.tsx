@@ -38,6 +38,25 @@ const ImportExportModal: React.FC<ImportExportModalProps> = ({
   const [dragOver, setDragOver] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  React.useEffect(() => {
+    if (isOpen) {
+      const activeEl = document.activeElement;
+      if (activeEl) {
+        const text = activeEl.textContent || '';
+        const className = activeEl.className || '';
+        if (
+          className.includes('export') || 
+          text.toLowerCase().includes('export') || 
+          text.includes('تصدير')
+        ) {
+          setActiveTab('export');
+        } else {
+          setActiveTab('import');
+        }
+      }
+    }
+  }, [isOpen]);
+
   if (!isOpen) return null;
 
   const handleFileSelect = (file: File) => {
@@ -103,6 +122,10 @@ const ImportExportModal: React.FC<ImportExportModalProps> = ({
     onClose();
   };
 
+  const displayEntity = entityName === 'ESL Tags' ? 'Devices' : entityName;
+  const displayTitle = activeTab === 'import' ? `${displayEntity} Import` : `${displayEntity} Export`;
+  const displaySubtitle = activeTab === 'import' ? `Bulk import ${entityName}` : `Bulk export ${entityName}`;
+
   return (
     <div style={styles.overlay} onClick={handleClose}>
       <div style={styles.modal} onClick={(e) => e.stopPropagation()}>
@@ -111,31 +134,11 @@ const ImportExportModal: React.FC<ImportExportModalProps> = ({
           <div style={styles.headerLeft}>
             <span style={styles.headerIcon}>📦</span>
             <div>
-              <h2 style={styles.title}>{title}</h2>
-              <p style={styles.subtitle}>Bulk import/export {entityName}</p>
+              <h2 style={styles.title}>{displayTitle}</h2>
+              <p style={styles.subtitle}>{displaySubtitle}</p>
             </div>
           </div>
           <button style={styles.closeBtn} onClick={handleClose}>✕</button>
-        </div>
-
-        {/* Tabs */}
-        <div style={styles.tabBar}>
-          <button
-            style={{ ...styles.tab, ...(activeTab === 'import' ? styles.activeTab : {}) }}
-            onClick={() => setActiveTab('import')}
-          >
-            ⬆ Import
-          </button>
-          {/* 
-          {!hideExport && (
-            <button
-              style={{ ...styles.tab, ...(activeTab === 'export' ? styles.activeTab : {}) }}
-              onClick={() => setActiveTab('export')}
-            >
-              ⬇ Export
-            </button>
-          )}
-          */}
         </div>
 
         <div style={styles.body}>
@@ -380,7 +383,7 @@ const styles: Record<string, React.CSSProperties> = {
   },
   templateBtn: {
     background: 'transparent',
-    border: '1px solid var(--border-color)',
+    border: '1px solid var(--success-color)',
     color: 'var(--text-secondary)',
     borderRadius: '8px',
     padding: '6px 12px',

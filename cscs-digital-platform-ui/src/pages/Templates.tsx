@@ -190,6 +190,30 @@ const Templates: React.FC = () => {
   });
   const [newCategoryName, setNewCategoryName] = useState('');
 
+  const [newTemplateErrors, setNewTemplateErrors] = useState<{
+    templateName?: string;
+    attrCategory?: string;
+    attrName?: string;
+    selectedStore?: string;
+  }>({});
+
+  const [createCategoryErrors, setCreateCategoryErrors] = useState<{
+    newCategoryName?: string;
+  }>({});
+
+  const [editCategoryErrors, setEditCategoryErrors] = useState<{
+    editCategoryName?: string;
+  }>({});
+
+  const [editTemplateErrors, setEditTemplateErrors] = useState<{
+    templateName?: string;
+    attrCategory?: string;
+  }>({});
+
+  const [addAttributeErrors, setAddAttributeErrors] = useState<{
+    newAttributeName?: string;
+  }>({});
+
   // Notification Toast Banner
   const [notification, setNotification] = useState<{ message: string; type: 'success' | 'error' | 'warning' } | null>(null);
   const [showTemplateImportExport, setShowTemplateImportExport] = useState(false);
@@ -497,9 +521,23 @@ const Templates: React.FC = () => {
     });
   };
 
+  // Validate Create Category Modal
+  const validateCreateCategory = (): boolean => {
+    const errors: typeof createCategoryErrors = {};
+    if (!newCategoryName || newCategoryName.trim() === '') {
+      errors.newCategoryName = 'Category name is required / اسم التصنيف مطلوب';
+    } else if (newCategoryName.trim().length > 120) {
+      errors.newCategoryName = 'Category name must not exceed 120 characters';
+    } else if (!/^[\u0600-\u06FFa-zA-Z0-9\s\-_]+$/.test(newCategoryName.trim())) {
+      errors.newCategoryName = 'Category name contains invalid characters';
+    }
+    setCreateCategoryErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
   const handleCreateCategory = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newCategoryName.trim()) return;
+    if (!validateCreateCategory()) return;
     setSubmitting(true);
     try {
       await addCategory(newCategoryName);
@@ -522,9 +560,24 @@ const Templates: React.FC = () => {
     }
   };
 
+  // Validate Edit Category Modal
+  const validateEditCategory = (): boolean => {
+    const errors: typeof editCategoryErrors = {};
+    if (!editCategoryName || editCategoryName.trim() === '') {
+      errors.editCategoryName = 'Category name is required / اسم التصنيف مطلوب';
+    } else if (editCategoryName.trim().length > 120) {
+      errors.editCategoryName = 'Category name must not exceed 120 characters';
+    } else if (!/^[\u0600-\u06FFa-zA-Z0-9\s\-_]+$/.test(editCategoryName.trim())) {
+      errors.editCategoryName = 'Category name contains invalid characters';
+    }
+    setEditCategoryErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
   const handleUpdateCategory = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!editCategoryName.trim() || !editCategoryTarget) return;
+    if (!validateEditCategory()) return;
+    if (!editCategoryTarget) return;
     setSubmitting(true);
     try {
       const payload = { 
@@ -565,9 +618,33 @@ const Templates: React.FC = () => {
     }
   };
 
+  // Validate New Template Modal
+  const validateNewTemplate = (): boolean => {
+    const errors: typeof newTemplateErrors = {};
+    if (!newTemplate.templateName || newTemplate.templateName.trim() === '') {
+      errors.templateName = 'Template name is required / اسم القالب مطلوب';
+    } else if (newTemplate.templateName.trim().length > 100) {
+      errors.templateName = 'Template name must not exceed 100 characters';
+    } else if (!/^[\u0600-\u06FFa-zA-Z0-9\s\-_()]+$/.test(newTemplate.templateName.trim())) {
+      errors.templateName = 'Template name contains invalid characters';
+    }
+    if (!newTemplate.attrCategory || newTemplate.attrCategory.trim() === '' || newTemplate.attrCategory === 'default_placeholder') {
+      errors.attrCategory = 'Template category is required / تصنيف القالب مطلوب';
+    }
+    if (!newTemplate.attrName || newTemplate.attrName.trim() === '' || newTemplate.attrName === 'default_placeholder') {
+      errors.attrName = 'Template type is required / نوع القالب مطلوب';
+    }
+    if (activeMenuTab === 'store' && (!selectedStore || selectedStore.trim() === '')) {
+      errors.selectedStore = 'Please select a store / يرجى اختيار المتجر';
+    }
+    setNewTemplateErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
   const handleCreateTemplate = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newTemplate.templateName.trim() || !newTemplate.model) return;
+    if (!validateNewTemplate()) return;
+    if (!newTemplate.model) return;
     
     const modelObj = models.find(m => m.model === newTemplate.model);
     const payload = {
@@ -586,10 +663,24 @@ const Templates: React.FC = () => {
     navigate('/template/editor/new', { state: { config: payload } });
   };
 
+  // Validate Add Attribute Modal
+  const validateAddAttribute = (): boolean => {
+    const errors: typeof addAttributeErrors = {};
+    if (!newAttributeName || newAttributeName.trim() === '') {
+      errors.newAttributeName = 'Attribute name is required / اسم السمة مطلوب';
+    } else if (newAttributeName.trim().length > 120) {
+      errors.newAttributeName = 'Attribute name must not exceed 120 characters';
+    } else if (!/^[\u0600-\u06FFa-zA-Z0-9\s\-_]+$/.test(newAttributeName.trim())) {
+      errors.newAttributeName = 'Attribute name contains invalid characters';
+    }
+    setAddAttributeErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
   // Add attribute property under category (Tab 5 properties)
   const handleAddAttribute = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newAttributeName.trim()) return;
+    if (!validateAddAttribute()) return;
     setCategoryAttributes(prev => ({
       ...prev,
       [selectedPropertyCat]: [...(prev[selectedPropertyCat] || []), newAttributeName.trim()]
@@ -615,9 +706,25 @@ const Templates: React.FC = () => {
     });
   };
 
+  // Validate Edit Template Modal
+  const validateEditTemplate = (): boolean => {
+    const errors: typeof editTemplateErrors = {};
+    if (!editTemplateModal || !editTemplateModal.templateName || editTemplateModal.templateName.trim() === '') {
+      errors.templateName = 'Template name is required / اسم القالب مطلوب';
+    } else if (editTemplateModal.templateName.trim().length > 100) {
+      errors.templateName = 'Template name must not exceed 100 characters';
+    }
+    if (!editTemplateModal || !editTemplateModal.attrCategory || editTemplateModal.attrCategory.trim() === '' || editTemplateModal.attrCategory === 'default_placeholder') {
+      errors.attrCategory = 'Template category is required / تصنيف القالب مطلوب';
+    }
+    setEditTemplateErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
   // Update template base info (rename / category change)
   const handleUpdateTemplate = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!validateEditTemplate()) return;
     if (!editTemplateModal) return;
     setEditSubmitting(true);
     try {
@@ -1208,6 +1315,7 @@ const Templates: React.FC = () => {
                 className="close-btn" 
                 onClick={() => { 
                   setIsTemplateModalOpen(false); 
+                  setNewTemplateErrors({});
                   setNewTemplate({
                     templateName: '',
                     storeId: activeMenuTab === 'store' ? selectedStore : '0',
@@ -1235,9 +1343,17 @@ const Templates: React.FC = () => {
                   type="text"
                   placeholder="e.g. 1779862316907"
                   value={newTemplate.templateName}
-                  onChange={e => setNewTemplate({ ...newTemplate, templateName: e.target.value })}
+                  onChange={e => {
+                    setNewTemplate({ ...newTemplate, templateName: e.target.value });
+                    if (newTemplateErrors.templateName) setNewTemplateErrors(prev => ({ ...prev, templateName: undefined }));
+                  }}
                   className="glass-input"
                 />
+                {newTemplateErrors.templateName && (
+                  <span style={{ color: '#dc2626', fontSize: '12px', marginTop: '4px', display: 'block' }}>
+                    {newTemplateErrors.templateName}
+                  </span>
+                )}
               </div>
 
               {/* Row 2: Screen Type — radio buttons */}
@@ -1373,13 +1489,21 @@ const Templates: React.FC = () => {
                   required
                   className="glass-input"
                   value={newTemplate.attrCategory || ''}
-                  onChange={e => setNewTemplate({ ...newTemplate, attrCategory: e.target.value })}
+                  onChange={e => {
+                    setNewTemplate({ ...newTemplate, attrCategory: e.target.value });
+                    if (newTemplateErrors.attrCategory) setNewTemplateErrors(prev => ({ ...prev, attrCategory: undefined }));
+                  }}
                 >
                   <option value="">Select Category... / اختر التصنيف...</option>
                   {categories.map(c => (
                     <option key={c.id} value={c.categoryName}>{c.categoryName}</option>
                   ))}
                 </select>
+                {newTemplateErrors.attrCategory && (
+                  <span style={{ color: '#dc2626', fontSize: '12px', marginTop: '4px', display: 'block' }}>
+                    {newTemplateErrors.attrCategory}
+                  </span>
+                )}
               </div>
 
               {/* Row 8: Template Type — mandatory dropdown */}
@@ -1389,13 +1513,21 @@ const Templates: React.FC = () => {
                   required
                   className="glass-input"
                   value={newTemplate.attrName || ''}
-                  onChange={e => setNewTemplate({ ...newTemplate, attrName: e.target.value })}
+                  onChange={e => {
+                    setNewTemplate({ ...newTemplate, attrName: e.target.value });
+                    if (newTemplateErrors.attrName) setNewTemplateErrors(prev => ({ ...prev, attrName: undefined }));
+                  }}
                 >
                   <option value="">Select Type... / اختر النوع...</option>
                   {templateTypes.map(t => (
                     <option key={t} value={t}>{t}</option>
                   ))}
                 </select>
+                {newTemplateErrors.attrName && (
+                  <span style={{ color: '#dc2626', fontSize: '12px', marginTop: '4px', display: 'block' }}>
+                    {newTemplateErrors.attrName}
+                  </span>
+                )}
               </div>
 
               {/* Row 9: Bound Store — only for store tab */}
@@ -1414,10 +1546,18 @@ const Templates: React.FC = () => {
                     <select
                       className="glass-input"
                       value={selectedStore}
-                      onChange={e => setSelectedStore(e.target.value)}
+                      onChange={e => {
+                        setSelectedStore(e.target.value);
+                        if (newTemplateErrors.selectedStore) setNewTemplateErrors(prev => ({ ...prev, selectedStore: undefined }));
+                      }}
                     >
                       {stores.map(s => <option key={s.storeId} value={s.storeId}>{s.storeName}</option>)}
                     </select>
+                  )}
+                  {newTemplateErrors.selectedStore && (
+                    <span style={{ color: '#dc2626', fontSize: '12px', marginTop: '4px', display: 'block' }}>
+                      {newTemplateErrors.selectedStore}
+                    </span>
                   )}
                 </div>
               )}
@@ -1428,6 +1568,7 @@ const Templates: React.FC = () => {
                   className="btn-secondary" 
                   onClick={() => { 
                     setIsTemplateModalOpen(false); 
+                    setNewTemplateErrors({});
                     setNewTemplate({
                       templateName: '',
                       storeId: activeMenuTab === 'store' ? selectedStore : '0',
@@ -1458,7 +1599,7 @@ const Templates: React.FC = () => {
           <div className="modal-content glass-card" style={{ maxHeight: '90vh', overflowY: 'auto' }}>
             <div className="modal-header">
               <h3>Create Template Category / إنشاء تصنيف قالب</h3>
-              <button className="close-btn" onClick={() => setIsCategoryModalOpen(false)}>&times;</button>
+              <button className="close-btn" onClick={() => { setIsCategoryModalOpen(false); setCreateCategoryErrors({}); }}>&times;</button>
             </div>
             <form onSubmit={handleCreateCategory} className="create-form">
               <div className="form-group">
@@ -1468,13 +1609,21 @@ const Templates: React.FC = () => {
                   type="text"
                   placeholder="e.g. Pharmacy, Thobe, Grocery / مثال: صيدلية، ثوب، بقالة"
                   value={newCategoryName}
-                  onChange={e => setNewCategoryName(e.target.value)}
+                  onChange={e => {
+                    setNewCategoryName(e.target.value);
+                    if (createCategoryErrors.newCategoryName) setCreateCategoryErrors(prev => ({ ...prev, newCategoryName: undefined }));
+                  }}
                   className="glass-input"
                 />
+                {createCategoryErrors.newCategoryName && (
+                  <span style={{ color: '#dc2626', fontSize: '12px', marginTop: '4px', display: 'block' }}>
+                    {createCategoryErrors.newCategoryName}
+                  </span>
+                )}
               </div>
 
               <div className="modal-actions">
-                <button type="button" className="btn-secondary" onClick={() => setIsCategoryModalOpen(false)}>Cancel / إلغاء</button>
+                <button type="button" className="btn-secondary" onClick={() => { setIsCategoryModalOpen(false); setCreateCategoryErrors({}); }}>Cancel / إلغاء</button>
                 <button type="submit" className="btn-primary" disabled={submitting}>
                   {submitting ? <Loader2 className="animate-spin" size={16} /> : 'Add Category / إضافة تصنيف'}
                 </button>
@@ -1490,7 +1639,7 @@ const Templates: React.FC = () => {
             <div className="modal-content glass-card" style={{ maxHeight: '90vh', overflowY: 'auto' }}>
               <div className="modal-header">
                 <h3>Edit Template Category / تعديل تصنيف قالب</h3>
-                <button className="close-btn" onClick={() => setIsEditCategoryModalOpen(false)}>&times;</button>
+                <button className="close-btn" onClick={() => { setIsEditCategoryModalOpen(false); setEditCategoryErrors({}); }}>&times;</button>
               </div>
               <form onSubmit={handleUpdateCategory} className="create-form">
                 <div className="form-group">
@@ -1500,13 +1649,21 @@ const Templates: React.FC = () => {
                     type="text"
                     placeholder="e.g. Pharmacy, Thobe, Grocery / مثال: صيدلية، ثوب، بقالة"
                     value={editCategoryName}
-                    onChange={e => setEditCategoryName(e.target.value)}
+                    onChange={e => {
+                      setEditCategoryName(e.target.value);
+                      if (editCategoryErrors.editCategoryName) setEditCategoryErrors(prev => ({ ...prev, editCategoryName: undefined }));
+                    }}
                     className="glass-input"
                   />
+                  {editCategoryErrors.editCategoryName && (
+                    <span style={{ color: '#dc2626', fontSize: '12px', marginTop: '4px', display: 'block' }}>
+                      {editCategoryErrors.editCategoryName}
+                    </span>
+                  )}
                 </div>
   
                 <div className="modal-actions">
-                  <button type="button" className="btn-secondary" onClick={() => setIsEditCategoryModalOpen(false)}>Cancel / إلغاء</button>
+                  <button type="button" className="btn-secondary" onClick={() => { setIsEditCategoryModalOpen(false); setEditCategoryErrors({}); }}>Cancel / إلغاء</button>
                   <button type="submit" className="btn-primary" disabled={submitting}>
                     {submitting ? <Loader2 size={18} className="spin" /> : 'Save / حفظ'}
                   </button>
@@ -1522,7 +1679,7 @@ const Templates: React.FC = () => {
           <div className="modal-content glass-card" style={{ maxHeight: '90vh', overflowY: 'auto' }}>
             <div className="modal-header">
               <h3>Edit Template / تعديل القالب</h3>
-              <button className="close-btn" onClick={() => setEditTemplateModal(null)}>&times;</button>
+              <button className="close-btn" onClick={() => { setEditTemplateModal(null); setEditTemplateErrors({}); }}>&times;</button>
             </div>
             <form onSubmit={handleUpdateTemplate} className="create-form">
               <div className="form-group">
@@ -1531,25 +1688,41 @@ const Templates: React.FC = () => {
                   required
                   type="text"
                   value={editTemplateModal.templateName}
-                  onChange={e => setEditTemplateModal({ ...editTemplateModal, templateName: e.target.value })}
+                  onChange={e => {
+                    setEditTemplateModal({ ...editTemplateModal, templateName: e.target.value });
+                    if (editTemplateErrors.templateName) setEditTemplateErrors(prev => ({ ...prev, templateName: undefined }));
+                  }}
                   className="glass-input"
                 />
+                {editTemplateErrors.templateName && (
+                  <span style={{ color: '#dc2626', fontSize: '12px', marginTop: '4px', display: 'block' }}>
+                    {editTemplateErrors.templateName}
+                  </span>
+                )}
               </div>
               <div className="form-group">
                 <label>Template Category <span className="required-asterisk">*</span> / تصنيف القالب</label>
                 <select
                   className="glass-input"
                   value={editTemplateModal.attrCategory}
-                  onChange={e => setEditTemplateModal({ ...editTemplateModal, attrCategory: e.target.value })}
+                  onChange={e => {
+                    setEditTemplateModal({ ...editTemplateModal, attrCategory: e.target.value });
+                    if (editTemplateErrors.attrCategory) setEditTemplateErrors(prev => ({ ...prev, attrCategory: undefined }));
+                  }}
                 >
                   <option value="">-- Select Category / اختر تصنيفاً --</option>
                   {categories.map(c => (
                     <option key={c.id} value={c.categoryName}>{c.categoryName}</option>
                   ))}
                 </select>
+                {editTemplateErrors.attrCategory && (
+                  <span style={{ color: '#dc2626', fontSize: '12px', marginTop: '4px', display: 'block' }}>
+                    {editTemplateErrors.attrCategory}
+                  </span>
+                )}
               </div>
               <div className="modal-actions">
-                <button type="button" className="btn-secondary" onClick={() => setEditTemplateModal(null)}>Cancel / إلغاء</button>
+                <button type="button" className="btn-secondary" onClick={() => { setEditTemplateModal(null); setEditTemplateErrors({}); }}>Cancel / إلغاء</button>
                 <button type="submit" className="btn-primary" disabled={editSubmitting}>
                   {editSubmitting ? <Loader2 className="animate-spin" size={16} /> : 'Save Changes / حفظ التغييرات'}
                 </button>
@@ -1616,7 +1789,7 @@ const Templates: React.FC = () => {
           <div className="modal-content glass-card" style={{ maxWidth: '500px' }}>
             <div className="modal-header" style={{ borderBottom: '1px solid var(--glass-border)', paddingBottom: '16px', marginBottom: '24px' }}>
               <h3 style={{ fontSize: '20px', fontWeight: 600 }}>Add Attribute / إضافة سمة</h3>
-              <button className="close-btn" onClick={() => setIsAddAttrOpen(false)}>&times;</button>
+              <button className="close-btn" onClick={() => { setIsAddAttrOpen(false); setAddAttributeErrors({}); }}>&times;</button>
             </div>
             <form onSubmit={handleAddAttribute} className="create-form">
               <div className="form-group" style={{ marginBottom: '32px' }}>
@@ -1628,15 +1801,23 @@ const Templates: React.FC = () => {
                   type="text"
                   placeholder="Enter attribute name..."
                   value={newAttributeName}
-                  onChange={e => setNewAttributeName(e.target.value)}
+                  onChange={e => {
+                    setNewAttributeName(e.target.value);
+                    if (addAttributeErrors.newAttributeName) setAddAttributeErrors(prev => ({ ...prev, newAttributeName: undefined }));
+                  }}
                   className="glass-input"
                   autoFocus
                   style={{ width: '100%', height: '44px' }}
                 />
+                {addAttributeErrors.newAttributeName && (
+                  <span style={{ color: '#dc2626', fontSize: '12px', marginTop: '4px', display: 'block' }}>
+                    {addAttributeErrors.newAttributeName}
+                  </span>
+                )}
               </div>
 
               <div className="modal-actions" style={{ justifyContent: 'flex-end', gap: '16px' }}>
-                <button type="button" className="btn-secondary" onClick={() => setIsAddAttrOpen(false)} style={{ padding: '0 32px', height: '40px', fontWeight: 600 }}>
+                <button type="button" className="btn-secondary" onClick={() => { setIsAddAttrOpen(false); setAddAttributeErrors({}); }} style={{ padding: '0 32px', height: '40px', fontWeight: 600 }}>
                   Cancel / إلغاء
                 </button>
                 <button type="submit" className="btn-primary" style={{ padding: '0 32px', height: '40px', fontWeight: 600 }}>

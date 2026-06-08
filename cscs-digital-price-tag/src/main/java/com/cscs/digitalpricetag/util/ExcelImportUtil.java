@@ -19,6 +19,7 @@ public class ExcelImportUtil {
         ImportResponse response = new ImportResponse();
         
         try (InputStream is = file.getInputStream(); Workbook workbook = new XSSFWorkbook(is)) {
+            FormulaEvaluator evaluator = workbook.getCreationHelper().createFormulaEvaluator();
             Sheet sheet = workbook.getSheetAt(0);
             Iterator<Row> rowIterator = sheet.iterator();
             
@@ -31,7 +32,7 @@ public class ExcelImportUtil {
             Row headerRow = rowIterator.next();
             List<String> actualHeaders = new ArrayList<>();
             for (Cell cell : headerRow) {
-                actualHeaders.add(getCellValue(cell).trim());
+                actualHeaders.add(getCellValue(cell, evaluator).trim());
             }
             
             // Basic header validation
@@ -50,7 +51,7 @@ public class ExcelImportUtil {
                 // Skip completely empty rows
                 boolean isEmptyRow = true;
                 for (int c = 0; c < actualHeaders.size(); c++) {
-                    if (!getCellValue(row.getCell(c)).isEmpty()) {
+                    if (!getCellValue(row.getCell(c), evaluator).isEmpty()) {
                         isEmptyRow = false;
                         break;
                     }
@@ -64,8 +65,9 @@ public class ExcelImportUtil {
                 
                 Map<String, String> rowData = new java.util.HashMap<>();
                 for (int c = 0; c < actualHeaders.size(); c++) {
-                    rowData.put(actualHeaders.get(c), getCellValue(row.getCell(c)));
+                    rowData.put(actualHeaders.get(c), getCellValue(row.getCell(c), evaluator));
                 }
+                rowData.put("__rowNumber__", String.valueOf(rowIndex));
                 
                 try {
                     T mappedObj = rowMapper.apply(rowData);
@@ -99,8 +101,32 @@ public class ExcelImportUtil {
     }
     
     private static String getCellValue(Cell cell) {
+        return getCellValue(cell, null);
+    }
+    
+    private static String getCellValue(Cell cell, FormulaEvaluator evaluator) {
         if (cell == null) return "";
-        return switch (cell.getCellType()) {
+        CellType cellType = cell.getCellType();
+        if (cellType == CellType.FORMULA && evaluator != null) {
+            try {
+                CellValue cellValue = evaluator.evaluate(cell);
+                return switch (cellValue.getCellType()) {
+                    case STRING -> cellValue.getStringValue();
+                    case NUMERIC -> {
+                        double val = cellValue.getNumberValue();
+                        if (val == Math.floor(val)) {
+                            yield String.valueOf((long) val);
+                        }
+                        yield String.valueOf(val);
+                    }
+                    case BOOLEAN -> String.valueOf(cellValue.getBooleanValue());
+                    default -> "";
+                };
+            } catch (Exception e) {
+                return cell.getCellFormula();
+            }
+        }
+        return switch (cellType) {
             case STRING -> cell.getStringCellValue();
             case NUMERIC -> {
                 if (DateUtil.isCellDateFormatted(cell)) {

@@ -14,6 +14,7 @@ public class StoreCreateRequest {
     private String address = "";
     private String comment = "";
     private int dataCombination = 0;
+    private Integer rowNumber;
 
     public String getStoreName() { return storeName; }
     public void setStoreName(String storeName) { this.storeName = storeName; }
@@ -38,4 +39,7 @@ public class StoreCreateRequest {
 
     public int getDataCombination() { return dataCombination; }
     public void setDataCombination(int dataCombination) { this.dataCombination = dataCombination; }
+
+    public Integer getRowNumber() { return rowNumber; }
+    public void setRowNumber(Integer rowNumber) { this.rowNumber = rowNumber; }
 }

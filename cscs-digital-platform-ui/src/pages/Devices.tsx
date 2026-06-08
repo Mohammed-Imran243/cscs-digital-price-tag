@@ -65,6 +65,12 @@ const Devices: React.FC = () => {
   const [apSubmitting, setApSubmitting] = useState(false);
   const [selectedStore, setSelectedStore] = useState<string>('');
 
+  const [apFormErrors, setApFormErrors] = useState<{
+    selectedStore?: string;
+    apName?: string;
+    mac?: string;
+  }>({});
+
   useEffect(() => {
     setSelectedStore(selectedStoreId);
   }, [selectedStoreId]);
@@ -497,8 +503,37 @@ const Devices: React.FC = () => {
     fetchDevices();
   };
 
+  const validateApForm = (): boolean => {
+    const errors: typeof apFormErrors = {};
+
+    // selectedStore — required dropdown
+    if (!selectedStore || selectedStore === '' || selectedStore === '0') {
+      errors.selectedStore = 'Please select a store / يرجى اختيار المتجر';
+    }
+
+    // apName — required, alphanumeric + spaces + Arabic, max 60
+    if (!newAp.apName || newAp.apName.trim() === '') {
+      errors.apName = 'Base station name is required / اسم المحطة مطلوب';
+    } else if (newAp.apName.trim().length > 60) {
+      errors.apName = 'Name must not exceed 60 characters';
+    } else if (!/^[\u0600-\u06FFa-zA-Z0-9\s\-_()]+$/.test(newAp.apName.trim())) {
+      errors.apName = 'Name contains invalid characters';
+    }
+
+    // mac — required, valid MAC: 12 hex chars (with or without colons/hyphens)
+    if (!newAp.mac || newAp.mac.trim() === '') {
+      errors.mac = 'MAC address is required / عنوان MAC مطلوب';
+    } else if (!/^([0-9A-Fa-f]{2}[:\-]?){5}[0-9A-Fa-f]{2}$/.test(newAp.mac.trim())) {
+      errors.mac = 'Enter a valid MAC address (e.g. A0A3B8273D77 or A0:A3:B8:27:3D:77)';
+    }
+
+    setApFormErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
   const handleAddAp = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!validateApForm()) return;
     if (!newAp.mac.trim() || !selectedStore) return;
     setApSubmitting(true);
     try {
@@ -510,6 +545,7 @@ const Devices: React.FC = () => {
       });
       showNotification('success', 'AP added successfully / تمت إضافة نقطة الوصول بنجاح');
       setIsAddApModalOpen(false);
+      setApFormErrors({});
       setNewAp({ apName: '', mac: '', comment: '' });
       fetchApDevices(); // refresh AP list
     } catch (err: any) {
@@ -626,13 +662,7 @@ const Devices: React.FC = () => {
             onRefresh={() => fetchDevices()}
             loading={loading || storesLoading}
             onBatchBind={activeTab === 'esl' ? () => setShowEslImportExport(true) : undefined}
-            onExport={activeTab === 'esl' ? async () => {
-              try {
-                await exportEslTags(selectedStoreId);
-              } catch (e) {
-                console.error('Export failed', e);
-              }
-            } : undefined}
+            onExport={activeTab === 'esl' ? () => setShowEslImportExport(true) : undefined}
             onAdd={activeTab === 'ap' ? () => setIsAddApModalOpen(true) : undefined}
             addLabel={activeTab === 'ap' ? 'Add AP' : 'Add'}
             addLabelAr={activeTab === 'ap' ? 'إضافة محطة' : 'إضافة'}
@@ -821,7 +851,7 @@ const Devices: React.FC = () => {
           <div className="modal-content glass-card" style={{ maxHeight: '90vh', overflowY: 'auto' }}>
             <div className="modal-header">
               <h3>Add AP / إضافة نقطة وصول</h3>
-              <button className="close-btn" onClick={() => setIsAddApModalOpen(false)}>&times;</button>
+              <button className="close-btn" onClick={() => { setIsAddApModalOpen(false); setApFormErrors({}); }}>&times;</button>
             </div>
             <form onSubmit={handleAddAp} className="create-form">
 
@@ -832,13 +862,21 @@ const Devices: React.FC = () => {
                   required
                   className="glass-input"
                   value={selectedStore}
-                  onChange={e => setSelectedStore(e.target.value)}
+                  onChange={e => {
+                    setSelectedStore(e.target.value);
+                    if (apFormErrors.selectedStore) setApFormErrors(prev => ({ ...prev, selectedStore: undefined }));
+                  }}
                 >
                   <option value="">Select a Store... / اختر متجراً...</option>
                   {stores.map(s => (
                     <option key={s.storeId} value={s.storeId}>{s.storeName}</option>
                   ))}
                 </select>
+                {apFormErrors.selectedStore && (
+                  <span style={{ color: '#dc2626', fontSize: '12px', marginTop: '4px', display: 'block' }}>
+                    {apFormErrors.selectedStore}
+                  </span>
+                )}
               </div>
 
               {/* Base Station Name — optional */}
@@ -849,8 +887,16 @@ const Devices: React.FC = () => {
                   className="glass-input"
                   placeholder="e.g. AlNaseemIOT / مثال: AlNaseemIOT"
                   value={newAp.apName}
-                  onChange={e => setNewAp(prev => ({ ...prev, apName: e.target.value }))}
+                  onChange={e => {
+                    setNewAp(prev => ({ ...prev, apName: e.target.value }));
+                    if (apFormErrors.apName) setApFormErrors(prev => ({ ...prev, apName: undefined }));
+                  }}
                 />
+                {apFormErrors.apName && (
+                  <span style={{ color: '#dc2626', fontSize: '12px', marginTop: '4px', display: 'block' }}>
+                    {apFormErrors.apName}
+                  </span>
+                )}
               </div>
 
               {/* MAC — mandatory */}
@@ -862,8 +908,16 @@ const Devices: React.FC = () => {
                   className="glass-input"
                   placeholder="e.g. A0A3B855950F / مثال: A0A3B855950F"
                   value={newAp.mac}
-                  onChange={e => setNewAp(prev => ({ ...prev, mac: e.target.value }))}
+                  onChange={e => {
+                    setNewAp(prev => ({ ...prev, mac: e.target.value }));
+                    if (apFormErrors.mac) setApFormErrors(prev => ({ ...prev, mac: undefined }));
+                  }}
                 />
+                {apFormErrors.mac && (
+                  <span style={{ color: '#dc2626', fontSize: '12px', marginTop: '4px', display: 'block' }}>
+                    {apFormErrors.mac}
+                  </span>
+                )}
               </div>
 
               {/* Comment — optional */}
@@ -882,7 +936,7 @@ const Devices: React.FC = () => {
                 <button
                   type="button"
                   className="btn-secondary"
-                  onClick={() => setIsAddApModalOpen(false)}
+                  onClick={() => { setIsAddApModalOpen(false); setApFormErrors({}); }}
                 >
                   Cancel / إلغاء
                 </button>

@@ -200,6 +200,15 @@ const Products: React.FC = () => {
   const [isUpdating, setIsUpdating] = useState(false);
   const [isViewOnly, setIsViewOnly] = useState(false);
   
+  const [productFormErrors, setProductFormErrors] = useState<{
+    productCode?: string;
+    barCode?: string;
+    itemTitle?: string;
+    price?: string;
+    originalPrice?: string;
+    vipPrice?: string;
+  }>({});
+  
   // New Product State
   const [newProduct, setNewProduct] = useState({
     productCode: '',
@@ -425,8 +434,71 @@ const Products: React.FC = () => {
     }
   }, [selectedStore, currentPage, pageSize, debouncedSearch]);
 
+  const validateProductForm = (isEdit: boolean): boolean => {
+    const errors: typeof productFormErrors = {};
+    const formState = isEdit ? editingProduct : newProduct;
+
+    // productCode — required, alphanumeric + hyphens/underscores, max 100
+    if (!formState.productCode || String(formState.productCode).trim() === '') {
+      errors.productCode = 'Product code is required / كود السلعة مطلوب';
+    } else if (String(formState.productCode).trim().length > 100) {
+      errors.productCode = 'Product code must not exceed 100 characters';
+    } else if (!/^[a-zA-Z0-9_\-]+$/.test(String(formState.productCode).trim())) {
+      errors.productCode = 'Product code: letters, numbers, hyphens and underscores only';
+    }
+
+    // barCode — required on CREATE only, alphanumeric + hyphens, max 100
+    if (!isEdit) {
+      if (!formState.barCode || String(formState.barCode).trim() === '') {
+        errors.barCode = 'Barcode is required / الباركود مطلوب';
+      } else if (String(formState.barCode).trim().length > 100) {
+        errors.barCode = 'Barcode must not exceed 100 characters';
+      } else if (!/^[a-zA-Z0-9_\-]+$/.test(String(formState.barCode).trim())) {
+        errors.barCode = 'Barcode: letters, numbers, hyphens and underscores only';
+      }
+    }
+
+    // itemTitle — required, free text + Arabic, max 500
+    if (!formState.itemTitle || String(formState.itemTitle).trim() === '') {
+      errors.itemTitle = 'Product name is required / اسم السلعة مطلوب';
+    } else if (String(formState.itemTitle).trim().length > 500) {
+      errors.itemTitle = 'Product name must not exceed 500 characters';
+    }
+
+    // price — required, valid positive number, max 2 decimal places
+    if (formState.price === undefined || formState.price === null || String(formState.price).trim() === '') {
+      errors.price = 'Selling price is required / سعر البيع مطلوب';
+    } else if (isNaN(Number(formState.price)) || Number(formState.price) < 0) {
+      errors.price = 'Enter a valid positive price / يرجى إدخال سعر صحيح';
+    } else if (!/^\d+(\.\d{1,2})?$/.test(String(formState.price).trim())) {
+      errors.price = 'Price allows up to 2 decimal places only';
+    }
+
+    // originalPrice — optional, valid non-negative number
+    if (formState.originalPrice !== undefined && formState.originalPrice !== null && String(formState.originalPrice).trim() !== '' && String(formState.originalPrice) !== '0') {
+      if (isNaN(Number(formState.originalPrice)) || Number(formState.originalPrice) < 0) {
+        errors.originalPrice = 'Enter a valid original price / سعر أصلي غير صالح';
+      } else if (!/^\d+(\.\d{1,2})?$/.test(String(formState.originalPrice).trim())) {
+        errors.originalPrice = 'Original price allows up to 2 decimal places only';
+      }
+    }
+
+    // vipPrice — optional, valid non-negative number
+    if (formState.vipPrice !== undefined && formState.vipPrice !== null && String(formState.vipPrice).trim() !== '' && String(formState.vipPrice) !== '0') {
+      if (isNaN(Number(formState.vipPrice)) || Number(formState.vipPrice) < 0) {
+        errors.vipPrice = 'Enter a valid VIP price / سعر VIP غير صالح';
+      } else if (!/^\d+(\.\d{1,2})?$/.test(String(formState.vipPrice).trim())) {
+        errors.vipPrice = 'VIP price allows up to 2 decimal places only';
+      }
+    }
+
+    setProductFormErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
   const handleCreateProduct = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!validateProductForm(false)) return;
 
     if (!newProduct.barCode?.trim()) {
       showNotification('Barcode is required / الرمز الشريطي مطلوب', 'error');
@@ -592,6 +664,7 @@ const Products: React.FC = () => {
 
   const handleUpdateProduct = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!validateProductForm(true)) return;
 
     if (!editingProduct.barCode?.trim()) {
       showNotification('Barcode is required / الرمز الشريطي مطلوب', 'error');
@@ -955,7 +1028,7 @@ const Products: React.FC = () => {
         <div className="modal-content glass-card" style={{ maxHeight: '90vh', overflowY: 'auto' }}>
           <div className="modal-header">
             <h3>Create New Product / إنشاء منتج جديد</h3>
-            <button className="close-btn" onClick={() => setIsModalOpen(false)}>&times;</button>
+            <button className="close-btn" onClick={() => { setIsModalOpen(false); setProductFormErrors({}); }}>&times;</button>
           </div>
           <form onSubmit={handleCreateProduct} className="create-form">
             <div className="form-row">
@@ -965,8 +1038,16 @@ const Products: React.FC = () => {
                   type="text"
                   className="glass-input"
                   value={newProduct.productCode}
-                  onChange={e => setNewProduct(prev => ({ ...prev, productCode: e.target.value }))}
+                  onChange={e => {
+                    setNewProduct(prev => ({ ...prev, productCode: e.target.value }));
+                    if (productFormErrors.productCode) setProductFormErrors(prev => ({ ...prev, productCode: undefined }));
+                  }}
                 />
+                {productFormErrors.productCode && (
+                  <span style={{ color: '#dc2626', fontSize: '12px', marginTop: '4px', display: 'block' }}>
+                    {productFormErrors.productCode}
+                  </span>
+                )}
               </div>
               <div className="form-group">
                 <label>Product Barcode <span className="required-asterisk">*</span> / باركود السلعة</label>
@@ -975,8 +1056,16 @@ const Products: React.FC = () => {
                   type="text"
                   className="glass-input"
                   value={newProduct.barCode}
-                  onChange={e => setNewProduct(prev => ({ ...prev, barCode: e.target.value }))}
+                  onChange={e => {
+                    setNewProduct(prev => ({ ...prev, barCode: e.target.value }));
+                    if (productFormErrors.barCode) setProductFormErrors(prev => ({ ...prev, barCode: undefined }));
+                  }}
                 />
+                {productFormErrors.barCode && (
+                  <span style={{ color: '#dc2626', fontSize: '12px', marginTop: '4px', display: 'block' }}>
+                    {productFormErrors.barCode}
+                  </span>
+                )}
               </div>
             </div>
             <div className="form-group">
@@ -986,8 +1075,16 @@ const Products: React.FC = () => {
                 type="text"
                 className="glass-input"
                 value={newProduct.itemTitle}
-                onChange={e => setNewProduct(prev => ({ ...prev, itemTitle: e.target.value }))}
+                onChange={e => {
+                  setNewProduct(prev => ({ ...prev, itemTitle: e.target.value }));
+                  if (productFormErrors.itemTitle) setProductFormErrors(prev => ({ ...prev, itemTitle: undefined }));
+                }}
               />
+              {productFormErrors.itemTitle && (
+                <span style={{ color: '#dc2626', fontSize: '12px', marginTop: '4px', display: 'block' }}>
+                  {productFormErrors.itemTitle}
+                </span>
+              )}
             </div>
             <div className="form-row">
               <div className="form-group">
@@ -999,8 +1096,16 @@ const Products: React.FC = () => {
                   placeholder="0.00"
                   className="glass-input"
                   value={newProduct.price}
-                  onChange={e => setNewProduct(prev => ({ ...prev, price: e.target.value }))}
+                  onChange={e => {
+                    setNewProduct(prev => ({ ...prev, price: e.target.value }));
+                    if (productFormErrors.price) setProductFormErrors(prev => ({ ...prev, price: undefined }));
+                  }}
                 />
+                {productFormErrors.price && (
+                  <span style={{ color: '#dc2626', fontSize: '12px', marginTop: '4px', display: 'block' }}>
+                    {productFormErrors.price}
+                  </span>
+                )}
               </div>
               <div className="form-group">
                 <label>Original Price / السعر الأصلي</label>
@@ -1010,8 +1115,16 @@ const Products: React.FC = () => {
                   placeholder="0.00"
                   className="glass-input"
                   value={newProduct.originalPrice}
-                  onChange={e => setNewProduct(prev => ({ ...prev, originalPrice: e.target.value }))}
+                  onChange={e => {
+                    setNewProduct(prev => ({ ...prev, originalPrice: e.target.value }));
+                    if (productFormErrors.originalPrice) setProductFormErrors(prev => ({ ...prev, originalPrice: undefined }));
+                  }}
                 />
+                {productFormErrors.originalPrice && (
+                  <span style={{ color: '#dc2626', fontSize: '12px', marginTop: '4px', display: 'block' }}>
+                    {productFormErrors.originalPrice}
+                  </span>
+                )}
               </div>
             </div>
             <div className="form-row">
@@ -1023,8 +1136,16 @@ const Products: React.FC = () => {
                   className="glass-input"
                   placeholder="0.00"
                   value={newProduct.vipPrice || ''}
-                  onChange={e => setNewProduct(prev => ({ ...prev, vipPrice: e.target.value }))}
+                  onChange={e => {
+                    setNewProduct(prev => ({ ...prev, vipPrice: e.target.value }));
+                    if (productFormErrors.vipPrice) setProductFormErrors(prev => ({ ...prev, vipPrice: undefined }));
+                  }}
                 />
+                {productFormErrors.vipPrice && (
+                  <span style={{ color: '#dc2626', fontSize: '12px', marginTop: '4px', display: 'block' }}>
+                    {productFormErrors.vipPrice}
+                  </span>
+                )}
               </div>
               <div className="form-group">
                 <label>Unit / الوحدة</label>
@@ -1095,7 +1216,7 @@ const Products: React.FC = () => {
               />
             </div>
             <div className="modal-actions">
-              <button type="button" className="btn-secondary" onClick={() => setIsModalOpen(false)}>Cancel / إلغاء</button>
+              <button type="button" className="btn-secondary" onClick={() => { setIsModalOpen(false); setProductFormErrors({}); }}>Cancel / إلغاء</button>
               <button type="submit" className="btn-primary" disabled={isCreating}>
                 {isCreating ? <Loader2 className="animate-spin" size={18} /> : 'Add Product / إنشاء منتج'}
               </button>
@@ -1111,7 +1232,7 @@ const Products: React.FC = () => {
         <div className="modal-content glass-card" style={{ maxHeight: '90vh', overflowY: 'auto' }}>
           <div className="modal-header">
             <h3>{isViewOnly ? 'View Product / عرض المنتج' : 'Edit Product / تعديل المنتج'}</h3>
-            <button className="close-btn" onClick={() => { setIsEditModalOpen(false); setIsViewOnly(false); }}>&times;</button>
+            <button className="close-btn" onClick={() => { setIsEditModalOpen(false); setIsViewOnly(false); setProductFormErrors({}); }}>&times;</button>
           </div>
           <form onSubmit={handleUpdateProduct} className="create-form">
             <div className="form-row">
@@ -1121,8 +1242,16 @@ const Products: React.FC = () => {
                   type="text" 
                   className="glass-input" 
                   value={editingProduct.productCode} 
-                  onChange={e => setEditingProduct((prev: any) => ({ ...prev, productCode: e.target.value }))} 
+                  onChange={e => {
+                    setEditingProduct((prev: any) => ({ ...prev, productCode: e.target.value }));
+                    if (productFormErrors.productCode) setProductFormErrors(prev => ({ ...prev, productCode: undefined }));
+                  }} 
                 />
+                {productFormErrors.productCode && (
+                  <span style={{ color: '#dc2626', fontSize: '12px', marginTop: '4px', display: 'block' }}>
+                    {productFormErrors.productCode}
+                  </span>
+                )}
               </div>
               <div className="form-group">
                 <label>Product Barcode <span className="required-asterisk">*</span> / باركود السلعة</label>
@@ -1143,8 +1272,16 @@ const Products: React.FC = () => {
                 type="text" 
                 className="glass-input" 
                 value={editingProduct.itemTitle} 
-                onChange={e => setEditingProduct((prev: any) => ({ ...prev, itemTitle: e.target.value }))} 
+                onChange={e => {
+                  setEditingProduct((prev: any) => ({ ...prev, itemTitle: e.target.value }));
+                  if (productFormErrors.itemTitle) setProductFormErrors(prev => ({ ...prev, itemTitle: undefined }));
+                }} 
               />
+              {productFormErrors.itemTitle && (
+                <span style={{ color: '#dc2626', fontSize: '12px', marginTop: '4px', display: 'block' }}>
+                  {productFormErrors.itemTitle}
+                </span>
+              )}
             </div>
             <div className="form-row">
               <div className="form-group">
@@ -1156,8 +1293,16 @@ const Products: React.FC = () => {
                   placeholder="0.00"
                   className="glass-input" 
                   value={editingProduct.price === 0 && !editingProduct.price ? '' : editingProduct.price} 
-                  onChange={e => setEditingProduct((prev: any) => ({ ...prev, price: parseFloat(e.target.value) || 0 }))} 
+                  onChange={e => {
+                    setEditingProduct((prev: any) => ({ ...prev, price: parseFloat(e.target.value) || 0 }));
+                    if (productFormErrors.price) setProductFormErrors(prev => ({ ...prev, price: undefined }));
+                  }} 
                 />
+                {productFormErrors.price && (
+                  <span style={{ color: '#dc2626', fontSize: '12px', marginTop: '4px', display: 'block' }}>
+                    {productFormErrors.price}
+                  </span>
+                )}
               </div>
               <div className="form-group">
                 <label>Original Price / السعر الأصلي</label>
@@ -1167,8 +1312,16 @@ const Products: React.FC = () => {
                   placeholder="0.00"
                   className="glass-input" 
                   value={editingProduct.originalPrice === 0 && !editingProduct.originalPrice ? '' : editingProduct.originalPrice} 
-                  onChange={e => setEditingProduct((prev: any) => ({ ...prev, originalPrice: parseFloat(e.target.value) || 0 }))} 
+                  onChange={e => {
+                    setEditingProduct((prev: any) => ({ ...prev, originalPrice: parseFloat(e.target.value) || 0 }));
+                    if (productFormErrors.originalPrice) setProductFormErrors(prev => ({ ...prev, originalPrice: undefined }));
+                  }} 
                 />
+                {productFormErrors.originalPrice && (
+                  <span style={{ color: '#dc2626', fontSize: '12px', marginTop: '4px', display: 'block' }}>
+                    {productFormErrors.originalPrice}
+                  </span>
+                )}
               </div>
             </div>
             <div className="form-row">
@@ -1180,8 +1333,16 @@ const Products: React.FC = () => {
                   className="glass-input"
                   placeholder="0.00"
                   value={editingProduct.vipPrice || ''}
-                  onChange={e => setEditingProduct((prev: any) => ({ ...prev, vipPrice: e.target.value }))}
+                  onChange={e => {
+                    setEditingProduct((prev: any) => ({ ...prev, vipPrice: e.target.value }));
+                    if (productFormErrors.vipPrice) setProductFormErrors(prev => ({ ...prev, vipPrice: undefined }));
+                  }}
                 />
+                {productFormErrors.vipPrice && (
+                  <span style={{ color: '#dc2626', fontSize: '12px', marginTop: '4px', display: 'block' }}>
+                    {productFormErrors.vipPrice}
+                  </span>
+                )}
               </div>
               <div className="form-group">
                 <label>Unit / الوحدة</label>
@@ -1252,7 +1413,7 @@ const Products: React.FC = () => {
               />
             </div>
             <div className="modal-actions">
-              <button type="button" className="btn-secondary" onClick={() => { setIsEditModalOpen(false); setIsViewOnly(false); }}>Cancel / إلغاء</button>
+              <button type="button" className="btn-secondary" onClick={() => { setIsEditModalOpen(false); setIsViewOnly(false); setProductFormErrors({}); }}>Cancel / إلغاء</button>
               {!isViewOnly && (
                 <button type="submit" className="btn-primary" disabled={isUpdating}>
                   {isUpdating ? <Loader2 className="animate-spin" size={18} /> : 'Save Changes / حفظ التغييرات'}

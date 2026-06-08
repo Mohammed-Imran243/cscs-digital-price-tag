@@ -141,6 +141,30 @@ const [showUserFilters, setShowUserFilters] = useState(false);
   const [isUserModalOpen, setIsUserModalOpen] = useState(false);
   const [isRoleModalOpen, setIsRoleModalOpen] = useState(false);
   const [formLoading, setFormLoading] = useState(false);
+
+  const [userFormErrors, setUserFormErrors] = useState<{
+    account?: string;
+    staffName?: string;
+    password?: string;
+    roleId?: string;
+  }>({});
+
+  const [roleFormErrors, setRoleFormErrors] = useState<{
+    roleName?: string;
+    menuIdList?: string;
+  }>({});
+
+  useEffect(() => {
+    if (!isUserModalOpen) {
+      setUserFormErrors({});
+    }
+  }, [isUserModalOpen]);
+
+  useEffect(() => {
+    if (!isRoleModalOpen) {
+      setRoleFormErrors({});
+    }
+  }, [isRoleModalOpen]);
   
   // User Form
   const [isEditingUser, setIsEditingUser] = useState(false);
@@ -440,8 +464,58 @@ const [showUserFilters, setShowUserFilters] = useState(false);
     setIsUserModalOpen(true);
   };
 
+  const validateUserForm = (): boolean => {
+    const errors: typeof userFormErrors = {};
+
+    // account — required, alphanumeric + underscore + dot, no spaces, max 50
+    if (!userFormData.account || userFormData.account.trim() === '') {
+      errors.account = 'Login account is required / حساب الدخول مطلوب';
+    } else if (userFormData.account.trim().length > 50) {
+      errors.account = 'Account must not exceed 50 characters';
+    } else if (!/^[a-zA-Z0-9_.]+$/.test(userFormData.account.trim())) {
+      errors.account = 'Account: letters, numbers, dots and underscores only — no spaces';
+    }
+
+    // staffName — required, letters + Arabic + spaces, max 100
+    if (!userFormData.staffName || userFormData.staffName.trim() === '') {
+      errors.staffName = 'Staff name is required / اسم الموظف مطلوب';
+    } else if (userFormData.staffName.trim().length > 100) {
+      errors.staffName = 'Staff name must not exceed 100 characters';
+    } else if (!/^[\u0600-\u06FFa-zA-Z\s]+$/.test(userFormData.staffName.trim())) {
+      errors.staffName = 'Staff name must contain letters only / الاسم يجب أن يحتوي على حروف فقط';
+    }
+
+    // password — required on CREATE only, min 6 chars, max 50
+    if (!isEditingUser) {
+      if (!userFormData.password || userFormData.password.trim() === '') {
+        errors.password = 'Password is required / كلمة المرور مطلوبة';
+      } else if (userFormData.password.length < 6) {
+        errors.password = 'Password must be at least 6 characters / كلمة المرور 6 أحرف على الأقل';
+      } else if (userFormData.password.length > 50) {
+        errors.password = 'Password must not exceed 50 characters';
+      }
+    } else {
+      if (userFormData.password && userFormData.password.trim() !== '') {
+        if (userFormData.password.length < 6) {
+          errors.password = 'Password must be at least 6 characters / كلمة المرور 6 أحرف على الأقل';
+        } else if (userFormData.password.length > 50) {
+          errors.password = 'Password must not exceed 50 characters';
+        }
+      }
+    }
+
+    // roleId — required dropdown
+    if (!userFormData.roleId || userFormData.roleId === '' || userFormData.roleId === '0') {
+      errors.roleId = 'Please assign a role / يرجى تعيين دور';
+    }
+
+    setUserFormErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
   const handleUserSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!validateUserForm()) return;
     setFormLoading(true);
     try {
       const payload: any = {
@@ -470,6 +544,7 @@ const [showUserFilters, setShowUserFilters] = useState(false);
       }
       
       setIsUserModalOpen(false);
+      setUserFormErrors({});
       fetchData();
     } catch (err: any) {
       showNotification(`Failed to ${isEditingUser ? 'update' : 'add'} user. Please try again. / فشل ${isEditingUser ? 'تحديث' : 'إضافة'} المستخدم. يرجى المحاولة مرة أخرى.`, 'error');
@@ -557,10 +632,17 @@ const [showUserFilters, setShowUserFilters] = useState(false);
         };
       }
     });
+    if (roleFormErrors.menuIdList) setRoleFormErrors(prev => ({ ...prev, menuIdList: undefined }));
   };
 
-  const handleSelectAll = () => setRoleFormData(prev => ({ ...prev, menuIdList: availablePermissions.map(p => p.id) }));
-  const handleClearAll = () => setRoleFormData(prev => ({ ...prev, menuIdList: [] }));
+  const handleSelectAll = () => {
+    setRoleFormData(prev => ({ ...prev, menuIdList: availablePermissions.map(p => p.id) }));
+    if (roleFormErrors.menuIdList) setRoleFormErrors(prev => ({ ...prev, menuIdList: undefined }));
+  };
+  const handleClearAll = () => {
+    setRoleFormData(prev => ({ ...prev, menuIdList: [] }));
+    if (roleFormErrors.menuIdList) setRoleFormErrors(prev => ({ ...prev, menuIdList: undefined }));
+  };
   const handleExpandAll = () => {
     const allExpanded: Record<number, boolean> = {};
     availablePermissions.forEach(p => { allExpanded[p.id] = true; });
@@ -568,8 +650,30 @@ const [showUserFilters, setShowUserFilters] = useState(false);
   };
   const handleCollapseAll = () => setExpandedMenuIds({});
 
+  const validateRoleForm = (): boolean => {
+    const errors: typeof roleFormErrors = {};
+
+    // roleName — required, letters + Arabic + alphanumeric + spaces, max 100
+    if (!roleFormData.roleName || roleFormData.roleName.trim() === '') {
+      errors.roleName = 'Role name is required / اسم الدور مطلوب';
+    } else if (roleFormData.roleName.trim().length > 100) {
+      errors.roleName = 'Role name must not exceed 100 characters';
+    } else if (!/^[\u0600-\u06FFa-zA-Z0-9\s\-_]+$/.test(roleFormData.roleName.trim())) {
+      errors.roleName = 'Role name contains invalid characters';
+    }
+
+    // menuIdList — at least one permission must be selected
+    if (!roleFormData.menuIdList || roleFormData.menuIdList.length === 0) {
+      errors.menuIdList = 'Please select at least one permission / يرجى اختيار صلاحية واحدة على الأقل';
+    }
+
+    setRoleFormErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
   const handleRoleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!validateRoleForm()) return;
     setFormLoading(true);
     try {
       if (isEditingRole && editingRoleId) {
@@ -580,6 +684,7 @@ const [showUserFilters, setShowUserFilters] = useState(false);
         showNotification('Role added successfully / تمت إضافة الدور بنجاح', 'success');
       }
       setIsRoleModalOpen(false);
+      setRoleFormErrors({});
       fetchData();
     } catch (err: any) {
       showNotification(`Failed to ${isEditingRole ? 'update' : 'add'} role. Please try again. / فشل ${isEditingRole ? 'تحديث' : 'إضافة'} الدور. يرجى المحاولة مرة أخرى.`, 'error');
@@ -915,7 +1020,7 @@ const [showUserFilters, setShowUserFilters] = useState(false);
           <div className="modal-content glass-card" style={{ maxHeight: '90vh', overflowY: 'auto' }}>
             <div className="modal-header">
               <h3>{isEditingUser ? 'Edit Staff User / تعديل الموظف' : 'Create New User / إنشاء مستخدم جديد'}</h3>
-              <button className="close-btn" onClick={() => setIsUserModalOpen(false)}>&times;</button>
+              <button className="close-btn" onClick={() => { setIsUserModalOpen(false); setUserFormErrors({}); }}>&times;</button>
             </div>
             
             <form onSubmit={handleUserSubmit} className="create-form">
@@ -926,10 +1031,18 @@ const [showUserFilters, setShowUserFilters] = useState(false);
                   type="text" 
                   disabled={isEditingUser}
                   value={userFormData.account}
-                  onChange={e => setUserFormData({ ...userFormData, account: e.target.value })}
+                  onChange={e => {
+                    setUserFormData({ ...userFormData, account: e.target.value });
+                    if (userFormErrors.account) setUserFormErrors(prev => ({ ...prev, account: undefined }));
+                  }}
                   className="glass-input" 
                   placeholder="6-20 alphanumeric characters / ٦-٢٠ حرفاً أو رقماً" 
                 />
+                {userFormErrors.account && (
+                  <span style={{ color: '#dc2626', fontSize: '12px', marginTop: '4px', display: 'block' }}>
+                    {userFormErrors.account}
+                  </span>
+                )}
               </div>
 
               <div className="form-group">
@@ -938,10 +1051,18 @@ const [showUserFilters, setShowUserFilters] = useState(false);
                   required 
                   type="text" 
                   value={userFormData.staffName}
-                  onChange={e => setUserFormData({ ...userFormData, staffName: e.target.value })}
+                  onChange={e => {
+                    setUserFormData({ ...userFormData, staffName: e.target.value });
+                    if (userFormErrors.staffName) setUserFormErrors(prev => ({ ...prev, staffName: undefined }));
+                  }}
                   className="glass-input" 
                   placeholder="e.g. Abdullah Salem / مثال: عبد الله سالم" 
                 />
+                {userFormErrors.staffName && (
+                  <span style={{ color: '#dc2626', fontSize: '12px', marginTop: '4px', display: 'block' }}>
+                    {userFormErrors.staffName}
+                  </span>
+                )}
               </div>
 
               <div className="form-group">
@@ -956,21 +1077,37 @@ const [showUserFilters, setShowUserFilters] = useState(false);
                   required={!isEditingUser}
                   type="password" 
                   value={userFormData.password}
-                  onChange={e => setUserFormData({ ...userFormData, password: e.target.value })}
+                  onChange={e => {
+                    setUserFormData({ ...userFormData, password: e.target.value });
+                    if (userFormErrors.password) setUserFormErrors(prev => ({ ...prev, password: undefined }));
+                  }}
                   className="glass-input" 
                   placeholder={isEditingUser ? 'Leave blank to keep current password / اتركه فارغاً للاحتفاظ بكلمة المرور الحالية' : 'Min 8 chars, mixed letters & numbers / ٨ أحرف على الأقل، حروف وأرقام مختلطة'} 
                 />
+                {userFormErrors.password && (
+                  <span style={{ color: '#dc2626', fontSize: '12px', marginTop: '4px', display: 'block' }}>
+                    {userFormErrors.password}
+                  </span>
+                )}
               </div>
 
               <div className="form-group">
                 <label>Assigned Role <span className="required-asterisk">*</span> / الدور المعين</label>
                 <CustomSelect
                   value={userFormData.roleId}
-                  onChange={(val: string | number) => setUserFormData({ ...userFormData, roleId: String(val) })}
+                  onChange={(val: string | number) => {
+                    setUserFormData({ ...userFormData, roleId: String(val) });
+                    if (userFormErrors.roleId) setUserFormErrors(prev => ({ ...prev, roleId: undefined }));
+                  }}
                   options={roles.map(r => ({ value: r.id || '', label: r.roleName }))}
                   placeholder="Select Security Role... / اختر دور الأمان..."
                   className="glass-input"
                 />
+                {userFormErrors.roleId && (
+                  <span style={{ color: '#dc2626', fontSize: '12px', marginTop: '4px', display: 'block' }}>
+                    {userFormErrors.roleId}
+                  </span>
+                )}
               </div>
 
               {/* ── Data Access Section ── */}
@@ -1067,7 +1204,7 @@ const [showUserFilters, setShowUserFilters] = useState(false);
               </div>
 
               <div className="modal-actions">
-                <button type="button" className="btn-secondary" onClick={() => setIsUserModalOpen(false)}>Cancel / إلغاء</button>
+                <button type="button" className="btn-secondary" onClick={() => { setIsUserModalOpen(false); setUserFormErrors({}); }}>Cancel / إلغاء</button>
                 <button type="submit" className="btn-primary" disabled={formLoading}>
                   {formLoading ? <Loader2 className="animate-spin" size={18} /> : isEditingUser ? 'Save User / حفظ المستخدم' : 'Add User / إضافة مستخدم'}
                 </button>
@@ -1178,7 +1315,7 @@ const [showUserFilters, setShowUserFilters] = useState(false);
           <div className="modal-content glass-card modal-content-wide">
             <div className="modal-header">
               <h3>{isEditingRole ? 'Edit Security Role / تعديل دور الأمان' : 'Create Custom Role / إنشاء دور مخصص'}</h3>
-              <button className="close-btn" onClick={() => setIsRoleModalOpen(false)}>&times;</button>
+              <button className="close-btn" onClick={() => { setIsRoleModalOpen(false); setRoleFormErrors({}); }}>&times;</button>
             </div>
             
             <form onSubmit={handleRoleSubmit} className="modal-form" style={{ display: 'flex', flexDirection: 'column', maxHeight: 'calc(100vh - 120px)', overflowY: 'auto', padding: 0 }}>
@@ -1189,10 +1326,18 @@ const [showUserFilters, setShowUserFilters] = useState(false);
                     required 
                     type="text" 
                     value={roleFormData.roleName}
-                    onChange={e => setRoleFormData({ ...roleFormData, roleName: e.target.value })}
+                    onChange={e => {
+                      setRoleFormData({ ...roleFormData, roleName: e.target.value });
+                      if (roleFormErrors.roleName) setRoleFormErrors(prev => ({ ...prev, roleName: undefined }));
+                    }}
                     className="glass-input" 
                     placeholder="e.g. Inventory Manager / مثال: مدير المخزون" 
                   />
+                  {roleFormErrors.roleName && (
+                    <span style={{ color: '#dc2626', fontSize: '12px', marginTop: '4px', display: 'block' }}>
+                      {roleFormErrors.roleName}
+                    </span>
+                  )}
                 </div>
                 <div className="form-group" style={{ marginBottom: 0 }}>
                   <label>Role Description (Optional) / وصف الدور (اختياري)</label>
@@ -1359,15 +1504,20 @@ const [showUserFilters, setShowUserFilters] = useState(false);
                       })()
                     )}
                   </div>
+                  {roleFormErrors.menuIdList && (
+                    <span style={{ color: '#dc2626', fontSize: '12px', marginTop: '4px', display: 'block', padding: '0 24px 16px 24px' }}>
+                      {roleFormErrors.menuIdList}
+                    </span>
+                  )}
                 </div>
               </div>
 
               <div className="modal-actions" style={{ padding: '24px', paddingTop: 0, justifyContent: 'flex-end', gap: '16px' }}>
-                <button type="button" className="btn-secondary" onClick={() => setIsRoleModalOpen(false)}>Cancel / إلغاء</button>
+                <button type="button" className="btn-secondary" onClick={() => { setIsRoleModalOpen(false); setRoleFormErrors({}); }}>Cancel / إلغاء</button>
                 <button 
                   type="submit" 
                   className="btn-primary" 
-                  disabled={formLoading || !roleFormData.roleName.trim() || roleFormData.menuIdList.length === 0}
+                  disabled={formLoading}
                   title={roleFormData.menuIdList.length === 0 ? "Select at least one permission to create a role" : ""}
                 >
                   {formLoading ? <Loader2 className="animate-spin" size={18} /> : isEditingRole ? 'Save Changes' : 'Create Role'}
