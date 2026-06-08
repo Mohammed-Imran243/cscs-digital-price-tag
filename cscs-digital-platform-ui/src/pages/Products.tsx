@@ -4,7 +4,7 @@ import { getProducts, createProduct, updateProductPrice, deleteProductFromStore,
 import type { Product, ProductCreateRequest } from '../services/productService';
 import { storeService } from '../services/storeService';
 import type { Store } from '../services/storeService';
-import { Search, Plus, Loader2, AlertTriangle, RefreshCw, Package, Store as StoreIcon, Upload, Edit2, Trash2, Copy } from 'lucide-react';
+import { X, Search, Plus, Loader2, AlertTriangle, RefreshCw, Package, Store as StoreIcon, Upload, Edit2, Trash2, Copy } from 'lucide-react';
 import { getPaginationRange } from '../utils/paginationUtils';
 import { getTemplates, getCategories, getTemplateTypes } from '../services/templateService';
 import { PageHeader, PageToolbar, ActionButtons } from '../components/common';
@@ -687,12 +687,16 @@ const Products: React.FC = () => {
             />
             <div className="global-search-bar">
               <Search size={16} className="text-muted" />
-              <input
-                type="text"
-                placeholder="Search products... / ابحث عن المنتجات..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-              />
+              <div style={{ position: 'relative', display: 'flex', alignItems: 'center', flex: 1 }}>
+                <input
+                  type="text"
+                  placeholder="Search products... / بحث في المنتجات..."
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  style={{ width: '100%', border: 'none', background: 'transparent', outline: 'none' }}
+                />
+                {search && (<button type="button" className="search-clear-btn" onClick={() => setSearch('')} style={{ position: 'absolute', right: '8px' }}><X size={14} /></button>)}
+              </div>
             </div>
             
             

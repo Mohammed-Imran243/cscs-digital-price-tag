@@ -227,16 +227,19 @@ const Stores: React.FC = () => {
         />
         <PageToolbar>
           <div style={{ display: 'flex', gap: '16px', flex: 1, alignItems: 'center' }}>
-            
-            <div className="global-search-bar">
-              <Search size={16} className="text-muted" />
-              <input
-                type="text"
-                placeholder="Search stores... / ابحث عن المتاجر..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-            </div>
+                        <div className="global-search-bar" style={{ position: 'relative' }}>
+                <Search size={16} className="text-muted" />
+                <div style={{ position: 'relative', display: 'flex', alignItems: 'center', flex: 1 }}>
+                  <input
+                    type="text"
+                    placeholder="Search stores... / بحث في المتاجر..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    style={{ width: '100%', border: 'none', background: 'transparent', outline: 'none' }}
+                  />
+                  {searchTerm && (<button type="button" className="search-clear-btn" onClick={() => setSearchTerm('')} style={{ position: 'absolute', right: '8px' }}><X size={14} /></button>)}
+                </div>
+              </div>
           </div>
           <ActionButtons
             onRefresh={() => fetchStores(true)}

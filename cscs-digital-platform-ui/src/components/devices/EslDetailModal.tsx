@@ -272,6 +272,7 @@ export const EslDetailModal: React.FC<EslDetailModalProps> = ({
         )}
 
         <div className="modal-actions">
+          <button className="btn-secondary" onClick={() => setDetailModalOpen(false)}>Cancel / إلغاء</button>
           {detailEsl && isAuthorized && (
             <button
               className="btn-primary"
@@ -283,7 +284,6 @@ export const EslDetailModal: React.FC<EslDetailModalProps> = ({
               <RefreshCw size={16} /> Force to Refresh / تحديث إجباري
             </button>
           )}
-          <button className="btn-secondary" onClick={() => setDetailModalOpen(false)}>Close / إغلاق</button>
         </div>
       </div>
     </div>
