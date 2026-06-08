@@ -9,3 +9,4 @@ export * from './CardGridLayout';
 export * from './DataTable';
 
 export * from "./StoreSelector";
+export * from './EslImage';

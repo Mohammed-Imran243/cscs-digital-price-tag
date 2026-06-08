@@ -41,7 +41,7 @@ import { X,
 
 import ImportExportModal from '../components/ImportExportModal';
 import { importTemplate, exportTemplates } from '../services/importExportService';
-import { PageHeader, PageToolbar, ActionButtons } from '../components/common';
+import { PageHeader, PageToolbar, ActionButtons, EslImage } from '../components/common';
 import { CustomSelect } from '../components/common/CustomSelect';
 import { getEslModelSpecs, renderEinkLayout } from '../utils/eslModelUtils';
 import { getPaginationRange } from '../utils/paginationUtils';
@@ -991,17 +991,19 @@ const Templates: React.FC = () => {
                             <td>{icon.createdTime || icon.uploadTime || icon.createTime || '-'}</td>
                             <td>
                               {icon.iconUrl || icon.url ? (
-                                <img
-                                  src={
-                                    (icon.iconUrl || icon.url).startsWith('http') || (icon.iconUrl || icon.url).startsWith('data:') 
-                                    ? (icon.iconUrl || icon.url) 
-                                    : (icon.iconUrl || icon.url).startsWith('//')
-                                    ? `http:${icon.iconUrl || icon.url}`
-                                    : `http://www.dragonesl.com/${(icon.iconUrl || icon.url).replace(/^\//, '')}`
-                                  }
-                                  alt="Store Icon"
-                                  style={{ width: '40px', height: '40px', objectFit: 'contain', borderRadius: '4px', border: '1px solid var(--glass-border)' }}
-                                />
+                                (icon.iconUrl || icon.url).startsWith('http') || (icon.iconUrl || icon.url).startsWith('data:') || (icon.iconUrl || icon.url).startsWith('//') ? (
+                                  <img
+                                    src={(icon.iconUrl || icon.url).startsWith('//') ? `https:${icon.iconUrl || icon.url}` : (icon.iconUrl || icon.url)}
+                                    alt="Store Icon"
+                                    style={{ width: '40px', height: '40px', objectFit: 'contain', borderRadius: '4px', border: '1px solid var(--glass-border)' }}
+                                  />
+                                ) : (
+                                  <EslImage
+                                    imagePath={(icon.iconUrl || icon.url).replace(/^\//, '')}
+                                    alt="Store Icon"
+                                    style={{ width: '40px', height: '40px', objectFit: 'contain', borderRadius: '4px', border: '1px solid var(--glass-border)' }}
+                                  />
+                                )
                               ) : (
                                 <span style={{ color: 'var(--text-muted)', fontSize: '12px' }}>No preview / لا معاينة</span>
                               )}
@@ -1573,8 +1575,8 @@ const Templates: React.FC = () => {
                 <div className="bezel-housing" style={{ width: '100%', maxWidth: `${specs.width + 32}px`, margin: '0 auto 16px auto', padding: '16px', background: '#1e293b', borderRadius: '16px' }}>
                   <div className="eink-panel dragon-esl-format" style={{ background: '#ffffff', width: '100%', aspectRatio: specs.aspectRatio, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', overflow: 'hidden', border: '1.5px solid #c8c8c8', borderRadius: '6px' }}>
                     {previewTemplate.tempPicUrl ? (
-                      <img 
-                        src={`http://www.dragonesl.com/${previewTemplate.tempPicUrl}`}
+                      <EslImage 
+                        imagePath={previewTemplate.tempPicUrl}
                         alt="Zkong Template Live Layout"
                         style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block' }}
                       />
@@ -2996,11 +2998,7 @@ const Templates: React.FC = () => {
                           }}
                         >
                           {t.tempPicUrl ? (
-                            <img 
-                              src={`http://www.dragonesl.com/${t.tempPicUrl}`}
-                              alt="Template Mini"
-                              style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block' }}
-                            />
+                            <EslImage imagePath={t.tempPicUrl} alt="Template Mini" style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block' }} />
                           ) : (() => {
                             const isComparison = t.attrCategory === 'K0001' || t.attrCategory === 'K0002' || t.templateName.includes('K0001') || t.templateName.includes('K0002') || t.templateName.includes('674') || t.templateName.includes('666');
                             return (
@@ -3056,11 +3054,7 @@ const Templates: React.FC = () => {
                                 <Loader2 className="animate-spin" size={24} />
                               </div>
                             ) : t.tempPicUrl ? (
-                              <img 
-                                src={`http://www.dragonesl.com/${t.tempPicUrl}`}
-                                alt="Live Template Preview"
-                                style={{ width: '100%', height: 'auto', maxHeight: '180px', borderRadius: '4px', objectFit: 'contain', display: 'block' }}
-                              />
+                              <EslImage imagePath={t.tempPicUrl} alt="Template Mini" style={{ width: "100%", height: "100%", objectFit: "contain", display: "block" }} />
                             ) : (() => {
                               const displayTitle = popoverProduct?.itemName || 'ثوب الصفوة 117A ولادي';
                               const displayPrice = popoverProduct?.price || '75';

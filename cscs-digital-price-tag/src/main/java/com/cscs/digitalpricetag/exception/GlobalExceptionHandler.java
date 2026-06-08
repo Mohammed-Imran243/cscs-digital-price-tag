@@ -24,6 +24,27 @@ public class GlobalExceptionHandler {
                 .body(ApiResponse.error(ex.getMessage(), originalStatus));
     }
 
+    @ExceptionHandler(DragonImageValidationException.class)
+    public ResponseEntity<ApiResponse<Void>> handleDragonImageValidationException(DragonImageValidationException ex) {
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(ApiResponse.error("Image Validation Error: " + ex.getMessage(), 400));
+    }
+
+    @ExceptionHandler(DragonImageNotFoundException.class)
+    public ResponseEntity<ApiResponse<Void>> handleDragonImageNotFoundException(DragonImageNotFoundException ex) {
+        return ResponseEntity
+                .status(HttpStatus.NOT_FOUND)
+                .body(ApiResponse.error("Image Not Found: " + ex.getMessage(), 404));
+    }
+
+    @ExceptionHandler(DragonImageFetchException.class)
+    public ResponseEntity<ApiResponse<Void>> handleDragonImageFetchException(DragonImageFetchException ex) {
+        return ResponseEntity
+                .status(HttpStatus.BAD_GATEWAY)
+                .body(ApiResponse.error("Image Fetch Error: " + ex.getMessage(), 502));
+    }
+
     // ── RSA Encryption Errors ─────────────────────────────────────────────────
 
     @ExceptionHandler(RsaEncryptionException.class)
